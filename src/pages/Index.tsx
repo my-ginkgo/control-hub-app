@@ -100,11 +100,13 @@ const Index = () => {
         .insert({
           ...project,
           user_id: session?.user?.id,
+          is_public: project.isPublic || false,
         });
 
       if (error) throw error;
       
       fetchProjects();
+      toast.success("Progetto aggiunto con successo!");
     } catch (error: any) {
       toast.error("Error adding project: " + error.message);
     }
@@ -158,3 +160,4 @@ const Index = () => {
 };
 
 export default Index;
+

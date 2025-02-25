@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -30,12 +31,13 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
     name: "",
     description: "",
     color: "#4F46E5",
+    isPublic: false,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onAddProject(newProject);
-    setNewProject({ name: "", description: "", color: "#4F46E5" });
+    setNewProject({ name: "", description: "", color: "#4F46E5", isPublic: false });
     setIsOpen(false);
   };
 
@@ -87,6 +89,16 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
                   }
                 />
               </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="is-public"
+                  checked={newProject.isPublic}
+                  onCheckedChange={(checked) =>
+                    setNewProject({ ...newProject, isPublic: checked })
+                  }
+                />
+                <Label htmlFor="is-public">Progetto pubblico</Label>
+              </div>
               <Button type="submit" className="w-full">
                 Aggiungi Progetto
               </Button>
@@ -115,3 +127,4 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
     </Sidebar>
   );
 }
+
