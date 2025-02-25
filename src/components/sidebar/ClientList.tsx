@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useRole } from "@/hooks/useRole";
 import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader } from "@/components/ui/sidebar";
 import { NewClientDialog } from "./NewClientDialog";
+import { useNavigate } from "react-router-dom";
 
 interface ClientListProps {
   clients: Client[];
@@ -23,9 +24,17 @@ export function ClientList({
 }: ClientListProps) {
   const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
   const { role } = useRole();
+  const navigate = useNavigate();
 
   const isCurrentUserClient = (client: Client) => {
     return client.user_id === client.user_id; // This will be fixed in a future update
+  };
+
+  const handleClientClick = (client: Client, event: React.MouseEvent) => {
+    const target = event.target as HTMLElement;
+    if (!target.closest("button")) {
+      navigate(`/client/${client.id}`);
+    }
   };
 
   return (
@@ -43,14 +52,15 @@ export function ClientList({
           {clients.map((client) => (
             <div
               key={client.id}
+              onClick={(e) => handleClientClick(client, e)}
               className={cn(
-                "group rounded-lg transition-all duration-200",
+                "group rounded-lg transition-all duration-200 cursor-pointer",
                 "hover:bg-black/20",
                 !client.is_public && isCurrentUserClient(client) && role === "ADMIN" && "bg-purple-500/10 hover:bg-purple-500/20"
               )}
             >
               <div
-                className="p-3 cursor-pointer"
+                className="p-3"
                 style={{
                   borderLeft: `4px solid ${client.color || "#4F46E5"}`,
                 }}
