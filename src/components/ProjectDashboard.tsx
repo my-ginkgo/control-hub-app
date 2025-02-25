@@ -61,17 +61,16 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
   const fetchTimeEntries = async () => {
     try {
       setIsLoading(true);
-      let query = supabase
+      const { data: entries, error } = await supabase
         .from("time_entries")
         .select(`
           *,
-          projects:project_id (
+          project:project_id (
             name
           )
         `)
-        .eq("project_id", project.id);
-
-      const { data: entries, error } = await query.order("date", { ascending: false });
+        .eq("project_id", project.id)
+        .order("date", { ascending: false });
 
       if (error) throw error;
 
@@ -103,7 +102,7 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
       const formattedEntries = entries.map((entry) => ({
         hours: entry.hours,
         billableHours: entry.billable_hours,
-        project: entry.projects?.name || "",
+        project: entry.project?.name || "",
         notes: entry.notes,
         date: entry.date,
         assignedUserId: entry.assigned_user_id,
@@ -211,3 +210,4 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
     </div>
   );
 }
+

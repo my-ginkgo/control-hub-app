@@ -54,7 +54,7 @@ const Index = () => {
         .from("time_entries")
         .select(`
           *,
-          projects:project_id (
+          project:project_id (
             name
           )
         `)
@@ -67,7 +67,7 @@ const Index = () => {
         id: entry.id,
         hours: entry.hours,
         billableHours: entry.billable_hours,
-        project: entry.projects?.name || "",
+        project: entry.project?.name || "",
         notes: entry.notes,
         date: entry.date,
         assignedUserId: entry.assigned_user_id,
