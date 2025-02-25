@@ -127,6 +127,10 @@ const Index = () => {
     setSelectedProject(project);
   };
 
+  const handleBackToDashboard = () => {
+    setSelectedProject(null);
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-[#1a1b26] text-white dark:bg-[#1a1b26] dark:text-white">
@@ -169,7 +173,10 @@ const Index = () => {
             </div>
             
             {selectedProject ? (
-              <ProjectDashboard project={selectedProject} />
+              <ProjectDashboard 
+                project={selectedProject} 
+                onBack={handleBackToDashboard}
+              />
             ) : (
               <>
                 <DashboardStats entries={timeEntries} />

@@ -10,12 +10,15 @@ import { TimeEntryData } from "./TimeEntry";
 import { Skeleton } from "./ui/skeleton";
 import { toast } from "sonner";
 import { ProjectTimeChart } from "./ProjectTimeChart";
+import { Button } from "./ui/button";
+import { ArrowLeft } from "lucide-react";
 
 interface ProjectDashboardProps {
   project: Project;
+  onBack?: () => void;
 }
 
-export function ProjectDashboard({ project }: ProjectDashboardProps) {
+export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
   const [timeEntries, setTimeEntries] = useState<TimeEntryData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { role } = useRole();
@@ -72,6 +75,15 @@ export function ProjectDashboard({ project }: ProjectDashboardProps) {
 
   return (
     <div className="space-y-6">
+      <Button
+        variant="ghost"
+        onClick={onBack}
+        className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Torna alla Dashboard
+      </Button>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-xl font-semibold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
