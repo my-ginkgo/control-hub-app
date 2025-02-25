@@ -1,16 +1,15 @@
-
-import { useState } from "react";
-import { Plus, Globe, Lock, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Client } from "@/types/Client";
-import { cn } from "@/lib/utils";
-import { useRole } from "@/hooks/useRole";
 import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader } from "@/components/ui/sidebar";
-import { NewClientDialog } from "./NewClientDialog";
-import { DeleteClientDialog } from "../client/DeleteClientDialog";
+import { useRole } from "@/hooks/useRole";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
+import { Client } from "@/types/Client";
+import { ChevronDown, ChevronUp, Globe, Lock, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "../AuthProvider";
+import { DeleteClientDialog } from "../client/DeleteClientDialog";
+import { NewClientDialog } from "./NewClientDialog";
 
 interface ClientListProps {
   clients: Client[];
@@ -21,13 +20,13 @@ interface ClientListProps {
   selectedClient?: Client;
 }
 
-export function ClientList({ 
-  clients, 
-  expandedClients, 
+export function ClientList({
+  clients,
+  expandedClients,
   toggleClientExpand,
   onClientAdded,
   onSelectClient,
-  selectedClient
+  selectedClient,
 }: ClientListProps) {
   const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -58,10 +57,7 @@ export function ClientList({
     if (!clientToDelete) return;
 
     try {
-      const { error } = await supabase
-        .from('clients')
-        .delete()
-        .eq('id', clientToDelete.id);
+      const { error } = await supabase.from("clients").delete().eq("id", clientToDelete.id);
 
       if (error) throw error;
 
@@ -77,8 +73,8 @@ export function ClientList({
   return (
     <SidebarGroup className="h-[50vh] flex flex-col">
       <SidebarHeader className="p-4 flex justify-between items-center shrink-0">
-        <SidebarGroupLabel className="text-lg font-semibold text-purple-400">Clienti</SidebarGroupLabel>
-        <NewClientDialog 
+        <SidebarGroupLabel className="text-lg font-semibold text-red-400">Clienti</SidebarGroupLabel>
+        <NewClientDialog
           isOpen={isClientDialogOpen}
           onOpenChange={setIsClientDialogOpen}
           onClientAdded={onClientAdded}
@@ -93,34 +89,36 @@ export function ClientList({
               className={cn(
                 "group/item rounded-lg transition-all duration-200 cursor-pointer",
                 "hover:bg-black/20",
-                !client.is_public && isCurrentUserClient(client) && role === "ADMIN" && "bg-purple-500/10 hover:bg-purple-500/20",
-                selectedClient?.id === client.id && "bg-purple-500/20"
-              )}
-            >
+                !client.is_public &&
+                  isCurrentUserClient(client) &&
+                  role === "ADMIN" &&
+                  "bg-red-500/10 hover:bg-red-500/20",
+                selectedClient?.id === client.id && "bg-red-500/20"
+              )}>
               <div
                 className="p-3"
                 style={{
                   borderLeft: `4px solid ${client.color || "#4F46E5"}`,
-                }}
-              >
+                }}>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     {client.is_public ? (
                       <Globe className="h-4 w-4 text-gray-400" />
                     ) : (
-                      <Lock className={cn(
-                        "h-4 w-4",
-                        isCurrentUserClient(client) && role === "ADMIN" 
-                          ? "text-purple-400" 
-                          : "text-gray-400"
-                      )} />
+                      <Lock
+                        className={cn(
+                          "h-4 w-4",
+                          isCurrentUserClient(client) && role === "ADMIN" ? "text-red-400" : "text-gray-400"
+                        )}
+                      />
                     )}
-                    <h3 className={cn(
-                      "font-medium",
-                      !client.is_public && isCurrentUserClient(client) && role === "ADMIN" 
-                        ? "text-purple-400" 
-                        : "text-gray-200"
-                    )}>
+                    <h3
+                      className={cn(
+                        "font-medium",
+                        !client.is_public && isCurrentUserClient(client) && role === "ADMIN"
+                          ? "text-red-400"
+                          : "text-gray-200"
+                      )}>
                       {client.name}
                     </h3>
                   </div>
@@ -130,8 +128,7 @@ export function ClientList({
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6 p-0 opacity-0 group-hover/item:opacity-100 transition-opacity"
-                        onClick={(e) => handleDeleteClick(client, e)}
-                      >
+                        onClick={(e) => handleDeleteClick(client, e)}>
                         <Trash2 className="h-4 w-4 text-gray-400" />
                       </Button>
                     )}
@@ -139,8 +136,7 @@ export function ClientList({
                       variant="ghost"
                       size="icon"
                       className="h-4 w-4 p-0"
-                      onClick={(e) => toggleClientExpand(client, e)}
-                    >
+                      onClick={(e) => toggleClientExpand(client, e)}>
                       {expandedClients.includes(client.id) ? (
                         <ChevronUp className="h-4 w-4 text-gray-400" />
                       ) : (
@@ -152,11 +148,8 @@ export function ClientList({
                 <div
                   className={cn(
                     "text-sm text-gray-400 overflow-hidden transition-all duration-200",
-                    expandedClients.includes(client.id)
-                      ? "max-h-24 mt-2"
-                      : "max-h-0 opacity-0"
-                  )}
-                >
+                    expandedClients.includes(client.id) ? "max-h-24 mt-2" : "max-h-0 opacity-0"
+                  )}>
                   {client.description}
                 </div>
               </div>
@@ -176,4 +169,3 @@ export function ClientList({
     </SidebarGroup>
   );
 }
-

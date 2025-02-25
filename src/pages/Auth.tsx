@@ -122,7 +122,7 @@ export default function Auth() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600">
+            className="w-full bg-gradient-to-r from-red-700 to-amber-400 hover:from-red-800 hover:to-amber-600">
             {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
           </Button>
           <button

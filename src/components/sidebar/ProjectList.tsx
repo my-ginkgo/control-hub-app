@@ -1,22 +1,21 @@
-
-import { useState } from "react";
-import { Plus, Globe, Lock, ChevronDown, ChevronUp, Pencil, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Project } from "@/types/Project";
-import { cn } from "@/lib/utils";
-import { useRole } from "@/hooks/useRole";
-import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader } from "@/components/ui/sidebar";
-import { NewProjectDialog } from "./NewProjectDialog";
-import { Client } from "@/types/Client";
 import { useAuth } from "@/components/AuthProvider";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { DeleteProjectDialog } from "@/components/project/DeleteProjectDialog";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader } from "@/components/ui/sidebar";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { useRole } from "@/hooks/useRole";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
+import { Client } from "@/types/Client";
+import { Project } from "@/types/Project";
+import { ChevronDown, ChevronUp, Globe, Lock, Pencil, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { NewProjectDialog } from "./NewProjectDialog";
 
 interface ProjectListProps {
   projects: Project[];
@@ -39,7 +38,7 @@ export function ProjectList({
   onSelectProject,
   onProjectAdded,
   onProjectDeleted,
-  onProjectUpdated
+  onProjectUpdated,
 }: ProjectListProps) {
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -51,7 +50,7 @@ export function ProjectList({
     description: "",
     clientId: "no_client",
     color: "",
-    isPublic: false
+    isPublic: false,
   });
   const { role } = useRole();
   const { session } = useAuth();
@@ -80,7 +79,7 @@ export function ProjectList({
       description: project.description || "",
       clientId: project.client_id || "no_client",
       color: project.color || "#4F46E5",
-      isPublic: project.is_public || false
+      isPublic: project.is_public || false,
     });
     setIsEditDialogOpen(true);
   };
@@ -90,16 +89,13 @@ export function ProjectList({
 
     try {
       const { error: timeEntriesError } = await supabase
-        .from('time_entries')
+        .from("time_entries")
         .delete()
-        .eq('project_id', projectToDelete.id);
+        .eq("project_id", projectToDelete.id);
 
       if (timeEntriesError) throw timeEntriesError;
 
-      const { error: projectError } = await supabase
-        .from('projects')
-        .delete()
-        .eq('id', projectToDelete.id);
+      const { error: projectError } = await supabase.from("projects").delete().eq("id", projectToDelete.id);
 
       if (projectError) throw projectError;
 
@@ -120,15 +116,15 @@ export function ProjectList({
 
     try {
       const { error } = await supabase
-        .from('projects')
+        .from("projects")
         .update({
           name: editFormData.name,
           description: editFormData.description,
           client_id: editFormData.clientId === "no_client" ? null : editFormData.clientId,
           color: editFormData.color,
-          is_public: editFormData.isPublic
+          is_public: editFormData.isPublic,
         })
-        .eq('id', projectToEdit.id);
+        .eq("id", projectToEdit.id);
 
       if (error) throw error;
 
@@ -147,8 +143,8 @@ export function ProjectList({
   return (
     <SidebarGroup className="h-[50vh] flex flex-col">
       <SidebarHeader className="p-4 flex justify-between items-center shrink-0">
-        <SidebarGroupLabel className="text-lg font-semibold text-purple-400">Progetti</SidebarGroupLabel>
-        <NewProjectDialog 
+        <SidebarGroupLabel className="text-lg font-semibold text-red-400">Progetti</SidebarGroupLabel>
+        <NewProjectDialog
           isOpen={isProjectDialogOpen}
           onOpenChange={setIsProjectDialogOpen}
           clients={clients}
@@ -163,35 +159,37 @@ export function ProjectList({
               className={cn(
                 "group/item rounded-lg transition-all duration-200",
                 "hover:bg-black/20",
-                !project.is_public && isCurrentUserProject(project) && role === "ADMIN" && "bg-purple-500/10 hover:bg-purple-500/20",
-                selectedProject?.id === project.id && "bg-purple-500/20"
-              )}
-            >
+                !project.is_public &&
+                  isCurrentUserProject(project) &&
+                  role === "ADMIN" &&
+                  "bg-red-500/10 hover:bg-red-500/20",
+                selectedProject?.id === project.id && "bg-red-500/20"
+              )}>
               <div
                 className="p-3 cursor-pointer"
                 onClick={() => handleProjectClick(project)}
                 style={{
                   borderLeft: `4px solid ${project.color || "#4F46E5"}`,
-                }}
-              >
+                }}>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     {project.is_public ? (
                       <Globe className="h-4 w-4 text-gray-400" />
                     ) : (
-                      <Lock className={cn(
-                        "h-4 w-4",
-                        isCurrentUserProject(project) && role === "ADMIN" 
-                          ? "text-purple-400" 
-                          : "text-gray-400"
-                      )} />
+                      <Lock
+                        className={cn(
+                          "h-4 w-4",
+                          isCurrentUserProject(project) && role === "ADMIN" ? "text-red-400" : "text-gray-400"
+                        )}
+                      />
                     )}
-                    <h3 className={cn(
-                      "font-medium",
-                      !project.is_public && isCurrentUserProject(project) && role === "ADMIN" 
-                        ? "text-purple-400" 
-                        : "text-gray-200"
-                    )}>
+                    <h3
+                      className={cn(
+                        "font-medium",
+                        !project.is_public && isCurrentUserProject(project) && role === "ADMIN"
+                          ? "text-red-400"
+                          : "text-gray-200"
+                      )}>
                       {project.name}
                     </h3>
                   </div>
@@ -202,16 +200,14 @@ export function ProjectList({
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6 p-0 opacity-0 group-hover/item:opacity-100 transition-opacity"
-                          onClick={(e) => handleEditClick(project, e)}
-                        >
+                          onClick={(e) => handleEditClick(project, e)}>
                           <Pencil className="h-4 w-4 text-gray-400" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6 p-0 opacity-0 group-hover/item:opacity-100 transition-opacity"
-                          onClick={(e) => handleDeleteClick(project, e)}
-                        >
+                          onClick={(e) => handleDeleteClick(project, e)}>
                           <Trash2 className="h-4 w-4 text-gray-400" />
                         </Button>
                       </>
@@ -220,8 +216,7 @@ export function ProjectList({
                       variant="ghost"
                       size="icon"
                       className="h-4 w-4 p-0"
-                      onClick={(e) => toggleProjectExpand(project, e)}
-                    >
+                      onClick={(e) => toggleProjectExpand(project, e)}>
                       {expandedProjects.includes(project.id) ? (
                         <ChevronUp className="h-4 w-4 text-gray-400" />
                       ) : (
@@ -233,11 +228,8 @@ export function ProjectList({
                 <div
                   className={cn(
                     "text-sm text-gray-400 overflow-hidden transition-all duration-200",
-                    expandedProjects.includes(project.id)
-                      ? "max-h-24 mt-2"
-                      : "max-h-0 opacity-0"
-                  )}
-                >
+                    expandedProjects.includes(project.id) ? "max-h-24 mt-2" : "max-h-0 opacity-0"
+                  )}>
                   {project.description}
                 </div>
               </div>
@@ -262,7 +254,9 @@ export function ProjectList({
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label htmlFor="name" className="text-sm text-gray-400">Nome</label>
+              <label htmlFor="name" className="text-sm text-gray-400">
+                Nome
+              </label>
               <Input
                 id="name"
                 value={editFormData.name}
@@ -271,7 +265,9 @@ export function ProjectList({
               />
             </div>
             <div>
-              <label htmlFor="description" className="text-sm text-gray-400">Descrizione</label>
+              <label htmlFor="description" className="text-sm text-gray-400">
+                Descrizione
+              </label>
               <Textarea
                 id="description"
                 value={editFormData.description}
@@ -280,11 +276,12 @@ export function ProjectList({
               />
             </div>
             <div>
-              <label htmlFor="client" className="text-sm text-gray-400">Cliente</label>
+              <label htmlFor="client" className="text-sm text-gray-400">
+                Cliente
+              </label>
               <Select
                 value={editFormData.clientId}
-                onValueChange={(value) => setEditFormData({ ...editFormData, clientId: value })}
-              >
+                onValueChange={(value) => setEditFormData({ ...editFormData, clientId: value })}>
                 <SelectTrigger className="bg-[#2a2b3d] border-[#383a5c] text-white">
                   <SelectValue placeholder="Seleziona un cliente" />
                 </SelectTrigger>
@@ -293,11 +290,7 @@ export function ProjectList({
                     Nessun cliente
                   </SelectItem>
                   {clients.map((client) => (
-                    <SelectItem 
-                      key={client.id} 
-                      value={client.id}
-                      className="text-white hover:bg-[#2a2b3d]"
-                    >
+                    <SelectItem key={client.id} value={client.id} className="text-white hover:bg-[#2a2b3d]">
                       {client.name}
                     </SelectItem>
                   ))}
@@ -305,7 +298,9 @@ export function ProjectList({
               </Select>
             </div>
             <div>
-              <label htmlFor="color" className="text-sm text-gray-400">Colore</label>
+              <label htmlFor="color" className="text-sm text-gray-400">
+                Colore
+              </label>
               <Input
                 id="color"
                 type="color"
@@ -320,21 +315,19 @@ export function ProjectList({
                 checked={editFormData.isPublic}
                 onCheckedChange={(checked) => setEditFormData({ ...editFormData, isPublic: checked })}
               />
-              <label htmlFor="is-public" className="text-sm text-gray-400">Progetto pubblico</label>
+              <label htmlFor="is-public" className="text-sm text-gray-400">
+                Progetto pubblico
+              </label>
             </div>
           </div>
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => setIsEditDialogOpen(false)}
-              className="bg-[#2a2b3d] border-[#383a5c] text-white hover:bg-[#383a5c]"
-            >
+              className="bg-[#2a2b3d] border-[#383a5c] text-white hover:bg-[#383a5c]">
               Annulla
             </Button>
-            <Button
-              onClick={handleEditSave}
-              className="bg-purple-500 hover:bg-purple-600 text-white"
-            >
+            <Button onClick={handleEditSave} className="bg-red-500 hover:bg-red-600 text-white">
               Salva
             </Button>
           </DialogFooter>

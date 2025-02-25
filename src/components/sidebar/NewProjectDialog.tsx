@@ -1,22 +1,15 @@
-
-import { useState } from "react";
+import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { useAuth } from "@/components/AuthProvider";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { Client } from "@/types/Client";
+import { Plus } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface NewProjectDialogProps {
   isOpen: boolean;
@@ -25,12 +18,7 @@ interface NewProjectDialogProps {
   onProjectAdded: () => void;
 }
 
-export function NewProjectDialog({ 
-  isOpen, 
-  onOpenChange, 
-  clients,
-  onProjectAdded 
-}: NewProjectDialogProps) {
+export function NewProjectDialog({ isOpen, onOpenChange, clients, onProjectAdded }: NewProjectDialogProps) {
   const { session } = useAuth();
   const [newProject, setNewProject] = useState({
     name: "",
@@ -43,19 +31,17 @@ export function NewProjectDialog({
   const handleAddProject = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await supabase
-        .from("projects")
-        .insert({
-          name: newProject.name,
-          description: newProject.description,
-          color: newProject.color,
-          is_public: newProject.isPublic,
-          user_id: session?.user?.id,
-          client_id: newProject.clientId || null,
-        });
+      const { error } = await supabase.from("projects").insert({
+        name: newProject.name,
+        description: newProject.description,
+        color: newProject.color,
+        is_public: newProject.isPublic,
+        user_id: session?.user?.id,
+        client_id: newProject.clientId || null,
+      });
 
       if (error) throw error;
-      
+
       onProjectAdded();
       setNewProject({ name: "", description: "", color: "#4F46E5", isPublic: false, clientId: "" });
       onOpenChange(false);
@@ -68,11 +54,7 @@ export function NewProjectDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          className="bg-black/20 border-0 hover:bg-black/40"
-        >
+        <Button variant="outline" size="icon" className="bg-black/20 border-0 hover:bg-black/40">
           <Plus className="h-4 w-4" />
         </Button>
       </DialogTrigger>
@@ -82,38 +64,37 @@ export function NewProjectDialog({
         </DialogHeader>
         <form onSubmit={handleAddProject} className="space-y-4">
           <div>
-            <Label htmlFor="name" className="text-gray-400">Nome</Label>
+            <Label htmlFor="name" className="text-gray-400">
+              Nome
+            </Label>
             <Input
               id="name"
               value={newProject.name}
-              onChange={(e) =>
-                setNewProject({ ...newProject, name: e.target.value })
-              }
+              onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
               className="bg-[#2a2b3d] border-[#383a5c] text-white"
               required
             />
           </div>
           <div>
-            <Label htmlFor="description" className="text-gray-400">Descrizione</Label>
+            <Label htmlFor="description" className="text-gray-400">
+              Descrizione
+            </Label>
             <Textarea
               id="description"
               value={newProject.description}
-              onChange={(e) =>
-                setNewProject({ ...newProject, description: e.target.value })
-              }
+              onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
               className="bg-[#2a2b3d] border-[#383a5c] text-white"
             />
           </div>
           <div>
-            <Label htmlFor="client" className="text-gray-400">Cliente</Label>
+            <Label htmlFor="client" className="text-gray-400">
+              Cliente
+            </Label>
             <select
               id="client"
               value={newProject.clientId}
-              onChange={(e) =>
-                setNewProject({ ...newProject, clientId: e.target.value })
-              }
-              className="w-full bg-[#2a2b3d] border-[#383a5c] text-white rounded-md p-2"
-            >
+              onChange={(e) => setNewProject({ ...newProject, clientId: e.target.value })}
+              className="w-full bg-[#2a2b3d] border-[#383a5c] text-white rounded-md p-2">
               <option value="">Seleziona un cliente</option>
               {clients.map((client) => (
                 <option key={client.id} value={client.id}>
@@ -123,14 +104,14 @@ export function NewProjectDialog({
             </select>
           </div>
           <div>
-            <Label htmlFor="color" className="text-gray-400">Colore (opzionale)</Label>
+            <Label htmlFor="color" className="text-gray-400">
+              Colore (opzionale)
+            </Label>
             <Input
               id="color"
               type="color"
               value={newProject.color}
-              onChange={(e) =>
-                setNewProject({ ...newProject, color: e.target.value })
-              }
+              onChange={(e) => setNewProject({ ...newProject, color: e.target.value })}
               className="bg-[#2a2b3d] border-[#383a5c] h-10"
             />
           </div>
@@ -138,16 +119,13 @@ export function NewProjectDialog({
             <Switch
               id="is-public"
               checked={newProject.isPublic}
-              onCheckedChange={(checked) =>
-                setNewProject({ ...newProject, isPublic: checked })
-              }
+              onCheckedChange={(checked) => setNewProject({ ...newProject, isPublic: checked })}
             />
-            <Label htmlFor="is-public" className="text-gray-400">Progetto pubblico</Label>
+            <Label htmlFor="is-public" className="text-gray-400">
+              Progetto pubblico
+            </Label>
           </div>
-          <Button 
-            type="submit" 
-            className="w-full bg-purple-500 hover:bg-purple-600 text-white"
-          >
+          <Button type="submit" className="w-full bg-red-500 hover:bg-red-600 text-white">
             Aggiungi Progetto
           </Button>
         </form>

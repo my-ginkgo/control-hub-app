@@ -1,10 +1,10 @@
+import { Project } from "@/types/Project";
 import { useState } from "react";
+import { ProjectSelect } from "./time-entry/ProjectSelect";
+import { UserSelect } from "./time-entry/UserSelect";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
-import { Project } from "@/types/Project";
-import { UserSelect } from "./time-entry/UserSelect";
-import { ProjectSelect } from "./time-entry/ProjectSelect";
 
 export interface TimeEntryData {
   id?: string;
@@ -38,7 +38,7 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const now = new Date().toISOString();
-    
+
     onSubmit({
       hours: Number(hours),
       billableHours: Number(billableHours),
@@ -62,12 +62,8 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <ProjectSelect
-        projects={projects}
-        selectedProject={project}
-        onProjectChange={setProject}
-      />
-      
+      <ProjectSelect projects={projects} selectedProject={project} onProjectChange={setProject} />
+
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <label htmlFor="hours" className="text-sm text-white">
@@ -83,7 +79,7 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
             className="bg-[#2a2b3d] border-[#383a5c] text-white"
           />
         </div>
-        
+
         <div className="space-y-2">
           <label htmlFor="billableHours" className="text-sm text-white">
             Ore Fatturabili
@@ -114,7 +110,7 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
             className="bg-[#2a2b3d] border-[#383a5c] text-white"
           />
         </div>
-        
+
         <div className="space-y-2">
           <label htmlFor="endDate" className="text-sm text-white">
             Data Fine
@@ -130,10 +126,7 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
         </div>
       </div>
 
-      <UserSelect
-        selectedUserId={assignedUserId}
-        onUserChange={setAssignedUserId}
-      />
+      <UserSelect selectedUserId={assignedUserId} onUserChange={setAssignedUserId} />
 
       <div className="space-y-2">
         <label htmlFor="notes" className="text-sm text-white">
@@ -149,8 +142,7 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
 
       <Button
         type="submit"
-        className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
-      >
+        className="w-full bg-gradient-to-r from-red-700 to-amber-400 hover:from-red-800 hover:to-amber-600">
         Registra Ore
       </Button>
     </form>

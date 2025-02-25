@@ -93,7 +93,7 @@ const AdminUsers = () => {
                       className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${
                         profile.role === "ADMIN"
                           ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                          : "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                          : "bg-red-500/20 text-red-400 border border-red-500/30"
                       }`}>
                       {profile.role}
                     </span>
