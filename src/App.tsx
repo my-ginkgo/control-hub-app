@@ -12,6 +12,10 @@ import { useEffect, useState } from "react";
 import { Project } from "@/types/Project";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+// Create a client
+const queryClient = new QueryClient();
 
 function ProjectDashboardWrapper() {
   const [project, setProject] = useState<Project | null>(null);
@@ -45,21 +49,24 @@ function ProjectDashboardWrapper() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <ThemeProvider>
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/project/:id" element={<ProjectDashboardWrapper />} />
-            <Route path="/client/:id" element={<ClientPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
-        </AuthProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <ThemeProvider>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/project/:id" element={<ProjectDashboardWrapper />} />
+              <Route path="/client/:id" element={<ClientPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Toaster />
+          </AuthProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 
 export default App;
+
