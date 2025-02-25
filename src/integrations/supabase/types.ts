@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      clients: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           bio: string | null
@@ -41,6 +71,7 @@ export type Database = {
       }
       projects: {
         Row: {
+          client_id: string | null
           color: string | null
           created_at: string
           description: string | null
@@ -50,6 +81,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          client_id?: string | null
           color?: string | null
           created_at?: string
           description?: string | null
@@ -59,6 +91,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          client_id?: string | null
           color?: string | null
           created_at?: string
           description?: string | null
@@ -67,7 +100,15 @@ export type Database = {
           name?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       time_entries: {
         Row: {
