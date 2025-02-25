@@ -1,4 +1,5 @@
-# Welcome to your Lovable project
+
+# Welcome to OmniTrack
 
 ## Project info
 
@@ -67,3 +68,4 @@ Simply open [Lovable](https://lovable.dev/projects/ed54b32e-0fbd-47f4-b98b-5d1d8
 ## I want to use a custom domain - is that possible?
 
 We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+
