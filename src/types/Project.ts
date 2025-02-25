@@ -6,4 +6,5 @@ export interface Project {
   color?: string;
   is_public?: boolean;
   user_id?: string;
+  client_id?: string | null;
 }
