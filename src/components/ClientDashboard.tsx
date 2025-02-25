@@ -1,14 +1,15 @@
-
 import { useEffect, useState } from "react";
 import { Client } from "@/types/Client";
 import { Project } from "@/types/Project";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building, Clock } from "lucide-react";
+import { ArrowLeft, Building, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Separator } from "./ui/separator";
 import { ClientProjectsChart } from "./ClientProjectsChart";
+import { useNavigate } from "react-router-dom";
+import { DeleteClientDialog } from "./client/DeleteClientDialog";
 
 interface ClientDashboardProps {
   client: Client;
@@ -29,6 +30,8 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
     totalProjects: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchProjectsAndTotals();
@@ -72,18 +75,46 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
     }
   };
 
+  const handleDeleteClient = async () => {
+    try {
+      const { error } = await supabase
+        .from("clients")
+        .delete()
+        .eq("id", client.id);
+
+      if (error) throw error;
+
+      toast.success("Cliente eliminato con successo");
+      setIsDeleteDialogOpen(false);
+      navigate("/");
+    } catch (error: any) {
+      toast.error("Errore durante l'eliminazione del cliente: " + error.message);
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onBack}
+            className="h-8 w-8"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h2 className="text-lg font-semibold">Torna alla dashboard</h2>
+        </div>
         <Button
-          variant="ghost"
-          size="icon"
-          onClick={onBack}
-          className="h-8 w-8"
+          variant="destructive"
+          size="sm"
+          onClick={() => setIsDeleteDialogOpen(true)}
+          className="bg-red-500 hover:bg-red-600"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <Trash2 className="h-4 w-4 mr-2" />
+          Elimina Cliente
         </Button>
-        <h2 className="text-lg font-semibold">Torna alla dashboard</h2>
       </div>
 
       <Card>
@@ -162,6 +193,13 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
           </div>
         </CardContent>
       </Card>
+
+      <DeleteClientDialog
+        client={client}
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirmDelete={handleDeleteClient}
+      />
     </div>
   );
 }
