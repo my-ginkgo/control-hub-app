@@ -16,6 +16,7 @@ import { Link } from "react-router-dom";
 import { TimeEntryDialog } from "@/components/TimeEntryDialog";
 import { useEffect } from "react";
 import { ProjectDashboard } from "@/components/ProjectDashboard";
+import { DocsDialog } from "@/components/docs/DocsDialog";
 
 const Index = () => {
   const [timeEntries, setTimeEntries] = useState<TimeEntryData[]>([]);
@@ -160,6 +161,7 @@ const Index = () => {
                     <Moon className="h-5 w-5" />
                   )}
                 </Button>
+                <DocsDialog />
                 <Button
                   variant="outline"
                   size="icon"
