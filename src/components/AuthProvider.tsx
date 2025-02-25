@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 interface AuthContextType {
   session: Session | null;
   signOut: () => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,25 +39,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     navigate("/auth");
   };
 
-  const signInWithGoogle = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin
-      }
-    });
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-foreground">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-[#1a1b26]">
+        <div className="text-white">Loading...</div>
       </div>
     );
   }
 
   return (
-    <AuthContext.Provider value={{ session, signOut, signInWithGoogle }}>
+    <AuthContext.Provider value={{ session, signOut }}>
       {children}
     </AuthContext.Provider>
   );
