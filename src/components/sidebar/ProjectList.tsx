@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Plus, Globe, Lock, ChevronDown, ChevronUp, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,6 +30,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
 interface ProjectListProps {
   projects: Project[];
@@ -40,6 +40,8 @@ interface ProjectListProps {
   toggleProjectExpand: (project: Project, event: React.MouseEvent) => void;
   onSelectProject?: (project: Project) => void;
   onProjectAdded: () => void;
+  onProjectDeleted?: () => void;
+  onProjectUpdated?: () => void;
 }
 
 export function ProjectList({
@@ -50,6 +52,8 @@ export function ProjectList({
   toggleProjectExpand,
   onSelectProject,
   onProjectAdded,
+  onProjectDeleted,
+  onProjectUpdated
 }: ProjectListProps) {
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -115,6 +119,9 @@ export function ProjectList({
 
       toast.success("Progetto eliminato con successo");
       onProjectAdded();
+      if (onProjectDeleted) {
+        onProjectDeleted();
+      }
       setIsDeleteDialogOpen(false);
       setProjectToDelete(null);
     } catch (error: any) {
@@ -141,6 +148,9 @@ export function ProjectList({
 
       toast.success("Progetto aggiornato con successo");
       onProjectAdded();
+      if (onProjectUpdated) {
+        onProjectUpdated();
+      }
       setIsEditDialogOpen(false);
       setProjectToEdit(null);
     } catch (error: any) {
@@ -286,7 +296,7 @@ export function ProjectList({
                 id="description"
                 value={editFormData.description}
                 onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
-                className="bg-[#2a2b3d] border-[#383a5c] text-white"
+                className="bg-[#2a2b3d] border-[#383a5c] text-white h-24"
               />
             </div>
             <div>
@@ -321,8 +331,16 @@ export function ProjectList({
                 type="color"
                 value={editFormData.color}
                 onChange={(e) => setEditFormData({ ...editFormData, color: e.target.value })}
-                className="bg-[#2a2b3d] border-[#383a5c] h-10"
+                className="bg-[#2a2b3d] border-[#383a5c] h-10 w-full"
               />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="is-public"
+                checked={editFormData.isPublic}
+                onCheckedChange={(checked) => setEditFormData({ ...editFormData, isPublic: checked })}
+              />
+              <label htmlFor="is-public" className="text-sm text-gray-400">Progetto pubblico</label>
             </div>
           </div>
           <DialogFooter>

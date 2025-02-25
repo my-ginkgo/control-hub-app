@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { TimeEntryData } from "@/components/TimeEntry";
 import { TimeTable } from "@/components/TimeTable";
@@ -153,6 +152,14 @@ const Index = () => {
           selectedProject={selectedProject}
           selectedClient={selectedClient}
           onSelectClient={handleSelectClient}
+          onProjectDeleted={() => {
+            fetchProjects();
+            fetchTimeEntries();
+          }}
+          onProjectUpdated={() => {
+            fetchProjects();
+            fetchTimeEntries();
+          }}
         />
         <div className="flex-1">
           <div className="container py-4 md:py-8 px-4 md:px-8">

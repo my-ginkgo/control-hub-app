@@ -17,6 +17,8 @@ interface ProjectSidebarProps {
   selectedProject?: Project;
   selectedClient?: Client;
   onSelectClient?: (client: Client) => void;
+  onProjectDeleted?: () => void;
+  onProjectUpdated?: () => void;
 }
 
 export function ProjectSidebar({ 
@@ -25,7 +27,9 @@ export function ProjectSidebar({
   onSelectProject,
   selectedProject,
   selectedClient,
-  onSelectClient
+  onSelectClient,
+  onProjectDeleted,
+  onProjectUpdated
 }: ProjectSidebarProps) {
   const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
   const [expandedClients, setExpandedClients] = useState<string[]>([]);
@@ -102,9 +106,10 @@ export function ProjectSidebar({
               fetchClients();
             }
           }}
+          onProjectDeleted={onProjectDeleted}
+          onProjectUpdated={onProjectUpdated}
         />
       </SidebarContent>
     </Sidebar>
   );
 }
-
