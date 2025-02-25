@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { TimeTable } from "./TimeTable";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -63,12 +62,7 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
       setIsLoading(true);
       const { data: entries, error } = await supabase
         .from("time_entries")
-        .select(`
-          *,
-          project:project_id (
-            name
-          )
-        `)
+        .select("*, projects!time_entries_project_id_fkey(name)")
         .eq("project_id", project.id)
         .order("date", { ascending: false });
 
@@ -102,7 +96,7 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
       const formattedEntries = entries.map((entry) => ({
         hours: entry.hours,
         billableHours: entry.billable_hours,
-        project: entry.project?.name || "",
+        project: entry.projects?.name || "",
         notes: entry.notes,
         date: entry.date,
         assignedUserId: entry.assigned_user_id,
@@ -210,4 +204,3 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
     </div>
   );
 }
-

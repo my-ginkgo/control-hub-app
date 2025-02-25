@@ -52,12 +52,7 @@ const Index = () => {
     try {
       const { data, error } = await supabase
         .from("time_entries")
-        .select(`
-          *,
-          project:project_id (
-            name
-          )
-        `)
+        .select("*, projects!time_entries_project_id_fkey(name)")
         .eq('user_id', session?.user?.id)
         .order("date", { ascending: false });
 
@@ -67,7 +62,7 @@ const Index = () => {
         id: entry.id,
         hours: entry.hours,
         billableHours: entry.billable_hours,
-        project: entry.project?.name || "",
+        project: entry.projects?.name || "",
         notes: entry.notes,
         date: entry.date,
         assignedUserId: entry.assigned_user_id,
