@@ -6,12 +6,15 @@ import { useRole } from "@/hooks/useRole";
 import { useAuth } from "./AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { Project } from "@/types/Project";
+import { Client } from "@/types/Client";
 import { TimeEntryData } from "./TimeEntry";
 import { Skeleton } from "./ui/skeleton";
 import { toast } from "sonner";
 import { ProjectTimeChart } from "./ProjectTimeChart";
 import { Button } from "./ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Building } from "lucide-react";
+import { Separator } from "./ui/separator";
+import { Link } from "react-router-dom";
 
 interface ProjectDashboardProps {
   project: Project;
@@ -27,6 +30,7 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
   const [timeEntries, setTimeEntries] = useState<TimeEntryData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userInfoMap, setUserInfoMap] = useState<Record<string, UserInfo>>({});
+  const [client, setClient] = useState<Client | null>(null);
   const { role } = useRole();
   const { session } = useAuth();
   const [totalHours, setTotalHours] = useState(0);
@@ -34,7 +38,25 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
 
   useEffect(() => {
     fetchTimeEntries();
-  }, [project.id, role, session?.user?.id]);
+    if (project.client_id) {
+      fetchClient();
+    }
+  }, [project.id, project.client_id, role, session?.user?.id]);
+
+  const fetchClient = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("*")
+        .eq("id", project.client_id)
+        .single();
+
+      if (error) throw error;
+      setClient(data);
+    } catch (error: any) {
+      toast.error("Errore nel caricamento del cliente: " + error.message);
+    }
+  };
 
   const fetchTimeEntries = async () => {
     try {
@@ -122,6 +144,23 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {project.description}
             </p>
+          )}
+          {client && (
+            <div className="mt-4">
+              <Separator className="my-4" />
+              <Link 
+                to={`/client/${client.id}`}
+                className="flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Building className="mr-2 h-4 w-4" />
+                Cliente: {client.name}
+              </Link>
+              {client.description && (
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  {client.description}
+                </p>
+              )}
+            </div>
           )}
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
