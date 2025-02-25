@@ -44,8 +44,8 @@ const User = () => {
     queryKey: ["admin-profiles", userId],
     queryFn: async () => {
       try {
-        // If viewing a specific user and not admin view
-        if (userId && userId !== session.user.id) {
+        // If viewing a specific user's profile
+        if (id) {
           const { data: profile, error: profileError } = await supabase
             .from("profiles")
             .select("*")
@@ -132,7 +132,7 @@ const User = () => {
         </Button>
 
         <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-          {userId === session.user.id || !userId ? "Gestione Utenti" : "Profilo Utente"}
+          {id ? "Profilo Utente" : "Gestione Utenti"}
         </h1>
 
         <Card className="p-6 bg-[#24253a] border-[#383a5c]">
@@ -143,7 +143,9 @@ const User = () => {
                 <TableHead className="text-gray-400">Email</TableHead>
                 <TableHead className="text-gray-400">Ruolo</TableHead>
                 <TableHead className="text-gray-400">Stato</TableHead>
-                <TableHead className="text-gray-400">Azioni</TableHead>
+                {!id && role === "ADMIN" && (
+                  <TableHead className="text-gray-400">Azioni</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -168,26 +170,36 @@ const User = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
-                      <Switch
-                        checked={!profile.is_disabled}
-                        onCheckedChange={() => handleToggleUserStatus(profile.id, profile.is_disabled)}
-                        className={profile.is_disabled ? "bg-red-500/20" : ""}
-                      />
-                      <span className="text-sm text-muted-foreground">
-                        {profile.is_disabled ? "Disabilitato" : "Attivo"}
-                      </span>
+                      {role === "ADMIN" ? (
+                        <>
+                          <Switch
+                            checked={!profile.is_disabled}
+                            onCheckedChange={() => handleToggleUserStatus(profile.id, profile.is_disabled)}
+                            className={profile.is_disabled ? "bg-red-500/20" : ""}
+                          />
+                          <span className="text-sm text-muted-foreground">
+                            {profile.is_disabled ? "Disabilitato" : "Attivo"}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">
+                          {profile.is_disabled ? "Disabilitato" : "Attivo"}
+                        </span>
+                      )}
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate(`/user/${profile.id}`)}
-                      className="text-muted-foreground hover:text-foreground"
-                    >
-                      Visualizza
-                    </Button>
-                  </TableCell>
+                  {!id && role === "ADMIN" && (
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(`/user/${profile.id}`)}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        Visualizza
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
