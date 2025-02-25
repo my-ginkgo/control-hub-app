@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { TimeEntryData } from "./TimeEntry";
 import { Line } from "react-chartjs-2";
