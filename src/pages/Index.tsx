@@ -32,7 +32,7 @@ const Index = () => {
             <h1 className="text-4xl font-bold mb-8 text-center">Time Tracker</h1>
             <DashboardStats entries={timeEntries} />
             <div className="grid grid-cols-1 gap-8">
-              <TimeEntry onSubmit={handleNewEntry} />
+              <TimeEntry onSubmit={handleNewEntry} projects={projects} />
               {timeEntries.length > 0 && <TimeTable entries={timeEntries} />}
             </div>
           </div>

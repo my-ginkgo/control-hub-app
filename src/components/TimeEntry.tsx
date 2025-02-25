@@ -5,12 +5,34 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { Project } from "@/types/Project";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export function TimeEntry({ onSubmit }: { onSubmit: (data: TimeEntryData) => void }) {
+interface TimeEntryProps {
+  onSubmit: (data: TimeEntryData) => void;
+  projects: Project[];
+}
+
+export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
   const [hours, setHours] = useState("");
   const [billableHours, setBillableHours] = useState("");
   const [project, setProject] = useState("");
   const [notes, setNotes] = useState("");
+  const [open, setOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,13 +95,52 @@ export function TimeEntry({ onSubmit }: { onSubmit: (data: TimeEntryData) => voi
           <label htmlFor="project" className="text-sm font-medium">
             Progetto *
           </label>
-          <Input
-            id="project"
-            value={project}
-            onChange={(e) => setProject(e.target.value)}
-            placeholder="Nome del progetto"
-            className="w-full"
-          />
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={open}
+                className="w-full justify-between text-left font-normal"
+              >
+                {project
+                  ? projects.find((p) => p.name === project)?.name
+                  : "Seleziona un progetto..."}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0">
+              <Command>
+                <CommandInput placeholder="Cerca progetto..." />
+                <CommandList>
+                  <CommandEmpty>Nessun progetto trovato.</CommandEmpty>
+                  <CommandGroup>
+                    {projects.map((p) => (
+                      <CommandItem
+                        key={p.id}
+                        onSelect={() => {
+                          setProject(p.name);
+                          setOpen(false);
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: p.color || "#4F46E5" }}
+                        />
+                        <span>{p.name}</span>
+                        <Check
+                          className={cn(
+                            "ml-auto h-4 w-4",
+                            project === p.name ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
         <div className="space-y-2">
           <label htmlFor="notes" className="text-sm font-medium">
