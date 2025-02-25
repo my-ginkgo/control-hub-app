@@ -38,6 +38,7 @@ export type Database = {
       }
       time_entries: {
         Row: {
+          assigned_user_id: string
           billable_hours: number
           created_at: string
           date: string
@@ -48,6 +49,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          assigned_user_id?: string
           billable_hours: number
           created_at?: string
           date?: string
@@ -58,6 +60,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          assigned_user_id?: string
           billable_hours?: number
           created_at?: string
           date?: string

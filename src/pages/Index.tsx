@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { TimeEntryData } from "@/components/TimeEntry";
 import { TimeTable } from "@/components/TimeTable";
@@ -59,6 +60,7 @@ const Index = () => {
         project: entry.projects.name,
         notes: entry.notes,
         date: entry.date,
+        assignedUserId: entry.assigned_user_id,
       }));
       
       setTimeEntries(formattedEntries);
