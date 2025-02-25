@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -8,6 +7,7 @@ import { UserSelect } from "./time-entry/UserSelect";
 import { ProjectSelect } from "./time-entry/ProjectSelect";
 
 export interface TimeEntryData {
+  id?: string;
   hours: number;
   billableHours: number;
   project: string;
@@ -26,7 +26,6 @@ interface TimeEntryProps {
   projects: Project[];
 }
 
-// Added export keyword here
 export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
   const [hours, setHours] = useState("");
   const [billableHours, setBillableHours] = useState("");
@@ -47,12 +46,11 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
       notes,
       date: now,
       assignedUserId,
-      userId: assignedUserId, // For now, setting userId same as assignedUserId
+      userId: assignedUserId,
       startDate: startDate || now,
       endDate: endDate || now,
     });
 
-    // Reset form
     setHours("");
     setBillableHours("");
     setProject("");

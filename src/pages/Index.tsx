@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { TimeEntryData } from "@/components/TimeEntry";
 import { TimeTable } from "@/components/TimeTable";
@@ -60,6 +59,7 @@ const Index = () => {
       if (error) throw error;
       
       const formattedEntries = data.map((entry) => ({
+        id: entry.id,
         hours: entry.hours,
         billableHours: entry.billable_hours,
         project: entry.projects.name,
