@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Project } from "@/types/Project";
 import { cn } from "@/lib/utils";
+import { useRole } from "@/hooks/useRole";
+import { useAuth } from "@/components/AuthProvider";
 
 interface ProjectSidebarProps {
   projects: Project[];
@@ -29,6 +31,8 @@ interface ProjectSidebarProps {
 export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
+  const { role } = useRole();
+  const { session } = useAuth();
   const [newProject, setNewProject] = useState({
     name: "",
     description: "",
@@ -49,6 +53,10 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
         ? prev.filter((id) => id !== projectId)
         : [...prev, projectId]
     );
+  };
+
+  const isCurrentUserProject = (project: Project) => {
+    return project.user_id === session?.user?.id;
   };
 
   return (
@@ -133,7 +141,8 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
               key={project.id}
               className={cn(
                 "group rounded-lg transition-all duration-200",
-                "hover:bg-black/20"
+                "hover:bg-black/20",
+                !project.is_public && isCurrentUserProject(project) && role === "ADMIN" && "bg-purple-500/10 hover:bg-purple-500/20"
               )}
             >
               <div
@@ -145,11 +154,23 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
               >
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-gray-200">{project.name}</h3>
+                    <h3 className={cn(
+                      "font-medium",
+                      !project.is_public && isCurrentUserProject(project) && role === "ADMIN" 
+                        ? "text-purple-400" 
+                        : "text-gray-200"
+                    )}>
+                      {project.name}
+                    </h3>
                     {project.is_public ? (
                       <Globe className="h-4 w-4 text-gray-400" />
                     ) : (
-                      <Lock className="h-4 w-4 text-gray-400" />
+                      <Lock className={cn(
+                        "h-4 w-4",
+                        isCurrentUserProject(project) && role === "ADMIN" 
+                          ? "text-purple-400" 
+                          : "text-gray-400"
+                      )} />
                     )}
                   </div>
                   {expandedProjects.includes(project.id) ? (

@@ -100,7 +100,7 @@ const Index = () => {
           name: project.name,
           description: project.description,
           color: project.color,
-          is_public: project.is_public,
+          is_public: project.isPublic,
           user_id: session?.user?.id,
         });
 
