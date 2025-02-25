@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { TimeEntryData } from "@/components/TimeEntry";
 import { TimeTable } from "@/components/TimeTable";
@@ -216,7 +217,9 @@ const Index = () => {
                 <DashboardStats entries={timeEntries} />
                 <div className="space-y-6 md:space-y-8">
                   <TimeEntryDialog onSubmit={handleNewEntry} projects={projects} />
-                  {timeEntries.length > 0 && <TimeTable entries={timeEntries} />}
+                  {timeEntries.length > 0 && (
+                    <TimeTable entries={timeEntries} onEntryDeleted={fetchTimeEntries} />
+                  )}
                 </div>
               </>
             )}
