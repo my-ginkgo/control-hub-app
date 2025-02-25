@@ -14,6 +14,8 @@ import {
   Legend,
 } from 'chart.js';
 import { Toggle } from "./ui/toggle";
+import { useRole } from "@/hooks/useRole";
+import { useAuth } from "@/components/AuthProvider";
 
 // Register ChartJS components
 ChartJS.register(
@@ -28,12 +30,20 @@ ChartJS.register(
 
 export function DashboardStats({ entries }: { entries: TimeEntryData[] }) {
   const [showBillableHours, setShowBillableHours] = useState(false);
-  const totalHours = entries.reduce((sum, entry) => sum + entry.hours, 0);
-  const totalBillableHours = entries.reduce((sum, entry) => sum + entry.billableHours, 0);
-  const uniqueProjects = [...new Set(entries.map(entry => entry.project))];
+  const { role } = useRole();
+  const { session } = useAuth();
+
+  // Filtra le entries in base al ruolo dell'utente
+  const filteredEntries = role === "ADMIN" 
+    ? entries 
+    : entries.filter(entry => entry.assignedUserId === session?.user?.id);
+
+  const totalHours = filteredEntries.reduce((sum, entry) => sum + entry.hours, 0);
+  const totalBillableHours = filteredEntries.reduce((sum, entry) => sum + entry.billableHours, 0);
+  const uniqueProjects = [...new Set(filteredEntries.map(entry => entry.project))];
 
   // Raggruppa le ore per progetto e data
-  const groupedData = entries.reduce((acc, entry) => {
+  const groupedData = filteredEntries.reduce((acc, entry) => {
     if (!acc[entry.project]) {
       acc[entry.project] = {
         dates: [],
@@ -66,7 +76,7 @@ export function DashboardStats({ entries }: { entries: TimeEntryData[] }) {
 
   // Prepara i dati per il grafico
   const chartData = {
-    labels: [...new Set(entries.map(e => new Date(e.date).toLocaleDateString()))].sort(),
+    labels: [...new Set(filteredEntries.map(e => new Date(e.date).toLocaleDateString()))].sort(),
     datasets: uniqueProjects.map(project => ({
       label: project,
       data: groupedData[project][showBillableHours ? 'billableHours' : 'hours'],
@@ -151,3 +161,4 @@ export function DashboardStats({ entries }: { entries: TimeEntryData[] }) {
     </div>
   );
 }
+
