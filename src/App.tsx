@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
+import User from "@/pages/User";
 import { ProjectDashboard } from "@/components/ProjectDashboard";
 import { ClientPage } from "@/pages/Client";
 import NotFound from "@/pages/NotFound";
@@ -56,6 +57,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/user" element={<User />} />
               <Route path="/project/:id" element={<ProjectDashboardWrapper />} />
               <Route path="/client/:id" element={<ClientPage />} />
               <Route path="*" element={<NotFound />} />
@@ -69,4 +71,3 @@ function App() {
 }
 
 export default App;
-
