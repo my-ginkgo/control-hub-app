@@ -26,7 +26,8 @@ export default function Auth() {
           password,
         });
         if (error) throw error;
-        toast.success("Check your email for the confirmation link!");
+        navigate("/profile-setup");
+        toast.success("Please complete your profile!");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,

@@ -3,8 +3,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/components/AuthProvider";
-import { LogOut, Mail, BadgeCheck, User as UserIcon, Save, ArrowLeft } from "lucide-react";
+import { LogOut, Mail, BadgeCheck, User as UserIcon, Save, ArrowLeft, Briefcase, Calendar } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useRole } from "@/hooks/useRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +21,9 @@ const User = () => {
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [bio, setBio] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const [isEditing, setIsEditing] = useState(false);
 
   const { data: profile, isLoading: isLoadingProfile } = useQuery({
@@ -42,6 +46,9 @@ const User = () => {
     if (profile) {
       setFirstName(profile.first_name || "");
       setLastName(profile.last_name || "");
+      setBio(profile.bio || "");
+      setJobTitle(profile.job_title || "");
+      setDateOfBirth(profile.date_of_birth ? new Date(profile.date_of_birth).toISOString().split('T')[0] : "");
     }
   }, [profile]);
 
@@ -52,6 +59,9 @@ const User = () => {
         .update({
           first_name: firstName,
           last_name: lastName,
+          bio,
+          job_title: jobTitle,
+          date_of_birth: dateOfBirth || null,
         })
         .eq("id", session?.user?.id);
 
@@ -141,6 +151,44 @@ const User = () => {
             </div>
 
             <div className="flex items-center space-x-4">
+              <Briefcase className="w-6 h-6 text-purple-400" />
+              <div className="flex-1">
+                <p className="text-sm text-gray-400 mb-2">Ruolo Lavorativo</p>
+                {isEditing ? (
+                  <Input
+                    value={jobTitle}
+                    onChange={(e) => setJobTitle(e.target.value)}
+                    placeholder="Es. Sviluppatore Software"
+                    className="bg-[#1a1b26] border-[#383a5c] text-white placeholder-gray-400"
+                  />
+                ) : (
+                  <p className="text-lg">{profile?.job_title || "Non specificato"}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <Calendar className="w-6 h-6 text-purple-400" />
+              <div className="flex-1">
+                <p className="text-sm text-gray-400 mb-2">Data di Nascita</p>
+                {isEditing ? (
+                  <Input
+                    type="date"
+                    value={dateOfBirth}
+                    onChange={(e) => setDateOfBirth(e.target.value)}
+                    className="bg-[#1a1b26] border-[#383a5c] text-white"
+                  />
+                ) : (
+                  <p className="text-lg">
+                    {profile?.date_of_birth
+                      ? new Date(profile.date_of_birth).toLocaleDateString()
+                      : "Non specificata"}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-4">
               <Mail className="w-6 h-6 text-purple-400" />
               <div>
                 <p className="text-sm text-gray-400">Email</p>
@@ -164,6 +212,27 @@ const User = () => {
               </div>
             </div>
 
+            <div className="space-y-4">
+              <div className="flex items-start space-x-4">
+                <UserIcon className="w-6 h-6 text-purple-400 mt-1" />
+                <div className="flex-1">
+                  <p className="text-sm text-gray-400 mb-2">Bio</p>
+                  {isEditing ? (
+                    <Textarea
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      placeholder="Raccontaci qualcosa di te..."
+                      className="bg-[#1a1b26] border-[#383a5c] text-white placeholder-gray-400 min-h-[100px]"
+                    />
+                  ) : (
+                    <p className="text-lg whitespace-pre-wrap">
+                      {profile?.bio || "Nessuna bio specificata"}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div className="pt-4 space-y-3">
               {isEditing ? (
                 <div className="flex gap-3">
@@ -182,6 +251,9 @@ const User = () => {
                       setIsEditing(false);
                       setFirstName(profile?.first_name || "");
                       setLastName(profile?.last_name || "");
+                      setBio(profile?.bio || "");
+                      setJobTitle(profile?.job_title || "");
+                      setDateOfBirth(profile?.date_of_birth ? new Date(profile.date_of_birth).toISOString().split('T')[0] : "");
                     }}
                     className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]"
                   >

@@ -10,6 +10,7 @@ import Auth from "@/pages/Auth";
 import User from "@/pages/User";
 import AdminUsers from "@/pages/AdminUsers";
 import NotFound from "@/pages/NotFound";
+import { ProfileSetup } from "@/components/ProfileSetup";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ function App() {
               <Route path="/auth" element={<Auth />} />
               <Route path="/user" element={<User />} />
               <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/profile-setup" element={<ProfileSetup />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
