@@ -53,49 +53,49 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
 
   return (
     <Sidebar>
-      <SidebarHeader className="p-4 flex justify-between items-center border-b border-sidebar-border">
-        <h2 className="text-lg font-semibold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-          Progetti
-        </h2>
+      <SidebarHeader className="p-4 flex justify-between items-center">
+        <h2 className="text-lg font-semibold text-purple-400">Progetti</h2>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button
               variant="outline"
               size="icon"
-              className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              className="bg-black/20 border-0 hover:bg-black/40"
             >
               <Plus className="h-4 w-4" />
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="bg-[#1a1b26] border-[#2a2b3d]">
             <DialogHeader>
-              <DialogTitle>Nuovo Progetto</DialogTitle>
+              <DialogTitle className="text-white">Nuovo Progetto</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="name">Nome</Label>
+                <Label htmlFor="name" className="text-gray-400">Nome</Label>
                 <Input
                   id="name"
                   value={newProject.name}
                   onChange={(e) =>
                     setNewProject({ ...newProject, name: e.target.value })
                   }
+                  className="bg-[#2a2b3d] border-[#383a5c] text-white"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="description">Descrizione</Label>
+                <Label htmlFor="description" className="text-gray-400">Descrizione</Label>
                 <Textarea
                   id="description"
                   value={newProject.description}
                   onChange={(e) =>
                     setNewProject({ ...newProject, description: e.target.value })
                   }
+                  className="bg-[#2a2b3d] border-[#383a5c] text-white"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="color">Colore (opzionale)</Label>
+                <Label htmlFor="color" className="text-gray-400">Colore (opzionale)</Label>
                 <Input
                   id="color"
                   type="color"
@@ -103,6 +103,7 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
                   onChange={(e) =>
                     setNewProject({ ...newProject, color: e.target.value })
                   }
+                  className="bg-[#2a2b3d] border-[#383a5c] h-10"
                 />
               </div>
               <div className="flex items-center space-x-2">
@@ -113,9 +114,12 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
                     setNewProject({ ...newProject, isPublic: checked })
                   }
                 />
-                <Label htmlFor="is-public">Progetto pubblico</Label>
+                <Label htmlFor="is-public" className="text-gray-400">Progetto pubblico</Label>
               </div>
-              <Button type="submit" className="w-full">
+              <Button 
+                type="submit" 
+                className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+              >
                 Aggiungi Progetto
               </Button>
             </form>
@@ -129,7 +133,7 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
               key={project.id}
               className={cn(
                 "group rounded-lg transition-all duration-200",
-                "hover:bg-sidebar-accent/50"
+                "hover:bg-black/20"
               )}
             >
               <div
@@ -141,22 +145,22 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
               >
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-medium">{project.name}</h3>
+                    <h3 className="font-medium text-gray-200">{project.name}</h3>
                     {project.isPublic ? (
-                      <Globe className="h-4 w-4 text-muted-foreground" />
+                      <Globe className="h-4 w-4 text-gray-400" />
                     ) : (
-                      <Lock className="h-4 w-4 text-muted-foreground" />
+                      <Lock className="h-4 w-4 text-gray-400" />
                     )}
                   </div>
                   {expandedProjects.includes(project.id) ? (
-                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                    <ChevronUp className="h-4 w-4 text-gray-400" />
                   ) : (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    <ChevronDown className="h-4 w-4 text-gray-400" />
                   )}
                 </div>
                 <div
                   className={cn(
-                    "text-sm text-muted-foreground overflow-hidden transition-all duration-200",
+                    "text-sm text-gray-400 overflow-hidden transition-all duration-200",
                     expandedProjects.includes(project.id)
                       ? "max-h-24 mt-2"
                       : "max-h-0 opacity-0"
