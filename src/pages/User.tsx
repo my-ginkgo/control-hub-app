@@ -1,339 +1,134 @@
 import { useAuth } from "@/components/AuthProvider";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
+import { ProfileActions } from "@/components/user/ProfileActions";
+import { ProfileInfo } from "@/components/user/ProfileInfo";
+import { UserHeader } from "@/components/user/UserHeader";
+import { useToast } from "@/hooks/use-toast";
 import { useRole } from "@/hooks/useRole";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Save } from "lucide-react";
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const User = () => {
-  const navigate = useNavigate();
   const { session, signOut } = useAuth();
   const { role, isLoading: isLoadingRole } = useRole();
-  const { id } = useParams();
-  const [isEditing, setIsEditing] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [jobTitle, setJobTitle] = useState("");
   const [bio, setBio] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
+  const [jobTitle, setJobTitle] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
 
-  // Use the ID from params, fallback to current user's ID if not provided
-  const userId = id || session?.user?.id;
-
-  // Redirect to auth if not logged in
-  if (!session?.user) {
-    navigate("/auth");
-    return null;
-  }
-
-  // Redirect to home if not admin and trying to access another user's profile
-  if (!isLoadingRole && role !== "ADMIN" && userId !== session.user.id) {
-    navigate("/");
-    return null;
-  }
-
-  const {
-    data: profiles,
-    isLoading: isLoadingProfiles,
-    refetch,
-  } = useQuery({
-    queryKey: ["admin-profiles", userId],
+  const { data: profile, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ["profile", session?.user?.id],
     queryFn: async () => {
-      try {
-        // If viewing a specific user's profile
-        if (id) {
-          const { data: profile, error: profileError } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", userId)
-            .single();
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", session?.user?.id).single();
 
-          if (profileError) throw profileError;
-
-          const { data: userRole, error: roleError } = await supabase
-            .from("user_roles")
-            .select("user_id, role, email, is_disabled")
-            .eq("user_id", userId)
-            .single();
-
-          if (roleError) throw roleError;
-
-          // Set form values
-          setFirstName(profile.first_name || "");
-          setLastName(profile.last_name || "");
-          setJobTitle(profile.job_title || "");
-          setBio(profile.bio || "");
-
-          return [
-            {
-              ...profile,
-              ...userRole,
-            },
-          ];
-        }
-
-        // Admin view - fetch all profiles
-        const { data: profiles, error: profilesError } = await supabase.from("profiles").select("*");
-
-        if (profilesError) throw profilesError;
-
-        const { data: userRoles, error: rolesError } = await supabase
-          .from("user_roles")
-          .select("user_id, role, email, is_disabled");
-
-        if (rolesError) throw rolesError;
-
-        return profiles.map((profile) => ({
-          ...profile,
-          ...userRoles.find((ur) => ur.user_id === profile.id),
-        }));
-      } catch (error: any) {
-        toast.error("Errore nel caricamento degli utenti: " + error.message);
-        return [];
+      if (error) {
+        console.error("Error fetching profile:", error);
+        throw error;
       }
+
+      return data;
     },
-    enabled: role === "ADMIN" || userId === session.user.id,
+    enabled: !!session?.user?.id,
   });
 
-  const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
-    try {
-      const { error } = await supabase.from("user_roles").update({ is_disabled: !currentStatus }).eq("user_id", userId);
-
-      if (error) throw error;
-
-      toast.success(`Utente ${currentStatus ? "abilitato" : "disabilitato"} con successo`);
-      refetch();
-    } catch (error: any) {
-      toast.error("Errore durante l'aggiornamento dello stato: " + error.message);
+  useEffect(() => {
+    if (profile) {
+      setFirstName(profile.first_name || "");
+      setLastName(profile.last_name || "");
+      setBio(profile.bio || "");
+      setJobTitle(profile.job_title || "");
+      setDateOfBirth(profile.date_of_birth ? new Date(profile.date_of_birth).toISOString().split("T")[0] : "");
     }
-  };
+  }, [profile]);
 
-  const handleSaveProfile = async () => {
-    if (!session?.user?.id) return;
-    setIsSaving(true);
-
-    try {
+  const updateProfile = useMutation({
+    mutationFn: async () => {
       const { error } = await supabase
         .from("profiles")
         .update({
           first_name: firstName,
           last_name: lastName,
+          bio,
           job_title: jobTitle,
-          bio: bio,
+          date_of_birth: dateOfBirth || null,
         })
-        .eq("id", session.user.id);
+        .eq("id", session?.user?.id);
 
       if (error) throw error;
-
-      toast.success("Profilo aggiornato con successo");
+    },
+    onSuccess: () => {
+      toast({
+        title: "Profilo aggiornato",
+        description: "Le tue informazioni sono state aggiornate con successo.",
+      });
       setIsEditing(false);
-      refetch();
-    } catch (error: any) {
-      toast.error("Errore durante l'aggiornamento del profilo: " + error.message);
-    } finally {
-      setIsSaving(false);
-    }
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    },
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante l'aggiornamento del profilo.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  if (!session?.user) {
+    navigate("/auth");
+    return null;
+  }
+
+  const isLoading = isLoadingRole || isLoadingProfile;
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setFirstName(profile?.first_name || "");
+    setLastName(profile?.last_name || "");
+    setBio(profile?.bio || "");
+    setJobTitle(profile?.job_title || "");
+    setDateOfBirth(profile?.date_of_birth ? new Date(profile.date_of_birth).toISOString().split("T")[0] : "");
   };
 
-  if (isLoadingRole || isLoadingProfiles) {
-    return (
-      <div className="min-h-screen bg-[#1a1b26] text-white p-4 md:p-8">
-        <div className="container max-w-4xl mx-auto">
-          <p className="text-center">Caricamento...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If viewing own profile
-  if (userId === session.user.id) {
-    return (
-      <div className="min-h-screen bg-[#1a1b26] text-white p-4 md:p-8">
-        <div className="container max-w-4xl mx-auto">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/")}
-            className="mb-4 -ml-2 text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Torna alla Dashboard
-          </Button>
-
-          <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-            Il Mio Profilo
-          </h1>
-
-          <Card className="p-6 bg-[#24253a] border-[#383a5c] space-y-4">
-            <div className="space-y-4">
-              {isEditing ? (
-                <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm text-gray-400">Nome</label>
-                      <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="mt-1" />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-400">Cognome</label>
-                      <Input value={lastName} onChange={(e) => setLastName(e.target.value)} className="mt-1" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-400">Ruolo Lavorativo</label>
-                    <Input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} className="mt-1" />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-400">Bio</label>
-                    <Textarea value={bio} onChange={(e) => setBio(e.target.value)} className="mt-1" rows={4} />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <p className="text-sm text-gray-400">Nome e Cognome</p>
-                    <p className="mt-1">
-                      {firstName || lastName ? `${firstName || ""} ${lastName || ""}` : "Non specificato"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Ruolo Lavorativo</p>
-                    <p className="mt-1">{jobTitle || "Non specificato"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Bio</p>
-                    <p className="mt-1">{bio || "Non specificata"}</p>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="pt-4 space-y-3">
-              {isEditing ? (
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={handleSaveProfile}
-                    className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]"
-                    disabled={isSaving}>
-                    <Save className="w-4 h-4 mr-2" />
-                    Salva
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsEditing(false)}
-                    className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]">
-                    Annulla
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  variant="outline"
-                  onClick={() => setIsEditing(true)}
-                  className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]">
-                  Modifica Profilo
-                </Button>
-              )}
-
-              <Button
-                variant="outline"
-                onClick={signOut}
-                className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]">
-                Logout
-              </Button>
-            </div>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  // Admin view of all users or specific user
   return (
     <div className="min-h-screen bg-[#1a1b26] text-white p-4 md:p-8">
-      <div className="container max-w-4xl mx-auto">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/")}
-          className="mb-4 -ml-2 text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Torna alla Dashboard ADMIN
-        </Button>
+      <div className="container max-w-2xl mx-auto">
+        <UserHeader role={role} isLoadingRole={isLoadingRole} />
 
-        <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-          {id ? "Profilo Utente" : "Gestione Utenti"}
-        </h1>
+        <Card className="p-6 bg-[#24253a] border-[#383a5c] space-y-6">
+          <ProfileInfo
+            session={session}
+            profile={profile}
+            isLoading={isLoading}
+            isEditing={isEditing}
+            role={role}
+            firstName={firstName}
+            lastName={lastName}
+            bio={bio}
+            jobTitle={jobTitle}
+            dateOfBirth={dateOfBirth}
+            setFirstName={setFirstName}
+            setLastName={setLastName}
+            setBio={setBio}
+            setJobTitle={setJobTitle}
+            setDateOfBirth={setDateOfBirth}
+          />
 
-        <Card className="p-6 bg-[#24253a] border-[#383a5c]">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-gray-400">Nome</TableHead>
-                <TableHead className="text-gray-400">Email</TableHead>
-                <TableHead className="text-gray-400">Ruolo</TableHead>
-                <TableHead className="text-gray-400">Stato</TableHead>
-                {!id && role === "ADMIN" && <TableHead className="text-gray-400">Azioni</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {profiles?.map((profile) => (
-                <TableRow key={profile.id}>
-                  <TableCell className="text-white">
-                    {profile.first_name || profile.last_name
-                      ? `${profile.first_name || ""} ${profile.last_name || ""}`
-                      : "Non specificato"}
-                  </TableCell>
-                  <TableCell className="text-white">{profile.email}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${
-                        profile.role === "ADMIN"
-                          ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                          : "bg-purple-500/20 text-purple-400 border border-purple-500/30"
-                      }`}>
-                      {profile.role || "DIPENDENTE"}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      {role === "ADMIN" ? (
-                        <>
-                          <Switch
-                            checked={!profile.is_disabled}
-                            onCheckedChange={() => handleToggleUserStatus(profile.id, profile.is_disabled)}
-                            className={profile.is_disabled ? "bg-red-500/20" : ""}
-                          />
-                          <span className="text-sm text-muted-foreground">
-                            {profile.is_disabled ? "Disabilitato" : "Attivo"}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">
-                          {profile.is_disabled ? "Disabilitato" : "Attivo"}
-                        </span>
-                      )}
-                    </div>
-                  </TableCell>
-                  {!id && role === "ADMIN" && (
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate(`/user/${profile.id}`)}
-                        className="text-muted-foreground hover:text-foreground">
-                        Visualizza
-                      </Button>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <ProfileActions
+            isEditing={isEditing}
+            onSave={() => updateProfile.mutate()}
+            onCancel={handleCancel}
+            onEdit={() => setIsEditing(true)}
+            onSignOut={signOut}
+            isSaving={updateProfile.isPending}
+          />
         </Card>
       </div>
     </div>

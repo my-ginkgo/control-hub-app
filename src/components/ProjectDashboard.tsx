@@ -1,22 +1,20 @@
-
-import { useEffect, useState } from "react";
-import { TimeEntry } from "@/types/TimeEntry";
-import { Project } from "@/types/Project";
-import { Client } from "@/types/Client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building, Clock, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Separator } from "./ui/separator";
-import { ClientProjectsChart } from "./ClientProjectsChart";
-import { useNavigate, Link } from "react-router-dom";
-import { DeleteProjectDialog } from "./project/DeleteProjectDialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRole } from "@/hooks/useRole";
+import { supabase } from "@/integrations/supabase/client";
+import { Client } from "@/types/Client";
+import { Project } from "@/types/Project";
+import { TimeEntry } from "@/types/TimeEntry";
+import { ArrowLeft, Building, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { useAuth } from "./AuthProvider";
-import { Skeleton } from "./ui/skeleton";
+import { DeleteProjectDialog } from "./project/DeleteProjectDialog";
 import { ProjectTimeChart } from "./ProjectTimeChart";
 import { TimeTable } from "./TimeTable";
+import { Separator } from "./ui/separator";
+import { Skeleton } from "./ui/skeleton";
 
 interface ProjectDashboardProps {
   project: Project;
@@ -49,17 +47,11 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
 
   const handleDeleteProject = async () => {
     try {
-      const { error: timeEntriesError } = await supabase
-        .from('time_entries')
-        .delete()
-        .eq('project_id', project.id);
+      const { error: timeEntriesError } = await supabase.from("time_entries").delete().eq("project_id", project.id);
 
       if (timeEntriesError) throw timeEntriesError;
 
-      const { error: projectError } = await supabase
-        .from('projects')
-        .delete()
-        .eq('id', project.id);
+      const { error: projectError } = await supabase.from("projects").delete().eq("id", project.id);
 
       if (projectError) throw projectError;
 
@@ -72,11 +64,7 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
 
   const fetchClient = async () => {
     try {
-      const { data, error } = await supabase
-        .from("clients")
-        .select("*")
-        .eq("id", project.client_id)
-        .single();
+      const { data, error } = await supabase.from("clients").select("*").eq("id", project.client_id).single();
 
       if (error) throw error;
       setClient(data);
@@ -97,7 +85,7 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
       if (error) throw error;
 
       const userIds = new Set<string>();
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         if (entry.user_id) userIds.add(entry.user_id);
         if (entry.assigned_user_id) userIds.add(entry.assigned_user_id);
       });
@@ -110,10 +98,10 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
       if (usersError) throw usersError;
 
       const userMap: Record<string, UserInfo> = {};
-      users?.forEach(user => {
+      users?.forEach((user) => {
         userMap[user.user_id] = {
           id: user.user_id,
-          email: user.email || user.user_id
+          email: user.email || user.user_id,
         };
       });
 
@@ -137,7 +125,7 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
 
       const hours = formattedEntries.reduce((acc, entry) => acc + Number(entry.hours), 0);
       const billableHours = formattedEntries.reduce((acc, entry) => acc + Number(entry.billableHours), 0);
-      
+
       setTotalHours(hours);
       setTotalBillableHours(billableHours);
     } catch (error: any) {
@@ -154,11 +142,7 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <Button
-          variant="ghost"
-          onClick={onBack}
-          className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
-        >
+        <Button variant="ghost" onClick={onBack} className="mb-4 -ml-2 text-muted-foreground hover:text-foreground">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Torna alla Dashboard
         </Button>
@@ -167,8 +151,7 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
             variant="destructive"
             size="sm"
             onClick={() => setIsDeleteDialogOpen(true)}
-            className="bg-red-500 hover:bg-red-600"
-          >
+            className="bg-red-500 hover:bg-red-600">
             <Trash2 className="h-4 w-4 mr-2" />
             Elimina Progetto
           </Button>
@@ -180,25 +163,18 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
           <CardTitle className="text-xl font-semibold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
             {project.name}
           </CardTitle>
-          {project.description && (
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {project.description}
-            </p>
-          )}
+          {project.description && <p className="text-sm text-gray-500 dark:text-gray-400">{project.description}</p>}
           {client && (
             <div className="mt-4">
               <Separator className="my-4" />
-              <Link 
+              <Link
                 to={`/client/${client.id}`}
-                className="flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
+                className="flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <Building className="mr-2 h-4 w-4" />
                 Cliente: {client.name}
               </Link>
               {client.description && (
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  {client.description}
-                </p>
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{client.description}</p>
               )}
             </div>
           )}
@@ -206,19 +182,11 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Ore Totali</p>
-            {isLoading ? (
-              <Skeleton className="h-6 w-20" />
-            ) : (
-              <p className="text-2xl font-bold">{totalHours}</p>
-            )}
+            {isLoading ? <Skeleton className="h-6 w-20" /> : <p className="text-2xl font-bold">{totalHours}</p>}
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Ore Fatturabili</p>
-            {isLoading ? (
-              <Skeleton className="h-6 w-20" />
-            ) : (
-              <p className="text-2xl font-bold">{totalBillableHours}</p>
-            )}
+            {isLoading ? <Skeleton className="h-6 w-20" /> : <p className="text-2xl font-bold">{totalBillableHours}</p>}
           </div>
         </CardContent>
       </Card>
@@ -235,9 +203,7 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-6">
-                <p className="text-gray-500 dark:text-gray-400">
-                  Nessuna registrazione trovata per questo progetto
-                </p>
+                <p className="text-gray-500 dark:text-gray-400">Nessuna registrazione trovata per questo progetto</p>
               </CardContent>
             </Card>
           )}

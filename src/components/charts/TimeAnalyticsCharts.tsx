@@ -1,35 +1,25 @@
-import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { TimeEntryData } from "../TimeEntry";
-import { Line, Bar } from "react-chartjs-2";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
   BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  Legend,
+  LinearScale,
+  LineElement,
+  PointElement,
   Title,
   Tooltip,
-  Legend
-} from 'chart.js';
-import { Select, SelectContent, SelectTrigger, SelectValue, SelectItem } from "@/components/ui/select";
-import { startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth, format } from "date-fns";
+} from "chart.js";
+import { endOfDay, endOfMonth, endOfWeek, format, startOfDay, startOfMonth, startOfWeek } from "date-fns";
 import { it } from "date-fns/locale";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { Bar, Line } from "react-chartjs-2";
+import { TimeEntryData } from "../TimeEntry";
 
 // Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 type ChartType = "line" | "groupedBar" | "stackedBar" | "dbLogs";
 type DateRange = "day" | "week" | "month";
@@ -40,7 +30,7 @@ interface PostgresLog {
   event_message: string;
 }
 
-export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryData[], isAdmin: boolean }) {
+export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryData[]; isAdmin: boolean }) {
   const [dateRange, setDateRange] = useState<DateRange>("week");
   const [chartType, setChartType] = useState<ChartType>("line");
 
@@ -50,17 +40,17 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
       case "day":
         return {
           start: startOfDay(now),
-          end: endOfDay(now)
+          end: endOfDay(now),
         };
       case "week":
         return {
           start: startOfWeek(now, { locale: it }),
-          end: endOfWeek(now, { locale: it })
+          end: endOfWeek(now, { locale: it }),
         };
       case "month":
         return {
           start: startOfMonth(now),
-          end: endOfMonth(now)
+          end: endOfMonth(now),
         };
     }
   };
@@ -72,22 +62,27 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
     queryKey: ["dbLogs", start.getTime(), end.getTime()],
     queryFn: async () => {
       if (!isAdmin) return [];
-      
-      const response = await fetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/postgres_logs?select=*&timestamp=gte.${start.getTime() * 1000}&timestamp=lte.${end.getTime() * 1000}&order=timestamp.asc`, {
-        headers: {
-          'apikey': process.env.VITE_SUPABASE_ANON_KEY || '',
-          'Authorization': `Bearer ${process.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-      });
 
-      if (!response.ok) throw new Error('Failed to fetch logs');
+      const response = await fetch(
+        `${process.env.VITE_SUPABASE_URL}/rest/v1/postgres_logs?select=*&start_date=gte.${
+          start.getTime() * 1000
+        }&start_date=lte.${end.getTime() * 1000}&order=start_date.asc`,
+        {
+          headers: {
+            apikey: process.env.VITE_SUPABASE_ANON_KEY || "",
+            Authorization: `Bearer ${process.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to fetch logs");
       const data = await response.json();
       return data as PostgresLog[];
     },
-    enabled: isAdmin && chartType === "dbLogs"
+    enabled: isAdmin && chartType === "dbLogs",
   });
 
-  const filteredEntries = entries.filter(entry => {
+  const filteredEntries = entries.filter((entry) => {
     const entryDate = new Date(entry.date);
     return entryDate >= start && entryDate <= end;
   });
@@ -98,13 +93,13 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
       acc[entry.project] = {
         dates: [],
         hours: [],
-        billableHours: []
+        billableHours: [],
       };
     }
-    
+
     const dateStr = new Date(entry.date).toLocaleDateString();
     const existingIndex = acc[entry.project].dates.indexOf(dateStr);
-    
+
     if (existingIndex === -1) {
       acc[entry.project].dates.push(dateStr);
       acc[entry.project].hours.push(entry.hours);
@@ -113,12 +108,12 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
       acc[entry.project].hours[existingIndex] += entry.hours;
       acc[entry.project].billableHours[existingIndex] += entry.billableHours;
     }
-    
+
     return acc;
   }, {} as Record<string, { dates: string[]; hours: number[]; billableHours: number[] }>);
 
   const uniqueProjects = Object.keys(groupedData);
-  const allDates = [...new Set(filteredEntries.map(e => new Date(e.date).toLocaleDateString()))].sort();
+  const allDates = [...new Set(filteredEntries.map((e) => new Date(e.date).toLocaleDateString()))].sort();
 
   const projectColors = uniqueProjects.reduce((acc, project, index) => {
     const hue = (index * 137.5) % 360;
@@ -140,13 +135,13 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
         labels: dates,
         datasets: [
           {
-            label: 'Log Events',
-            data: dates.map(date => groupedLogs[date]),
-            backgroundColor: 'hsla(200, 70%, 50%, 0.7)',
-            borderColor: 'hsla(200, 70%, 50%, 1)',
-            tension: 0.3
-          }
-        ]
+            label: "Log Events",
+            data: dates.map((date) => groupedLogs[date]),
+            backgroundColor: "hsla(200, 70%, 50%, 0.7)",
+            borderColor: "hsla(200, 70%, 50%, 1)",
+            tension: 0.3,
+          },
+        ],
       };
     }
 
@@ -154,43 +149,43 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
       case "line":
         return {
           labels: allDates,
-          datasets: uniqueProjects.map(project => ({
+          datasets: uniqueProjects.map((project) => ({
             label: project,
             data: groupedData[project].hours,
             borderColor: projectColors[project],
             backgroundColor: projectColors[project],
             tension: 0.3,
-            fill: false
-          }))
+            fill: false,
+          })),
         };
-      
+
       case "groupedBar":
         return {
           labels: allDates,
-          datasets: uniqueProjects.map(project => ({
+          datasets: uniqueProjects.map((project) => ({
             label: project,
             data: groupedData[project].hours,
             backgroundColor: projectColors[project],
-          }))
+          })),
         };
-      
+
       case "stackedBar":
         return {
           labels: allDates,
           datasets: [
             {
-              label: 'Ore Billabili',
-              data: allDates.map(date => 
+              label: "Ore Billabili",
+              data: allDates.map((date) =>
                 uniqueProjects.reduce((sum, project) => {
                   const dateIndex = groupedData[project].dates.indexOf(date);
                   return sum + (dateIndex !== -1 ? groupedData[project].billableHours[dateIndex] : 0);
                 }, 0)
               ),
-              backgroundColor: 'hsla(145, 70%, 50%, 0.7)',
+              backgroundColor: "hsla(145, 70%, 50%, 0.7)",
             },
             {
-              label: 'Ore Non Billabili',
-              data: allDates.map(date => 
+              label: "Ore Non Billabili",
+              data: allDates.map((date) =>
                 uniqueProjects.reduce((sum, project) => {
                   const dateIndex = groupedData[project].dates.indexOf(date);
                   const totalHours = dateIndex !== -1 ? groupedData[project].hours[dateIndex] : 0;
@@ -198,9 +193,9 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
                   return sum + (totalHours - billableHours);
                 }, 0)
               ),
-              backgroundColor: 'hsla(0, 70%, 50%, 0.7)',
-            }
-          ]
+              backgroundColor: "hsla(0, 70%, 50%, 0.7)",
+            },
+          ],
         };
     }
   };
@@ -210,43 +205,46 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top' as const,
+        position: "top" as const,
         labels: {
           padding: 20,
           usePointStyle: true,
-          pointStyle: 'circle'
-        }
+          pointStyle: "circle",
+        },
       },
       tooltip: {
-        mode: 'index' as const,
+        mode: "index" as const,
         intersect: false,
-        callbacks: chartType === "dbLogs" ? {
-          label: (context: any) => {
-            return `${context.dataset.label}: ${context.parsed.y} eventi`;
-          }
-        } : undefined
-      }
+        callbacks:
+          chartType === "dbLogs"
+            ? {
+                label: (context: any) => {
+                  return `${context.dataset.label}: ${context.parsed.y} eventi`;
+                },
+              }
+            : undefined,
+      },
     },
     scales: {
       x: {
         grid: {
-          display: false
+          display: false,
         },
-        stacked: chartType === "stackedBar"
+        stacked: chartType === "stackedBar",
       },
       y: {
         beginAtZero: true,
         grid: {
-          color: 'rgba(0, 0, 0, 0.1)'
+          color: "rgba(0, 0, 0, 0.1)",
         },
-        stacked: chartType === "stackedBar"
-      }
+        stacked: chartType === "stackedBar",
+      },
     },
     interaction: {
-      mode: 'nearest' as const,
-      axis: 'x' as const,
-      intersect: false
-    }
+      mode: "nearest" as const,
+      axis: "x" as const,
+      intersect: false,
+    },
   };
 
   return (
