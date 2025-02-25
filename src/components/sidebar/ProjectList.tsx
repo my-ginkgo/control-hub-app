@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Plus, Globe, Lock, ChevronDown, ChevronUp, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,27 +11,12 @@ import { Client } from "@/types/Client";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { DeleteProjectDialog } from "@/components/project/DeleteProjectDialog";
 
 interface ProjectListProps {
   projects: Project[];
@@ -260,20 +246,14 @@ export function ProjectList({
         </div>
       </SidebarGroupContent>
 
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Sei sicuro di voler eliminare questo progetto?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Questa azione non può essere annullata. Verranno eliminati anche tutti i time entries associati al progetto.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annulla</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>Elimina</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {projectToDelete && (
+        <DeleteProjectDialog
+          project={projectToDelete}
+          isOpen={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          onConfirmDelete={handleDeleteConfirm}
+        />
+      )}
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="bg-[#1a1b26] border-[#2a2b3d]">
