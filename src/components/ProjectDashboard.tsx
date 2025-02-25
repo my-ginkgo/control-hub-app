@@ -18,9 +18,15 @@ interface ProjectDashboardProps {
   onBack?: () => void;
 }
 
+interface UserInfo {
+  id: string;
+  email: string;
+}
+
 export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
   const [timeEntries, setTimeEntries] = useState<TimeEntryData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userInfoMap, setUserInfoMap] = useState<Record<string, UserInfo>>({});
   const { role } = useRole();
   const { session } = useAuth();
   const [totalHours, setTotalHours] = useState(0);
@@ -38,16 +44,34 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
         .select("*, projects(name)")
         .eq("project_id", project.id);
 
-      // Se l'utente è un dipendente, filtra solo le sue ore
-      if (role === "DIPENDENTE" && session?.user?.id) {
-        query = query.eq("user_id", session.user.id);
-      }
-
-      const { data, error } = await query.order("date", { ascending: false });
+      const { data: entries, error } = await query.order("date", { ascending: false });
 
       if (error) throw error;
 
-      const formattedEntries = data.map((entry) => ({
+      // Raccogli tutti gli ID utente unici
+      const userIds = new Set<string>();
+      entries.forEach(entry => {
+        if (entry.user_id) userIds.add(entry.user_id);
+        if (entry.assigned_user_id) userIds.add(entry.assigned_user_id);
+      });
+
+      // Fetch delle informazioni degli utenti
+      const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select('id, email')
+        .in('id', Array.from(userIds));
+
+      if (usersError) throw usersError;
+
+      // Crea una mappa degli utenti
+      const userMap = (users || []).reduce((acc, user) => ({
+        ...acc,
+        [user.id]: { id: user.id, email: user.email }
+      }), {} as Record<string, UserInfo>);
+
+      setUserInfoMap(userMap);
+
+      const formattedEntries = entries.map((entry) => ({
         hours: entry.hours,
         billableHours: entry.billable_hours,
         project: entry.projects.name,
@@ -57,6 +81,8 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
         userId: entry.user_id,
         startDate: entry.start_date,
         endDate: entry.end_date,
+        assignedUserEmail: userMap[entry.assigned_user_id]?.email || entry.assigned_user_id,
+        userEmail: userMap[entry.user_id]?.email || entry.user_id,
       }));
 
       setTimeEntries(formattedEntries);

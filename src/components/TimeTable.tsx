@@ -37,8 +37,8 @@ export function TimeTable({ entries }: { entries: TimeEntryData[] }) {
               <TableCell className="font-medium">{entry.project}</TableCell>
               <TableCell>{entry.hours}</TableCell>
               <TableCell>{entry.billableHours}</TableCell>
-              <TableCell>{entry.assignedUserId}</TableCell>
-              <TableCell>{entry.userId}</TableCell>
+              <TableCell>{entry.assignedUserEmail}</TableCell>
+              <TableCell>{entry.userEmail}</TableCell>
               <TableCell className="max-w-[300px] truncate">{entry.notes}</TableCell>
             </TableRow>
           ))}
@@ -47,4 +47,3 @@ export function TimeTable({ entries }: { entries: TimeEntryData[] }) {
     </Card>
   );
 }
-
