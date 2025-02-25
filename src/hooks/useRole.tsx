@@ -19,7 +19,10 @@ export function useRole() {
         .eq("user_id", session.user.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching role:", error);
+        return "DIPENDENTE";
+      }
       return data?.role || "DIPENDENTE";
     },
     enabled: !!session?.user?.id,
