@@ -34,7 +34,7 @@ export function DashboardStats({ entries }: { entries: TimeEntryData[] }) {
         </Card>
       </div>
 
-      <TimeAnalyticsCharts entries={filteredEntries} />
+      <TimeAnalyticsCharts entries={filteredEntries} isAdmin={role === "ADMIN"} />
     </div>
   );
 }

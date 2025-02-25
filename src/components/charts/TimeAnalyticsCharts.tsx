@@ -15,8 +15,10 @@ import {
   Legend
 } from 'chart.js';
 import { Select, SelectContent, SelectTrigger, SelectValue, SelectItem } from "@/components/ui/select";
-import { startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth } from "date-fns";
+import { startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth, format } from "date-fns";
 import { it } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 // Register ChartJS components
 ChartJS.register(
@@ -30,10 +32,16 @@ ChartJS.register(
   Legend
 );
 
-type ChartType = "line" | "groupedBar" | "stackedBar";
+type ChartType = "line" | "groupedBar" | "stackedBar" | "dbLogs";
 type DateRange = "day" | "week" | "month";
 
-export function TimeAnalyticsCharts({ entries }: { entries: TimeEntryData[] }) {
+interface DbLog {
+  timestamp: number;
+  error_severity: string;
+  event_message: string;
+}
+
+export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryData[], isAdmin: boolean }) {
   const [dateRange, setDateRange] = useState<DateRange>("week");
   const [chartType, setChartType] = useState<ChartType>("line");
 
@@ -59,6 +67,25 @@ export function TimeAnalyticsCharts({ entries }: { entries: TimeEntryData[] }) {
   };
 
   const { start, end } = getDateRange();
+
+  // Fetch DB logs if user is admin
+  const { data: dbLogs } = useQuery({
+    queryKey: ["dbLogs", start.getTime(), end.getTime()],
+    queryFn: async () => {
+      if (!isAdmin) return [];
+      
+      const { data, error } = await supabase
+        .from("postgres_logs")
+        .select("*")
+        .gte("timestamp", start.getTime() * 1000) // Convert to microseconds
+        .lte("timestamp", end.getTime() * 1000)
+        .order("timestamp", { ascending: true });
+
+      if (error) throw error;
+      return data as DbLog[];
+    },
+    enabled: isAdmin && chartType === "dbLogs"
+  });
 
   const filteredEntries = entries.filter(entry => {
     const entryDate = new Date(entry.date);
@@ -100,6 +127,29 @@ export function TimeAnalyticsCharts({ entries }: { entries: TimeEntryData[] }) {
   }, {} as Record<string, string>);
 
   const getChartData = () => {
+    if (chartType === "dbLogs" && dbLogs) {
+      const groupedLogs = dbLogs.reduce((acc, log) => {
+        const date = format(new Date(log.timestamp / 1000), "dd/MM/yyyy");
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const dates = Object.keys(groupedLogs).sort();
+
+      return {
+        labels: dates,
+        datasets: [
+          {
+            label: 'Log Events',
+            data: dates.map(date => groupedLogs[date]),
+            backgroundColor: 'hsla(200, 70%, 50%, 0.7)',
+            borderColor: 'hsla(200, 70%, 50%, 1)',
+            tension: 0.3
+          }
+        ]
+      };
+    }
+
     switch (chartType) {
       case "line":
         return {
@@ -169,7 +219,12 @@ export function TimeAnalyticsCharts({ entries }: { entries: TimeEntryData[] }) {
       },
       tooltip: {
         mode: 'index' as const,
-        intersect: false
+        intersect: false,
+        callbacks: chartType === "dbLogs" ? {
+          label: (context: any) => {
+            return `${context.dataset.label}: ${context.parsed.y} eventi`;
+          }
+        } : undefined
       }
     },
     scales: {
@@ -218,12 +273,15 @@ export function TimeAnalyticsCharts({ entries }: { entries: TimeEntryData[] }) {
                 <SelectItem value="line">Analisi Temporale 📈</SelectItem>
                 <SelectItem value="groupedBar">Confronto Progetti 📊</SelectItem>
                 <SelectItem value="stackedBar">Efficienza 🏗️</SelectItem>
+                {isAdmin && <SelectItem value="dbLogs">Log Database 📑</SelectItem>}
               </SelectContent>
             </Select>
           </div>
         </div>
         <div className="h-[400px]">
-          {chartType === "line" ? (
+          {chartType === "dbLogs" ? (
+            <Line data={getChartData()} options={chartOptions} />
+          ) : chartType === "line" ? (
             <Line data={getChartData()} options={chartOptions} />
           ) : (
             <Bar data={getChartData()} options={chartOptions} />
