@@ -1,12 +1,16 @@
 
 import { useState } from "react";
-import { Plus, Globe, Lock, ChevronDown, ChevronUp, Building } from "lucide-react";
+import { Plus, Globe, Lock, ChevronDown, ChevronUp, Building, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Client } from "@/types/Client";
 import { cn } from "@/lib/utils";
 import { useRole } from "@/hooks/useRole";
 import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader } from "@/components/ui/sidebar";
 import { NewClientDialog } from "./NewClientDialog";
+import { DeleteClientDialog } from "../client/DeleteClientDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useAuth } from "../AuthProvider";
 
 interface ClientListProps {
   clients: Client[];
@@ -26,10 +30,13 @@ export function ClientList({
   selectedClient
 }: ClientListProps) {
   const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
   const { role } = useRole();
+  const { session } = useAuth();
 
   const isCurrentUserClient = (client: Client) => {
-    return client.user_id === client.user_id; // This will be fixed in a future update
+    return client.user_id === session?.user?.id;
   };
 
   const handleClientClick = (client: Client, event: React.MouseEvent) => {
@@ -38,6 +45,32 @@ export function ClientList({
       if (onSelectClient) {
         onSelectClient(client);
       }
+    }
+  };
+
+  const handleDeleteClick = (client: Client, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setClientToDelete(client);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!clientToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .delete()
+        .eq('id', clientToDelete.id);
+
+      if (error) throw error;
+
+      toast.success("Cliente eliminato con successo");
+      onClientAdded();
+      setIsDeleteDialogOpen(false);
+      setClientToDelete(null);
+    } catch (error: any) {
+      toast.error("Errore durante l'eliminazione del cliente: " + error.message);
     }
   };
 
@@ -92,18 +125,30 @@ export function ClientList({
                       )} />
                     )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-4 w-4 p-0"
-                    onClick={(e) => toggleClientExpand(client, e)}
-                  >
-                    {expandedClients.includes(client.id) ? (
-                      <ChevronUp className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4 text-gray-400" />
+                  <div className="flex items-center gap-1">
+                    {isCurrentUserClient(client) && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        onClick={(e) => handleDeleteClick(client, e)}
+                      >
+                        <Trash2 className="h-4 w-4 text-gray-400" />
+                      </Button>
                     )}
-                  </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-4 w-4 p-0"
+                      onClick={(e) => toggleClientExpand(client, e)}
+                    >
+                      {expandedClients.includes(client.id) ? (
+                        <ChevronUp className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-gray-400" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 <div
                   className={cn(
@@ -120,6 +165,16 @@ export function ClientList({
           ))}
         </div>
       </SidebarGroupContent>
+
+      {clientToDelete && (
+        <DeleteClientDialog
+          client={clientToDelete}
+          isOpen={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          onConfirmDelete={handleDeleteConfirm}
+        />
+      )}
     </SidebarGroup>
   );
 }
+

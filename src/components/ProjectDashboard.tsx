@@ -1,19 +1,16 @@
 import { useEffect, useState } from "react";
-import { TimeTable } from "./TimeTable";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { TimeEntry } from "@/types/Project";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Building, Clock, Trash2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Separator } from "./ui/separator";
+import { ClientProjectsChart } from "./ClientProjectsChart";
+import { useNavigate } from "react-router-dom";
+import { DeleteProjectDialog } from "./project/DeleteProjectDialog";
 import { useRole } from "@/hooks/useRole";
 import { useAuth } from "./AuthProvider";
-import { supabase } from "@/integrations/supabase/client";
-import { Project } from "@/types/Project";
-import { Client } from "@/types/Client";
-import { TimeEntryData } from "./TimeEntry";
-import { Skeleton } from "./ui/skeleton";
-import { toast } from "sonner";
-import { ProjectTimeChart } from "./ProjectTimeChart";
-import { Button } from "./ui/button";
-import { ArrowLeft, Building } from "lucide-react";
-import { Separator } from "./ui/separator";
-import { Link } from "react-router-dom";
 
 interface ProjectDashboardProps {
   project: Project;
@@ -26,7 +23,7 @@ interface UserInfo {
 }
 
 export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
-  const [timeEntries, setTimeEntries] = useState<TimeEntryData[]>([]);
+  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userInfoMap, setUserInfoMap] = useState<Record<string, UserInfo>>({});
   const [client, setClient] = useState<Client | null>(null);
@@ -34,6 +31,8 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
   const { session } = useAuth();
   const [totalHours, setTotalHours] = useState(0);
   const [totalBillableHours, setTotalBillableHours] = useState(0);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchTimeEntries();
@@ -41,6 +40,29 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
       fetchClient();
     }
   }, [project.id, project.client_id, role, session?.user?.id]);
+
+  const handleDeleteProject = async () => {
+    try {
+      const { error: timeEntriesError } = await supabase
+        .from('time_entries')
+        .delete()
+        .eq('project_id', project.id);
+
+      if (timeEntriesError) throw timeEntriesError;
+
+      const { error: projectError } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', project.id);
+
+      if (projectError) throw projectError;
+
+      toast.success("Progetto eliminato con successo");
+      navigate("/");
+    } catch (error: any) {
+      toast.error("Errore durante l'eliminazione del progetto: " + error.message);
+    }
+  };
 
   const fetchClient = async () => {
     try {
@@ -68,7 +90,6 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
 
       if (error) throw error;
 
-      // Fetch user information from auth users directly
       const userIds = new Set<string>();
       entries.forEach(entry => {
         if (entry.user_id) userIds.add(entry.user_id);
@@ -82,7 +103,6 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
 
       if (usersError) throw usersError;
 
-      // Create a map of user information
       const userMap: Record<string, UserInfo> = {};
       users?.forEach(user => {
         userMap[user.user_id] = {
@@ -109,7 +129,6 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
 
       setTimeEntries(formattedEntries);
 
-      // Calculate totals
       const hours = formattedEntries.reduce((acc, entry) => acc + Number(entry.hours), 0);
       const billableHours = formattedEntries.reduce((acc, entry) => acc + Number(entry.billableHours), 0);
       
@@ -122,16 +141,33 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
     }
   };
 
+  const isCurrentUserProject = (project: Project) => {
+    return project.user_id === session?.user?.id;
+  };
+
   return (
     <div className="space-y-6">
-      <Button
-        variant="ghost"
-        onClick={onBack}
-        className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Torna alla Dashboard
-      </Button>
+      <div className="flex items-center justify-between">
+        <Button
+          variant="ghost"
+          onClick={onBack}
+          className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Torna alla Dashboard
+        </Button>
+        {isCurrentUserProject(project) && (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setIsDeleteDialogOpen(true)}
+            className="bg-red-500 hover:bg-red-600"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Elimina Progetto
+          </Button>
+        )}
+      </div>
 
       <Card>
         <CardHeader>
@@ -201,6 +237,13 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
           )}
         </>
       )}
+
+      <DeleteProjectDialog
+        project={project}
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirmDelete={handleDeleteProject}
+      />
     </div>
   );
 }
