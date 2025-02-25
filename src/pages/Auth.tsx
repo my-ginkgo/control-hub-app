@@ -1,10 +1,10 @@
 
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/components/AuthProvider";
+import { useNavigate } from "react-router-dom";
 import { Logo } from "@/components/Logo";
 
 const Auth = () => {
-  const { signInWithGoogle } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background">
@@ -20,10 +20,10 @@ const Auth = () => {
         </div>
         
         <Button
-          onClick={signInWithGoogle}
-          className="w-full bg-[#4285f4] hover:bg-[#3367d6] text-white"
+          onClick={() => navigate("/login")}
+          className="w-full"
         >
-          Accedi con Google
+          Accedi
         </Button>
       </div>
     </div>
