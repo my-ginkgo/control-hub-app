@@ -4,34 +4,67 @@ import { Client } from "@/types/Client";
 import { Project } from "@/types/Project";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building } from "lucide-react";
+import { ArrowLeft, Building, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Separator } from "./ui/separator";
+import { ClientProjectsChart } from "./ClientProjectsChart";
 
 interface ClientDashboardProps {
   client: Client;
   onBack: () => void;
 }
 
+interface ClientTotals {
+  totalHours: number;
+  totalBillableHours: number;
+  totalProjects: number;
+}
+
 export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [totals, setTotals] = useState<ClientTotals>({
+    totalHours: 0,
+    totalBillableHours: 0,
+    totalProjects: 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchProjects();
+    fetchProjectsAndTotals();
   }, [client.id]);
 
-  const fetchProjects = async () => {
+  const fetchProjectsAndTotals = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: projectsData, error: projectsError } = await supabase
         .from("projects")
-        .select("*")
+        .select(`
+          *,
+          time_entries (
+            hours,
+            billable_hours
+          )
+        `)
         .eq("client_id", client.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setProjects(data || []);
+      if (projectsError) throw projectsError;
+
+      const projects = projectsData || [];
+      setProjects(projects);
+
+      // Calcola i totali
+      const totals = projects.reduce((acc, project: any) => ({
+        totalHours: acc.totalHours + (project.time_entries?.reduce((sum: number, entry: any) => sum + (entry.hours || 0), 0) || 0),
+        totalBillableHours: acc.totalBillableHours + (project.time_entries?.reduce((sum: number, entry: any) => sum + (entry.billable_hours || 0), 0) || 0),
+        totalProjects: acc.totalProjects + 1,
+      }), {
+        totalHours: 0,
+        totalBillableHours: 0,
+        totalProjects: 0,
+      });
+
+      setTotals(totals);
       setIsLoading(false);
     } catch (error: any) {
       toast.error("Errore nel caricamento dei progetti: " + error.message);
@@ -65,8 +98,43 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
             </p>
           )}
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Progetti Totali</CardTitle>
+                <Building className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totals.totalProjects}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Ore Totali</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totals.totalHours.toFixed(1)}h</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Ore Fatturabili</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totals.totalBillableHours.toFixed(1)}h</div>
+              </CardContent>
+            </Card>
+          </div>
+
           <Separator />
+          
+          <ClientProjectsChart clientId={client.id} />
+
+          <Separator />
+
           <div>
             <h3 className="text-lg font-semibold mb-4">Progetti</h3>
             <div className="grid gap-4">
