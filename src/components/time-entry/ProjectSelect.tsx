@@ -5,22 +5,21 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Project } from "@/types/Project";
+import { useState } from "react";
 
 interface ProjectSelectProps {
   projects: Project[];
-  project: string;
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  setProject: (project: string) => void;
+  selectedProject: string;
+  onProjectChange: (project: string) => void;
 }
 
 export function ProjectSelect({
   projects,
-  project,
-  open,
-  setOpen,
-  setProject,
+  selectedProject,
+  onProjectChange,
 }: ProjectSelectProps) {
+  const [open, setOpen] = useState(false);
+
   return (
     <div className="space-y-2 relative">
       <label htmlFor="project" className="text-sm font-medium text-gray-200">
@@ -34,8 +33,8 @@ export function ProjectSelect({
             aria-expanded={open}
             className="w-full justify-between text-left font-normal bg-[#1a1b26] border-[#383a5c] text-white hover:bg-[#2a2b3d] h-10"
           >
-            {project
-              ? projects.find((p) => p.name === project)?.name
+            {selectedProject
+              ? projects.find((p) => p.name === selectedProject)?.name
               : "Seleziona un progetto..."}
           </Button>
         </PopoverTrigger>
@@ -53,7 +52,7 @@ export function ProjectSelect({
                   <CommandItem
                     key={p.id}
                     onSelect={() => {
-                      setProject(p.name);
+                      onProjectChange(p.name);
                       setOpen(false);
                     }}
                     className="flex items-center gap-2 hover:bg-[#2a2b3d] text-white p-2 cursor-pointer"
@@ -66,7 +65,7 @@ export function ProjectSelect({
                     <Check
                       className={cn(
                         "ml-auto h-4 w-4",
-                        project === p.name ? "opacity-100" : "opacity-0"
+                        selectedProject === p.name ? "opacity-100" : "opacity-0"
                       )}
                     />
                   </CommandItem>

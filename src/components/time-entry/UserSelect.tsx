@@ -5,27 +5,42 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/AuthProvider";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UserSelectProps {
-  users: Array<{ id: string; email: string }>;
   selectedUserId: string;
-  userOpen: boolean;
-  setUserOpen: (open: boolean) => void;
-  setSelectedUserId: (id: string) => void;
-  userSearch: string;
-  setUserSearch: (search: string) => void;
+  onUserChange: (id: string) => void;
 }
 
 export function UserSelect({
-  users,
   selectedUserId,
-  userOpen,
-  setUserOpen,
-  setSelectedUserId,
-  userSearch,
-  setUserSearch,
+  onUserChange,
 }: UserSelectProps) {
+  const [open, setOpen] = useState(false);
+  const [users, setUsers] = useState<Array<{ id: string; email: string }>>([]);
+  const [userSearch, setUserSearch] = useState("");
   const { session } = useAuth();
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("user_id, email");
+      
+      if (error) {
+        console.error("Error fetching users:", error);
+        return;
+      }
+
+      setUsers(data.map(user => ({
+        id: user.user_id,
+        email: user.email || user.user_id
+      })));
+    };
+
+    fetchUsers();
+  }, []);
 
   const filteredUsers = users.filter((user) =>
     user.email.toLowerCase().includes(userSearch.toLowerCase())
@@ -38,12 +53,12 @@ export function UserSelect({
       <label className="text-sm font-medium text-gray-200">
         Utente Assegnato
       </label>
-      <Popover open={userOpen} onOpenChange={setUserOpen}>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             role="combobox"
-            aria-expanded={userOpen}
+            aria-expanded={open}
             className="w-full justify-between text-left font-normal bg-[#1a1b26] border-[#383a5c] text-white hover:bg-[#2a2b3d] h-10"
           >
             {selectedUserId
@@ -72,8 +87,8 @@ export function UserSelect({
                   <CommandItem
                     key={user.id}
                     onSelect={() => {
-                      setSelectedUserId(user.id);
-                      setUserOpen(false);
+                      onUserChange(user.id);
+                      setOpen(false);
                       setUserSearch("");
                     }}
                     className="flex items-center gap-2 hover:bg-[#2a2b3d] text-white p-2 cursor-pointer"
