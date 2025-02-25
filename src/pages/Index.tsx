@@ -1,11 +1,25 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from "react";
+import { TimeEntry, TimeEntryData } from "@/components/TimeEntry";
+import { TimeTable } from "@/components/TimeTable";
+import { DashboardStats } from "@/components/DashboardStats";
 
 const Index = () => {
+  const [timeEntries, setTimeEntries] = useState<TimeEntryData[]>([]);
+
+  const handleNewEntry = (entry: TimeEntryData) => {
+    setTimeEntries([entry, ...timeEntries]);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-background">
+      <div className="container py-8">
+        <h1 className="text-4xl font-bold mb-8 text-center">Time Tracker</h1>
+        <DashboardStats entries={timeEntries} />
+        <div className="grid grid-cols-1 gap-8">
+          <TimeEntry onSubmit={handleNewEntry} />
+          {timeEntries.length > 0 && <TimeTable entries={timeEntries} />}
+        </div>
       </div>
     </div>
   );
