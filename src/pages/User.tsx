@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 
 const User = () => {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ const User = () => {
     return null;
   }
 
-  const { data: profiles, isLoading: isLoadingProfiles } = useQuery({
+  const { data: profiles, isLoading: isLoadingProfiles, refetch } = useQuery({
     queryKey: ["admin-profiles"],
     queryFn: async () => {
       try {
@@ -47,7 +48,7 @@ const User = () => {
 
         const { data: userRoles, error: rolesError } = await supabase
           .from("user_roles")
-          .select("user_id, role, email");
+          .select("user_id, role, email, is_disabled");
 
         if (rolesError) throw rolesError;
 
@@ -62,6 +63,22 @@ const User = () => {
     },
     enabled: role === "ADMIN",
   });
+
+  const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('user_roles')
+        .update({ is_disabled: !currentStatus })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      toast.success(`Utente ${currentStatus ? 'abilitato' : 'disabilitato'} con successo`);
+      refetch(); // Refresh the data
+    } catch (error: any) {
+      toast.error("Errore durante l'aggiornamento dello stato: " + error.message);
+    }
+  };
 
   if (isLoadingRole || isLoadingProfiles) {
     return (
@@ -96,6 +113,7 @@ const User = () => {
                 <TableHead className="text-gray-400">Nome</TableHead>
                 <TableHead className="text-gray-400">Email</TableHead>
                 <TableHead className="text-gray-400">Ruolo</TableHead>
+                <TableHead className="text-gray-400">Stato</TableHead>
                 <TableHead className="text-gray-400">Azioni</TableHead>
               </TableRow>
             </TableHeader>
@@ -120,6 +138,18 @@ const User = () => {
                     </span>
                   </TableCell>
                   <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        checked={!profile.is_disabled}
+                        onCheckedChange={() => handleToggleUserStatus(profile.id, profile.is_disabled)}
+                        className={profile.is_disabled ? "bg-red-500/20" : ""}
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        {profile.is_disabled ? "Disabilitato" : "Attivo"}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -140,3 +170,4 @@ const User = () => {
 };
 
 export default User;
+
