@@ -9,13 +9,16 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { Moon, Sun, User } from "lucide-react";
 import { toast } from "sonner";
+import { useTheme } from "@/components/ThemeProvider";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const [timeEntries, setTimeEntries] = useState<TimeEntryData[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
-  const { signOut, session } = useAuth();
+  const { session } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -105,7 +108,7 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-[#1a1b26] text-white">
+      <div className="min-h-screen flex w-full bg-[#1a1b26] text-white dark:bg-[#1a1b26] dark:text-white">
         <ProjectSidebar projects={projects} onAddProject={handleAddProject} />
         <div className="flex-1">
           <div className="container py-4 md:py-8 px-4 md:px-8">
@@ -113,14 +116,30 @@ const Index = () => {
               <h1 className="text-3xl md:text-4xl font-bold text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
                 Time Tracker
               </h1>
-              <Button
-                variant="outline"
-                onClick={signOut}
-                className="border-[#383a5c] text-white hover:bg-[#2a2b3d]"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className="border-[#383a5c] text-white hover:bg-[#2a2b3d]"
+                >
+                  {theme === "dark" ? (
+                    <Sun className="h-5 w-5" />
+                  ) : (
+                    <Moon className="h-5 w-5" />
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  asChild
+                  className="border-[#383a5c] text-white hover:bg-[#2a2b3d]"
+                >
+                  <Link to="/user">
+                    <User className="h-5 w-5" />
+                  </Link>
+                </Button>
+              </div>
             </div>
             <DashboardStats entries={timeEntries} />
             <div className="space-y-6 md:space-y-8">
