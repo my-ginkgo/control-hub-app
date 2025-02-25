@@ -5,29 +5,23 @@ import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { SIDEBAR_WIDTH_MOBILE } from "./constants"
 import { useSidebar, SidebarProvider } from "./context"
-import {
-  SidebarHeader,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupAction,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarInput,
-  SidebarInset,
+import { SidebarHeader, SidebarContent, SidebarInset, SidebarFooter } from "./structure"
+import { SidebarGroup, SidebarGroupAction, SidebarGroupContent, SidebarGroupLabel } from "./group"
+import { 
   SidebarMenu,
+  SidebarMenuItem,
   SidebarMenuAction,
   SidebarMenuBadge,
   SidebarMenuButton,
-  SidebarMenuItem,
   SidebarMenuSkeleton,
   SidebarMenuSub,
   SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  SidebarRail,
-  SidebarSeparator,
-  SidebarTrigger
-} from "./components"
+  SidebarMenuSubItem
+} from "./menu"
+import { SidebarInput } from "./input"
+import { SidebarSeparator } from "./separator"
+import { SidebarRail } from "./rail"
+import { SidebarTrigger } from "./trigger"
 
 const Sidebar = React.forwardRef<
   HTMLDivElement,
@@ -129,6 +123,9 @@ const Sidebar = React.forwardRef<
   }
 )
 Sidebar.displayName = "Sidebar"
+
+// Now we can delete the original components.tsx file since everything has been moved
+<lov-delete file_path="src/components/ui/sidebar/components.tsx" />
 
 export {
   Sidebar,
