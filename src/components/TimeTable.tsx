@@ -25,6 +25,7 @@ export function TimeTable({ entries }: { entries: TimeEntryData[] }) {
             <TableHead>Ore Reali</TableHead>
             <TableHead>Ore Fatturabili</TableHead>
             <TableHead>Utente Assegnato</TableHead>
+            <TableHead>Utente Esecutore</TableHead>
             <TableHead>Note</TableHead>
           </TableRow>
         </TableHeader>
@@ -37,6 +38,7 @@ export function TimeTable({ entries }: { entries: TimeEntryData[] }) {
               <TableCell>{entry.hours}</TableCell>
               <TableCell>{entry.billableHours}</TableCell>
               <TableCell>{entry.assignedUserId}</TableCell>
+              <TableCell>{entry.userId}</TableCell>
               <TableCell className="max-w-[300px] truncate">{entry.notes}</TableCell>
             </TableRow>
           ))}
@@ -45,3 +47,4 @@ export function TimeTable({ entries }: { entries: TimeEntryData[] }) {
     </Card>
   );
 }
+

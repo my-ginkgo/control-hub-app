@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,6 +16,18 @@ import { ProjectSelect } from "./time-entry/ProjectSelect";
 interface TimeEntryProps {
   onSubmit: (data: TimeEntryData) => void;
   projects: Project[];
+}
+
+export interface TimeEntryData {
+  hours: number;
+  billableHours: number;
+  project: string;
+  notes: string;
+  date: string;
+  assignedUserId: string;
+  userId: string;
+  startDate: string;
+  endDate: string;
 }
 
 export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
@@ -71,6 +82,7 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
       notes,
       date: new Date().toISOString(),
       assignedUserId: selectedUserId || session?.user?.id || "",
+      userId: selectedUserId || session?.user?.id || "",
       startDate,
       endDate
     });
@@ -190,15 +202,4 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
       </form>
     </Card>
   );
-}
-
-export interface TimeEntryData {
-  hours: number;
-  billableHours: number;
-  project: string;
-  notes: string;
-  date: string;
-  assignedUserId: string;
-  startDate: string;
-  endDate: string;
 }
