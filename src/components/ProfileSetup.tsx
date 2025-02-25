@@ -15,8 +15,6 @@ export const ProfileSetup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [bio, setBio] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -30,8 +28,6 @@ export const ProfileSetup = () => {
       const { error } = await supabase
         .from("profiles")
         .update({
-          first_name: firstName,
-          last_name: lastName,
           bio,
           job_title: jobTitle,
           date_of_birth: dateOfBirth || null,
@@ -65,29 +61,6 @@ export const ProfileSetup = () => {
           Complete Your Profile
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
-              <Input
-                id="firstName"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                required
-                className="bg-[#1a1b26] border-[#383a5c] text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input
-                id="lastName"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                required
-                className="bg-[#1a1b26] border-[#383a5c] text-white"
-              />
-            </div>
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="jobTitle">Job Title</Label>
             <Input
