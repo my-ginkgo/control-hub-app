@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Globe, Lock, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { Project } from "@/types/Project";
+import { cn } from "@/lib/utils";
 
 interface ProjectSidebarProps {
   projects: Project[];
@@ -27,6 +28,7 @@ interface ProjectSidebarProps {
 
 export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
   const [newProject, setNewProject] = useState({
     name: "",
     description: "",
@@ -41,13 +43,27 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
     setIsOpen(false);
   };
 
+  const toggleProjectExpand = (projectId: string) => {
+    setExpandedProjects((prev) =>
+      prev.includes(projectId)
+        ? prev.filter((id) => id !== projectId)
+        : [...prev, projectId]
+    );
+  };
+
   return (
     <Sidebar>
-      <SidebarHeader className="p-4 flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Progetti</h2>
+      <SidebarHeader className="p-4 flex justify-between items-center border-b border-sidebar-border">
+        <h2 className="text-lg font-semibold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+          Progetti
+        </h2>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button
+              variant="outline"
+              size="icon"
+              className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            >
               <Plus className="h-4 w-4" />
             </Button>
           </DialogTrigger>
@@ -107,19 +123,48 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
         </Dialog>
       </SidebarHeader>
       <SidebarContent className="px-2">
-        <div className="space-y-2">
+        <div className="space-y-2 py-2">
           {projects.map((project) => (
             <div
               key={project.id}
-              className="p-3 rounded-lg hover:bg-accent cursor-pointer"
-              style={{
-                borderLeft: `4px solid ${project.color || "#4F46E5"}`,
-              }}
+              className={cn(
+                "group rounded-lg transition-all duration-200",
+                "hover:bg-sidebar-accent/50"
+              )}
             >
-              <h3 className="font-medium">{project.name}</h3>
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                {project.description}
-              </p>
+              <div
+                className="p-3 cursor-pointer"
+                onClick={() => toggleProjectExpand(project.id)}
+                style={{
+                  borderLeft: `4px solid ${project.color || "#4F46E5"}`,
+                }}
+              >
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-medium">{project.name}</h3>
+                    {project.isPublic ? (
+                      <Globe className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Lock className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
+                  {expandedProjects.includes(project.id) ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </div>
+                <div
+                  className={cn(
+                    "text-sm text-muted-foreground overflow-hidden transition-all duration-200",
+                    expandedProjects.includes(project.id)
+                      ? "max-h-24 mt-2"
+                      : "max-h-0 opacity-0"
+                  )}
+                >
+                  {project.description}
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -127,4 +172,3 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
     </Sidebar>
   );
 }
-
