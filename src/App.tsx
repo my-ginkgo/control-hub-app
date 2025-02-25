@@ -58,6 +58,7 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/user" element={<User />} />
+              <Route path="/user/:id" element={<User />} />
               <Route path="/project/:id" element={<ProjectDashboardWrapper />} />
               <Route path="/client/:id" element={<ClientPage />} />
               <Route path="*" element={<NotFound />} />

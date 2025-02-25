@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
@@ -23,6 +23,10 @@ const User = () => {
   const navigate = useNavigate();
   const { session } = useAuth();
   const { role, isLoading: isLoadingRole } = useRole();
+  const { id } = useParams();
+
+  // Use the ID from params, fallback to current user's ID if not provided
+  const userId = id || session?.user?.id;
 
   // Redirect to auth if not logged in
   if (!session?.user) {
@@ -30,16 +34,41 @@ const User = () => {
     return null;
   }
 
-  // Redirect to home if not admin
-  if (!isLoadingRole && role !== "ADMIN") {
+  // Redirect to home if not admin and trying to access another user's profile
+  if (!isLoadingRole && role !== "ADMIN" && userId !== session.user.id) {
     navigate("/");
     return null;
   }
 
   const { data: profiles, isLoading: isLoadingProfiles, refetch } = useQuery({
-    queryKey: ["admin-profiles"],
+    queryKey: ["admin-profiles", userId],
     queryFn: async () => {
       try {
+        // If viewing a specific user and not admin view
+        if (userId && userId !== session.user.id) {
+          const { data: profile, error: profileError } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", userId)
+            .single();
+
+          if (profileError) throw profileError;
+
+          const { data: userRole, error: roleError } = await supabase
+            .from("user_roles")
+            .select("user_id, role, email, is_disabled")
+            .eq("user_id", userId)
+            .single();
+
+          if (roleError) throw roleError;
+
+          return [{
+            ...profile,
+            ...userRole
+          }];
+        }
+
+        // Admin view - fetch all profiles
         const { data: profiles, error: profilesError } = await supabase
           .from("profiles")
           .select("*");
@@ -61,7 +90,7 @@ const User = () => {
         return [];
       }
     },
-    enabled: role === "ADMIN",
+    enabled: role === "ADMIN" || userId === session.user.id,
   });
 
   const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
@@ -74,7 +103,7 @@ const User = () => {
       if (error) throw error;
 
       toast.success(`Utente ${currentStatus ? 'abilitato' : 'disabilitato'} con successo`);
-      refetch(); // Refresh the data
+      refetch();
     } catch (error: any) {
       toast.error("Errore durante l'aggiornamento dello stato: " + error.message);
     }
@@ -95,15 +124,15 @@ const User = () => {
       <div className="container max-w-4xl mx-auto">
         <Button
           variant="ghost"
-          onClick={() => navigate(`/user/${session.user.id}`)}
+          onClick={() => navigate("/")}
           className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Torna al Profilo
+          Torna alla Dashboard
         </Button>
 
         <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-          Gestione Utenti
+          {userId === session.user.id || !userId ? "Gestione Utenti" : "Profilo Utente"}
         </h1>
 
         <Card className="p-6 bg-[#24253a] border-[#383a5c]">
@@ -170,4 +199,3 @@ const User = () => {
 };
 
 export default User;
-
