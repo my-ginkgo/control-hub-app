@@ -63,7 +63,12 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
       setIsLoading(true);
       let query = supabase
         .from("time_entries")
-        .select("*, projects(name)")
+        .select(`
+          *,
+          projects:project_id (
+            name
+          )
+        `)
         .eq("project_id", project.id);
 
       const { data: entries, error } = await query.order("date", { ascending: false });
@@ -98,7 +103,7 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
       const formattedEntries = entries.map((entry) => ({
         hours: entry.hours,
         billableHours: entry.billable_hours,
-        project: entry.projects.name,
+        project: entry.projects?.name || "",
         notes: entry.notes,
         date: entry.date,
         assignedUserId: entry.assigned_user_id,

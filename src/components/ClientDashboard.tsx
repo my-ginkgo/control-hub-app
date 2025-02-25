@@ -1,9 +1,10 @@
+
 import { useEffect, useState } from "react";
 import { Client } from "@/types/Client";
 import { Project } from "@/types/Project";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building, Trash2 } from "lucide-react";
+import { ArrowLeft, Building, Clock, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Separator } from "./ui/separator";
@@ -42,7 +43,9 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
       const { data: projectsData, error: projectsError } = await supabase
         .from("projects")
         .select(`
-          *,
+          id,
+          name,
+          description,
           time_entries (
             hours,
             billable_hours
