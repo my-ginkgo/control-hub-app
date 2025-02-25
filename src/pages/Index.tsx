@@ -1,6 +1,6 @@
 
-import { useEffect, useState } from "react";
-import { TimeEntry, TimeEntryData } from "@/components/TimeEntry";
+import { useState } from "react";
+import { TimeEntryData } from "@/components/TimeEntry";
 import { TimeTable } from "@/components/TimeTable";
 import { DashboardStats } from "@/components/DashboardStats";
 import { ProjectSidebar } from "@/components/ProjectSidebar";
@@ -13,6 +13,8 @@ import { Moon, Sun, User } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "@/components/ThemeProvider";
 import { Link } from "react-router-dom";
+import { TimeEntryDialog } from "@/components/TimeEntryDialog";
+import { useEffect } from "react";
 
 const Index = () => {
   const [timeEntries, setTimeEntries] = useState<TimeEntryData[]>([]);
@@ -143,7 +145,7 @@ const Index = () => {
             </div>
             <DashboardStats entries={timeEntries} />
             <div className="space-y-6 md:space-y-8">
-              <TimeEntry onSubmit={handleNewEntry} projects={projects} />
+              <TimeEntryDialog onSubmit={handleNewEntry} projects={projects} />
               {timeEntries.length > 0 && <TimeTable entries={timeEntries} />}
             </div>
           </div>
