@@ -1,21 +1,12 @@
-
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
-import { useAuth } from "@/components/AuthProvider";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useRole } from "@/hooks/useRole";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const AdminUsers = () => {
   const navigate = useNavigate();
@@ -37,21 +28,17 @@ const AdminUsers = () => {
   const { data: profiles, isLoading: isLoadingProfiles } = useQuery({
     queryKey: ["admin-profiles"],
     queryFn: async () => {
-      const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("*");
+      const { data: profiles, error: profilesError } = await supabase.from("profiles").select("*");
 
       if (profilesError) throw profilesError;
 
-      const { data: userRoles, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("user_id, role, email");
+      const { data: userRoles, error: rolesError } = await supabase.from("user_roles").select("user_id, role, email");
 
       if (rolesError) throw rolesError;
 
-      return profiles.map(profile => ({
+      return profiles.map((profile) => ({
         ...profile,
-        ...userRoles.find(ur => ur.user_id === profile.id)
+        ...userRoles.find((ur) => ur.user_id === profile.id),
       }));
     },
     enabled: role === "ADMIN",
@@ -73,13 +60,12 @@ const AdminUsers = () => {
         <Button
           variant="ghost"
           onClick={() => navigate("/")}
-          className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
-        >
+          className="mb-4 -ml-2 text-muted-foreground hover:text-foreground">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Torna alla Dashboard
         </Button>
 
-        <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+        <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-gradient-to-r from-red-700 to-amber-400 bg-clip-text text-transparent">
           Gestione Utenti
         </h1>
 
@@ -108,8 +94,7 @@ const AdminUsers = () => {
                         profile.role === "ADMIN"
                           ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                           : "bg-purple-500/20 text-purple-400 border border-purple-500/30"
-                      }`}
-                    >
+                      }`}>
                       {profile.role}
                     </span>
                   </TableCell>
@@ -118,8 +103,7 @@ const AdminUsers = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => navigate(`/user/${profile.id}`)}
-                      className="text-muted-foreground hover:text-foreground"
-                    >
+                      className="text-muted-foreground hover:text-foreground">
                       Visualizza
                     </Button>
                   </TableCell>

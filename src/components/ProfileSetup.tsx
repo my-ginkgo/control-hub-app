@@ -1,14 +1,13 @@
-
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/components/AuthProvider";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const ProfileSetup = () => {
   const { session } = useAuth();
@@ -57,7 +56,7 @@ export const ProfileSetup = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#1a1b26] px-4">
       <Card className="w-full max-w-md p-6 bg-[#24253a] border-[#383a5c]">
-        <h1 className="text-2xl font-bold mb-6 text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+        <h1 className="text-2xl font-bold mb-6 text-center bg-gradient-to-r from-red-700 to-amber-400 bg-clip-text text-transparent">
           Complete Your Profile
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -97,8 +96,7 @@ export const ProfileSetup = () => {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
-          >
+            className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600">
             {loading ? "Saving..." : "Complete Profile"}
           </Button>
         </form>
@@ -106,4 +104,3 @@ export const ProfileSetup = () => {
     </div>
   );
 };
-

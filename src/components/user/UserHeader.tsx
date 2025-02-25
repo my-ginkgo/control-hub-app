@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -17,8 +16,7 @@ export const UserHeader = ({ role }: UserHeaderProps) => {
         <Button
           variant="ghost"
           onClick={() => navigate("/")}
-          className="-ml-2 text-muted-foreground hover:text-foreground"
-        >
+          className="-ml-2 text-muted-foreground hover:text-foreground">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Torna alla Dashboard
         </Button>
@@ -27,14 +25,13 @@ export const UserHeader = ({ role }: UserHeaderProps) => {
           <Button
             variant="outline"
             onClick={() => navigate("/admin/users")}
-            className="border-[#383a5c] text-white hover:bg-[#2a2b3d]"
-          >
+            className="border-[#383a5c] text-white hover:bg-[#2a2b3d]">
             Gestione Utenti
           </Button>
         )}
       </div>
 
-      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-gradient-to-r from-red-700 to-amber-400 bg-clip-text text-transparent">
         Profilo Utente
       </h1>
     </>

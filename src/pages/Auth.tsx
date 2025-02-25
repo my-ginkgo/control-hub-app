@@ -1,11 +1,10 @@
-
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 export default function Auth() {
@@ -30,9 +29,9 @@ export default function Auth() {
             data: {
               full_name: `${firstName} ${lastName}`,
               first_name: firstName,
-              last_name: lastName
-            }
-          }
+              last_name: lastName,
+            },
+          },
         });
         if (error) throw error;
         navigate("/profile-setup");
@@ -40,9 +39,9 @@ export default function Auth() {
       } else {
         // Prima verifichiamo se l'utente è disabilitato
         const { data: userRole } = await supabase
-          .from('user_roles')
-          .select('is_disabled')
-          .eq('email', email)
+          .from("user_roles")
+          .select("is_disabled")
+          .eq("email", email)
           .maybeSingle();
 
         if (userRole?.is_disabled) {
@@ -68,13 +67,9 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-[#1a1b26] px-4">
       <Card className="w-full max-w-md p-6 bg-[#24253a] border-[#383a5c]">
         <div className="flex justify-center mb-6">
-          <img
-            src="https://gruppo4d.com/favicon.svg"
-            alt="Gruppo4D Logo"
-            className="w-16 h-16"
-          />
+          <img src="https://gruppo4d.com/favicon.svg" alt="Gruppo4D Logo" className="w-16 h-16" />
         </div>
-        <h1 className="text-2xl font-bold mb-6 text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+        <h1 className="text-2xl font-bold mb-6 text-center bg-gradient-to-r from-red-700 to-amber-400 bg-clip-text text-transparent">
           {isSignUp ? "Create Account" : "Welcome Back"}
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -127,22 +122,14 @@ export default function Auth() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
-          >
-            {loading
-              ? "Loading..."
-              : isSignUp
-              ? "Sign Up"
-              : "Sign In"}
+            className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600">
+            {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
           </Button>
           <button
             type="button"
             onClick={() => setIsSignUp(!isSignUp)}
-            className="w-full text-sm text-gray-400 hover:text-white transition-colors"
-          >
-            {isSignUp
-              ? "Already have an account? Sign in"
-              : "Don't have an account? Sign up"}
+            className="w-full text-sm text-gray-400 hover:text-white transition-colors">
+            {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
           </button>
         </form>
       </Card>
