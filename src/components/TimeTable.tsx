@@ -32,8 +32,7 @@ interface TimeTableProps {
 }
 
 type TimeEntryToDelete = {
-  date: string;
-  project: string;
+  id: string;
 } | null;
 
 export function TimeTable({ entries, onEntryDeleted }: TimeTableProps) {
@@ -42,8 +41,7 @@ export function TimeTable({ entries, onEntryDeleted }: TimeTableProps) {
 
   const handleDeleteClick = (entry: TimeEntryData) => {
     setEntryToDelete({
-      date: entry.date,
-      project: entry.project
+      id: entry.id
     });
     setIsDeleteDialogOpen(true);
   };
@@ -55,8 +53,7 @@ export function TimeTable({ entries, onEntryDeleted }: TimeTableProps) {
       const { error } = await supabase
         .from('time_entries')
         .delete()
-        .eq('date', entryToDelete.date)
-        .eq('project', entryToDelete.project);
+        .eq('id', entryToDelete.id);
 
       if (error) throw error;
 
@@ -86,7 +83,7 @@ export function TimeTable({ entries, onEntryDeleted }: TimeTableProps) {
         </TableHeader>
         <TableBody>
           {entries.map((entry, index) => (
-            <TableRow key={`${entry.date}-${entry.project}-${index}`}>
+            <TableRow key={entry.id || `${entry.date}-${entry.project}-${index}`}>
               <TableCell>
                 {formatDistanceToNow(new Date(entry.date), {
                   addSuffix: true,
@@ -119,7 +116,7 @@ export function TimeTable({ entries, onEntryDeleted }: TimeTableProps) {
               Sei sicuro di voler eliminare questo time entry?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Questa azione non può essere annullata.
+              Questa azione non può essere annullata
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
