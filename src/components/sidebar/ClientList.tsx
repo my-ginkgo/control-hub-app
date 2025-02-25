@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Plus, Globe, Lock, ChevronDown, ChevronUp, Building, Trash2 } from "lucide-react";
+import { Plus, Globe, Lock, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Client } from "@/types/Client";
 import { cn } from "@/lib/utils";
@@ -105,15 +105,6 @@ export function ClientList({
               >
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <Building className="h-4 w-4 text-gray-400" />
-                    <h3 className={cn(
-                      "font-medium",
-                      !client.is_public && isCurrentUserClient(client) && role === "ADMIN" 
-                        ? "text-purple-400" 
-                        : "text-gray-200"
-                    )}>
-                      {client.name}
-                    </h3>
                     {client.is_public ? (
                       <Globe className="h-4 w-4 text-gray-400" />
                     ) : (
@@ -124,13 +115,21 @@ export function ClientList({
                           : "text-gray-400"
                       )} />
                     )}
+                    <h3 className={cn(
+                      "font-medium",
+                      !client.is_public && isCurrentUserClient(client) && role === "ADMIN" 
+                        ? "text-purple-400" 
+                        : "text-gray-200"
+                    )}>
+                      {client.name}
+                    </h3>
                   </div>
                   <div className="flex items-center gap-1">
                     {isCurrentUserClient(client) && (
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={(e) => handleDeleteClick(client, e)}
                       >
                         <Trash2 className="h-4 w-4 text-gray-400" />

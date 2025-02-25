@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Plus, Globe, Lock, ChevronDown, ChevronUp, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -190,14 +191,6 @@ export function ProjectList({
               >
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <h3 className={cn(
-                      "font-medium",
-                      !project.is_public && isCurrentUserProject(project) && role === "ADMIN" 
-                        ? "text-purple-400" 
-                        : "text-gray-200"
-                    )}>
-                      {project.name}
-                    </h3>
                     {project.is_public ? (
                       <Globe className="h-4 w-4 text-gray-400" />
                     ) : (
@@ -208,6 +201,14 @@ export function ProjectList({
                           : "text-gray-400"
                       )} />
                     )}
+                    <h3 className={cn(
+                      "font-medium",
+                      !project.is_public && isCurrentUserProject(project) && role === "ADMIN" 
+                        ? "text-purple-400" 
+                        : "text-gray-200"
+                    )}>
+                      {project.name}
+                    </h3>
                   </div>
                   <div className="flex items-center gap-1">
                     {isCurrentUserProject(project) && (
@@ -215,7 +216,7 @@ export function ProjectList({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={(e) => handleEditClick(project, e)}
                         >
                           <Pencil className="h-4 w-4 text-gray-400" />
@@ -223,7 +224,7 @@ export function ProjectList({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={(e) => handleDeleteClick(project, e)}
                         >
                           <Trash2 className="h-4 w-4 text-gray-400" />
@@ -363,3 +364,4 @@ export function ProjectList({
     </SidebarGroup>
   );
 }
+
