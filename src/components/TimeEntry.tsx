@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,7 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
   const [open, setOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [userSearch, setUserSearch] = useState("");
 
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
@@ -56,6 +58,10 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
     },
     enabled: role === "ADMIN",
   });
+
+  const filteredUsers = users.filter(user =>
+    user.email.toLowerCase().includes(userSearch.toLowerCase())
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,16 +114,24 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
                 align="start"
               >
                 <Command className="bg-transparent">
-                  <CommandInput placeholder="Cerca utente..." className="text-white h-9" />
+                  <CommandInput 
+                    placeholder="Cerca utente..." 
+                    value={userSearch}
+                    onValueChange={setUserSearch}
+                    className="h-9 text-white bg-[#1a1b26] border-b border-[#383a5c]"
+                  />
                   <CommandList>
-                    <CommandEmpty className="text-gray-400 p-2">Nessun utente trovato.</CommandEmpty>
+                    <CommandEmpty className="text-gray-400 p-2">
+                      Nessun utente trovato.
+                    </CommandEmpty>
                     <CommandGroup>
-                      {users.map((user) => (
+                      {filteredUsers.map((user) => (
                         <CommandItem
                           key={user.id}
                           onSelect={() => {
                             setSelectedUserId(user.id);
                             setUserOpen(false);
+                            setUserSearch("");
                           }}
                           className="flex items-center gap-2 hover:bg-[#2a2b3d] text-white p-2 cursor-pointer"
                         >
@@ -261,3 +275,4 @@ export interface TimeEntryData {
   date: string;
   assignedUserId: string;
 }
+
