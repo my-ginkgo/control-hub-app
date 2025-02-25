@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Plus, Globe, Lock, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Globe, Lock, ChevronDown, ChevronUp, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Project } from "@/types/Project";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,29 @@ import { useRole } from "@/hooks/useRole";
 import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader } from "@/components/ui/sidebar";
 import { NewProjectDialog } from "./NewProjectDialog";
 import { Client } from "@/types/Client";
+import { useAuth } from "@/components/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ProjectListProps {
   projects: Project[];
@@ -29,15 +52,101 @@ export function ProjectList({
   onProjectAdded,
 }: ProjectListProps) {
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    description: "",
+    clientId: "",
+    color: "",
+    isPublic: false
+  });
   const { role } = useRole();
+  const { session } = useAuth();
 
   const isCurrentUserProject = (project: Project) => {
-    return project.user_id === project.user_id; // This will be fixed in a future update
+    return project.user_id === session?.user?.id;
   };
 
   const handleProjectClick = (project: Project) => {
     if (onSelectProject) {
       onSelectProject(project);
+    }
+  };
+
+  const handleDeleteClick = async (project: Project, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setProjectToDelete(project);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleEditClick = (project: Project, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setProjectToEdit(project);
+    setEditFormData({
+      name: project.name,
+      description: project.description || "",
+      clientId: project.client_id || "",
+      color: project.color || "#4F46E5",
+      isPublic: project.is_public || false
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!projectToDelete) return;
+
+    try {
+      // First delete all time entries associated with the project
+      const { error: timeEntriesError } = await supabase
+        .from('time_entries')
+        .delete()
+        .eq('project_id', projectToDelete.id);
+
+      if (timeEntriesError) throw timeEntriesError;
+
+      // Then delete the project
+      const { error: projectError } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectToDelete.id);
+
+      if (projectError) throw projectError;
+
+      toast.success("Progetto eliminato con successo");
+      onProjectAdded(); // Refresh the projects list
+      setIsDeleteDialogOpen(false);
+      setProjectToDelete(null);
+    } catch (error: any) {
+      toast.error("Errore durante l'eliminazione del progetto: " + error.message);
+    }
+  };
+
+  const handleEditSave = async () => {
+    if (!projectToEdit) return;
+
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({
+          name: editFormData.name,
+          description: editFormData.description,
+          client_id: editFormData.clientId || null,
+          color: editFormData.color,
+          is_public: editFormData.isPublic
+        })
+        .eq('id', projectToEdit.id);
+
+      if (error) throw error;
+
+      toast.success("Progetto aggiornato con successo");
+      onProjectAdded(); // Refresh the projects list
+      setIsEditDialogOpen(false);
+      setProjectToEdit(null);
+    } catch (error: any) {
+      toast.error("Errore durante l'aggiornamento del progetto: " + error.message);
     }
   };
 
@@ -92,18 +201,40 @@ export function ProjectList({
                       )} />
                     )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-4 w-4 p-0"
-                    onClick={(e) => toggleProjectExpand(project, e)}
-                  >
-                    {expandedProjects.includes(project.id) ? (
-                      <ChevronUp className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4 text-gray-400" />
+                  <div className="flex items-center gap-1">
+                    {isCurrentUserProject(project) && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                          onClick={(e) => handleEditClick(project, e)}
+                        >
+                          <Pencil className="h-4 w-4 text-gray-400" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                          onClick={(e) => handleDeleteClick(project, e)}
+                        >
+                          <Trash2 className="h-4 w-4 text-gray-400" />
+                        </Button>
+                      </>
                     )}
-                  </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-4 w-4 p-0"
+                      onClick={(e) => toggleProjectExpand(project, e)}
+                    >
+                      {expandedProjects.includes(project.id) ? (
+                        <ChevronUp className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-gray-400" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 <div
                   className={cn(
@@ -120,6 +251,93 @@ export function ProjectList({
           ))}
         </div>
       </SidebarGroupContent>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sei sicuro di voler eliminare questo progetto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Questa azione non può essere annullata. Verranno eliminati anche tutti i time entries associati al progetto.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm}>Elimina</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="bg-[#1a1b26] border-[#2a2b3d]">
+          <DialogHeader>
+            <DialogTitle className="text-white">Modifica Progetto</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="name" className="text-sm text-gray-400">Nome</label>
+              <Input
+                id="name"
+                value={editFormData.name}
+                onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                className="bg-[#2a2b3d] border-[#383a5c] text-white"
+              />
+            </div>
+            <div>
+              <label htmlFor="description" className="text-sm text-gray-400">Descrizione</label>
+              <Textarea
+                id="description"
+                value={editFormData.description}
+                onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                className="bg-[#2a2b3d] border-[#383a5c] text-white"
+              />
+            </div>
+            <div>
+              <label htmlFor="client" className="text-sm text-gray-400">Cliente</label>
+              <Select
+                value={editFormData.clientId}
+                onValueChange={(value) => setEditFormData({ ...editFormData, clientId: value })}
+              >
+                <SelectTrigger className="bg-[#2a2b3d] border-[#383a5c] text-white">
+                  <SelectValue placeholder="Seleziona un cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Nessun cliente</SelectItem>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label htmlFor="color" className="text-sm text-gray-400">Colore</label>
+              <Input
+                id="color"
+                type="color"
+                value={editFormData.color}
+                onChange={(e) => setEditFormData({ ...editFormData, color: e.target.value })}
+                className="bg-[#2a2b3d] border-[#383a5c] h-10"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+              className="bg-[#2a2b3d] border-[#383a5c] text-white hover:bg-[#383a5c]"
+            >
+              Annulla
+            </Button>
+            <Button
+              onClick={handleEditSave}
+              className="bg-purple-500 hover:bg-purple-600 text-white"
+            >
+              Salva
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarGroup>
   );
 }
