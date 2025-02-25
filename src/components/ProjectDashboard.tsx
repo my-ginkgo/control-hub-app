@@ -48,25 +48,24 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
 
       if (error) throw error;
 
-      // Raccogli tutti gli ID utente unici
+      // Fetch user information from auth.users through profiles
       const userIds = new Set<string>();
       entries.forEach(entry => {
         if (entry.user_id) userIds.add(entry.user_id);
         if (entry.assigned_user_id) userIds.add(entry.assigned_user_id);
       });
 
-      // Fetch delle informazioni degli utenti
-      const { data: users, error: usersError } = await supabase
-        .from('users')
-        .select('id, email')
-        .in('id', Array.from(userIds));
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, email")
+        .in("id", Array.from(userIds));
 
-      if (usersError) throw usersError;
+      if (profilesError) throw profilesError;
 
-      // Crea una mappa degli utenti
-      const userMap = (users || []).reduce((acc, user) => ({
+      // Create a map of user information
+      const userMap = (profiles || []).reduce((acc, profile) => ({
         ...acc,
-        [user.id]: { id: user.id, email: user.email }
+        [profile.id]: { id: profile.id, email: profile.email }
       }), {} as Record<string, UserInfo>);
 
       setUserInfoMap(userMap);
@@ -87,7 +86,7 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
 
       setTimeEntries(formattedEntries);
 
-      // Calcola i totali
+      // Calculate totals
       const hours = formattedEntries.reduce((acc, entry) => acc + Number(entry.hours), 0);
       const billableHours = formattedEntries.reduce((acc, entry) => acc + Number(entry.billableHours), 0);
       
