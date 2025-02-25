@@ -32,13 +32,13 @@ const User = () => {
         .single();
 
       if (error) throw error;
+
+      setFirstName(data?.first_name || "");
+      setLastName(data?.last_name || "");
+      
       return data;
     },
     enabled: !!session?.user?.id,
-    onSuccess: (data) => {
-      setFirstName(data.first_name || "");
-      setLastName(data.last_name || "");
-    },
   });
 
   const updateProfile = useMutation({
@@ -190,3 +190,4 @@ const User = () => {
 };
 
 export default User;
+
