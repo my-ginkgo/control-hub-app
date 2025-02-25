@@ -7,4 +7,3 @@ export interface Project {
   is_public?: boolean;
   user_id?: string;
 }
-
