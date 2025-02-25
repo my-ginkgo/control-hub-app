@@ -2,11 +2,13 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/AuthProvider";
-import { LogOut, Mail } from "lucide-react";
+import { LogOut, Mail, BadgeCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { useRole } from "@/hooks/useRole";
 
 const User = () => {
   const { session, signOut } = useAuth();
+  const { role, isLoading } = useRole();
   const navigate = useNavigate();
 
   if (!session?.user) {
@@ -28,6 +30,22 @@ const User = () => {
               <div>
                 <p className="text-sm text-gray-400">Email</p>
                 <p className="text-lg">{session.user.email}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <BadgeCheck className="w-6 h-6 text-blue-400" />
+              <div>
+                <p className="text-sm text-gray-400">Ruolo</p>
+                <div className="flex items-center">
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                    role === "ADMIN" 
+                      ? "bg-blue-500/20 text-blue-400 border border-blue-500/30" 
+                      : "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                  }`}>
+                    {isLoading ? "Caricamento..." : role}
+                  </span>
+                </div>
               </div>
             </div>
 
