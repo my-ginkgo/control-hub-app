@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Plus, Globe, Lock, ChevronDown, ChevronUp, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -176,7 +175,7 @@ export function ProjectList({
             <div
               key={project.id}
               className={cn(
-                "group rounded-lg transition-all duration-200",
+                "group/item rounded-lg transition-all duration-200",
                 "hover:bg-black/20",
                 !project.is_public && isCurrentUserProject(project) && role === "ADMIN" && "bg-purple-500/10 hover:bg-purple-500/20",
                 selectedProject?.id === project.id && "bg-purple-500/20"
@@ -216,7 +215,7 @@ export function ProjectList({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="h-6 w-6 p-0 opacity-0 group-hover/item:opacity-100 transition-opacity"
                           onClick={(e) => handleEditClick(project, e)}
                         >
                           <Pencil className="h-4 w-4 text-gray-400" />
@@ -224,7 +223,7 @@ export function ProjectList({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="h-6 w-6 p-0 opacity-0 group-hover/item:opacity-100 transition-opacity"
                           onClick={(e) => handleDeleteClick(project, e)}
                         >
                           <Trash2 className="h-4 w-4 text-gray-400" />
@@ -364,4 +363,3 @@ export function ProjectList({
     </SidebarGroup>
   );
 }
-

@@ -91,7 +91,7 @@ export function ClientList({
               key={client.id}
               onClick={(e) => handleClientClick(client, e)}
               className={cn(
-                "group rounded-lg transition-all duration-200 cursor-pointer",
+                "group/item rounded-lg transition-all duration-200 cursor-pointer",
                 "hover:bg-black/20",
                 !client.is_public && isCurrentUserClient(client) && role === "ADMIN" && "bg-purple-500/10 hover:bg-purple-500/20",
                 selectedClient?.id === client.id && "bg-purple-500/20"
@@ -129,7 +129,7 @@ export function ClientList({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-6 w-6 p-0 opacity-0 group-hover/item:opacity-100 transition-opacity"
                         onClick={(e) => handleDeleteClick(client, e)}
                       >
                         <Trash2 className="h-4 w-4 text-gray-400" />
