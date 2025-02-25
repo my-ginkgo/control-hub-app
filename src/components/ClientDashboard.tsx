@@ -46,7 +46,7 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
           id,
           name,
           description,
-          time_entries (
+          time_entries!time_entries_project_id_fkey (
             hours,
             billable_hours
           )
