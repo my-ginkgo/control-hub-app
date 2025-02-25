@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { TimeEntryData } from "../TimeEntry";
@@ -35,7 +34,7 @@ ChartJS.register(
 type ChartType = "line" | "groupedBar" | "stackedBar" | "dbLogs";
 type DateRange = "day" | "week" | "month";
 
-interface DbLog {
+interface PostgresLog {
   timestamp: number;
   error_severity: string;
   event_message: string;
@@ -74,15 +73,16 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
     queryFn: async () => {
       if (!isAdmin) return [];
       
-      const { data, error } = await supabase
-        .from("postgres_logs")
-        .select("*")
-        .gte("timestamp", start.getTime() * 1000) // Convert to microseconds
-        .lte("timestamp", end.getTime() * 1000)
-        .order("timestamp", { ascending: true });
+      const response = await fetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/postgres_logs?select=*&timestamp=gte.${start.getTime() * 1000}&timestamp=lte.${end.getTime() * 1000}&order=timestamp.asc`, {
+        headers: {
+          'apikey': process.env.VITE_SUPABASE_ANON_KEY || '',
+          'Authorization': `Bearer ${process.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+      });
 
-      if (error) throw error;
-      return data as DbLog[];
+      if (!response.ok) throw new Error('Failed to fetch logs');
+      const data = await response.json();
+      return data as PostgresLog[];
     },
     enabled: isAdmin && chartType === "dbLogs"
   });
