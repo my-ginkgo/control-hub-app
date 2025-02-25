@@ -48,25 +48,28 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
 
       if (error) throw error;
 
-      // Fetch user information from auth.users through profiles
+      // Fetch user information from auth users directly
       const userIds = new Set<string>();
       entries.forEach(entry => {
         if (entry.user_id) userIds.add(entry.user_id);
         if (entry.assigned_user_id) userIds.add(entry.assigned_user_id);
       });
 
-      const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, email")
-        .in("id", Array.from(userIds));
+      const { data: users, error: usersError } = await supabase
+        .from("user_roles")
+        .select("user_id, email")
+        .in("user_id", Array.from(userIds));
 
-      if (profilesError) throw profilesError;
+      if (usersError) throw usersError;
 
       // Create a map of user information
-      const userMap = (profiles || []).reduce((acc, profile) => ({
-        ...acc,
-        [profile.id]: { id: profile.id, email: profile.email }
-      }), {} as Record<string, UserInfo>);
+      const userMap: Record<string, UserInfo> = {};
+      users?.forEach(user => {
+        userMap[user.user_id] = {
+          id: user.user_id,
+          email: user.email || user.user_id
+        };
+      });
 
       setUserInfoMap(userMap);
 
