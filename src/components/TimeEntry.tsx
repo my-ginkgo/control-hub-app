@@ -91,7 +91,7 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
             />
           </div>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 relative">
           <label htmlFor="project" className="text-sm font-medium text-gray-200">
             Progetto *
           </label>
@@ -101,18 +101,22 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
                 variant="outline"
                 role="combobox"
                 aria-expanded={open}
-                className="w-full justify-between text-left font-normal bg-[#1a1b26] border-[#383a5c] text-white hover:bg-[#2a2b3d]"
+                className="w-full justify-between text-left font-normal bg-[#1a1b26] border-[#383a5c] text-white hover:bg-[#2a2b3d] h-10"
               >
                 {project
                   ? projects.find((p) => p.name === project)?.name
                   : "Seleziona un progetto..."}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full p-0 bg-[#24253a] border-[#383a5c]">
+            <PopoverContent 
+              className="w-[--radix-popover-trigger-width] p-0 bg-[#24253a] border-[#383a5c]"
+              style={{ minWidth: "unset" }}
+              align="start"
+            >
               <Command className="bg-transparent">
-                <CommandInput placeholder="Cerca progetto..." className="text-white" />
+                <CommandInput placeholder="Cerca progetto..." className="text-white h-9" />
                 <CommandList>
-                  <CommandEmpty className="text-gray-400">Nessun progetto trovato.</CommandEmpty>
+                  <CommandEmpty className="text-gray-400 p-2">Nessun progetto trovato.</CommandEmpty>
                   <CommandGroup>
                     {projects.map((p) => (
                       <CommandItem
@@ -121,7 +125,7 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
                           setProject(p.name);
                           setOpen(false);
                         }}
-                        className="flex items-center gap-2 hover:bg-[#2a2b3d] text-white"
+                        className="flex items-center gap-2 hover:bg-[#2a2b3d] text-white p-2"
                       >
                         <div
                           className="w-3 h-3 rounded-full"
@@ -172,3 +176,4 @@ export interface TimeEntryData {
   notes: string;
   date: string;
 }
+
