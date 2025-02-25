@@ -29,8 +29,8 @@ export function ClientList({
   };
 
   return (
-    <SidebarGroup>
-      <SidebarHeader className="p-4 flex justify-between items-center">
+    <SidebarGroup className="h-[50vh] flex flex-col">
+      <SidebarHeader className="p-4 flex justify-between items-center shrink-0">
         <SidebarGroupLabel className="text-lg font-semibold text-purple-400">Clienti</SidebarGroupLabel>
         <NewClientDialog 
           isOpen={isClientDialogOpen}
@@ -38,7 +38,7 @@ export function ClientList({
           onClientAdded={onClientAdded}
         />
       </SidebarHeader>
-      <SidebarGroupContent>
+      <SidebarGroupContent className="overflow-y-auto">
         <div className="space-y-2 px-2">
           {clients.map((client) => (
             <div

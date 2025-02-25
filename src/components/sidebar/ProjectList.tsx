@@ -42,8 +42,8 @@ export function ProjectList({
   };
 
   return (
-    <SidebarGroup>
-      <SidebarHeader className="p-4 flex justify-between items-center">
+    <SidebarGroup className="h-[50vh] flex flex-col">
+      <SidebarHeader className="p-4 flex justify-between items-center shrink-0">
         <SidebarGroupLabel className="text-lg font-semibold text-purple-400">Progetti</SidebarGroupLabel>
         <NewProjectDialog 
           isOpen={isProjectDialogOpen}
@@ -52,7 +52,7 @@ export function ProjectList({
           onProjectAdded={onProjectAdded}
         />
       </SidebarHeader>
-      <SidebarGroupContent>
+      <SidebarGroupContent className="overflow-y-auto">
         <div className="space-y-2 px-2">
           {projects.map((project) => (
             <div
