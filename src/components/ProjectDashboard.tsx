@@ -54,6 +54,7 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
         notes: entry.notes,
         date: entry.date,
         assignedUserId: entry.assigned_user_id,
+        userId: entry.user_id,
         startDate: entry.start_date,
         endDate: entry.end_date,
       }));
