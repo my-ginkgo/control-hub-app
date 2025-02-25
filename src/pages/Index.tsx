@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { TimeEntryData } from "@/components/TimeEntry";
 import { TimeTable } from "@/components/TimeTable";
@@ -204,4 +203,3 @@ const Index = () => {
 };
 
 export default Index;
-
