@@ -15,18 +15,21 @@ import { toast } from "sonner";
 const Index = () => {
   const [timeEntries, setTimeEntries] = useState<TimeEntryData[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
-  const { signOut } = useAuth();
+  const { signOut, session } = useAuth();
 
   useEffect(() => {
-    fetchProjects();
-    fetchTimeEntries();
-  }, []);
+    if (session?.user?.id) {
+      fetchProjects();
+      fetchTimeEntries();
+    }
+  }, [session?.user?.id]);
 
   const fetchProjects = async () => {
     try {
       const { data, error } = await supabase
         .from("projects")
         .select("*")
+        .eq('user_id', session?.user?.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -41,6 +44,7 @@ const Index = () => {
       const { data, error } = await supabase
         .from("time_entries")
         .select("*, projects(name)")
+        .eq('user_id', session?.user?.id)
         .order("date", { ascending: false });
 
       if (error) throw error;
@@ -64,15 +68,14 @@ const Index = () => {
       const project = projects.find((p) => p.name === entry.project);
       if (!project) throw new Error("Project not found");
 
-      const { error } = await supabase.from("time_entries").insert([
-        {
-          hours: entry.hours,
-          billable_hours: entry.billableHours,
-          project_id: project.id,
-          notes: entry.notes,
-          date: entry.date,
-        },
-      ]);
+      const { error } = await supabase.from("time_entries").insert({
+        hours: entry.hours,
+        billable_hours: entry.billableHours,
+        project_id: project.id,
+        notes: entry.notes,
+        date: entry.date,
+        user_id: session?.user?.id,
+      });
 
       if (error) throw error;
       
@@ -87,7 +90,10 @@ const Index = () => {
     try {
       const { error } = await supabase
         .from("projects")
-        .insert([project]);
+        .insert({
+          ...project,
+          user_id: session?.user?.id,
+        });
 
       if (error) throw error;
       
@@ -129,3 +135,4 @@ const Index = () => {
 };
 
 export default Index;
+
