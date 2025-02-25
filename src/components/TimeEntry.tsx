@@ -57,11 +57,11 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
   };
 
   return (
-    <Card className="p-6 animate-fadeIn">
+    <Card className="p-4 md:p-6 bg-[#24253a] border-[#383a5c] shadow-lg animate-fadeIn">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label htmlFor="hours" className="text-sm font-medium">
+            <label htmlFor="hours" className="text-sm font-medium text-gray-200">
               Ore Reali *
             </label>
             <Input
@@ -72,11 +72,11 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
               value={hours}
               onChange={(e) => setHours(e.target.value)}
               placeholder="Es. 8"
-              className="w-full"
+              className="w-full bg-[#1a1b26] border-[#383a5c] text-white placeholder:text-gray-400"
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor="billableHours" className="text-sm font-medium">
+            <label htmlFor="billableHours" className="text-sm font-medium text-gray-200">
               Ore Fatturabili
             </label>
             <Input
@@ -87,12 +87,12 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
               value={billableHours}
               onChange={(e) => setBillableHours(e.target.value)}
               placeholder="Es. 7.5"
-              className="w-full"
+              className="w-full bg-[#1a1b26] border-[#383a5c] text-white placeholder:text-gray-400"
             />
           </div>
         </div>
         <div className="space-y-2">
-          <label htmlFor="project" className="text-sm font-medium">
+          <label htmlFor="project" className="text-sm font-medium text-gray-200">
             Progetto *
           </label>
           <Popover open={open} onOpenChange={setOpen}>
@@ -101,18 +101,18 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
                 variant="outline"
                 role="combobox"
                 aria-expanded={open}
-                className="w-full justify-between text-left font-normal"
+                className="w-full justify-between text-left font-normal bg-[#1a1b26] border-[#383a5c] text-white hover:bg-[#2a2b3d]"
               >
                 {project
                   ? projects.find((p) => p.name === project)?.name
                   : "Seleziona un progetto..."}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full p-0">
-              <Command>
-                <CommandInput placeholder="Cerca progetto..." />
+            <PopoverContent className="w-full p-0 bg-[#24253a] border-[#383a5c]">
+              <Command className="bg-transparent">
+                <CommandInput placeholder="Cerca progetto..." className="text-white" />
                 <CommandList>
-                  <CommandEmpty>Nessun progetto trovato.</CommandEmpty>
+                  <CommandEmpty className="text-gray-400">Nessun progetto trovato.</CommandEmpty>
                   <CommandGroup>
                     {projects.map((p) => (
                       <CommandItem
@@ -121,11 +121,11 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
                           setProject(p.name);
                           setOpen(false);
                         }}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 hover:bg-[#2a2b3d] text-white"
                       >
                         <div
                           className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: p.color || "#4F46E5" }}
+                          style={{ backgroundColor: p.color || "#9b87f5" }}
                         />
                         <span>{p.name}</span>
                         <Check
@@ -143,7 +143,7 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
           </Popover>
         </div>
         <div className="space-y-2">
-          <label htmlFor="notes" className="text-sm font-medium">
+          <label htmlFor="notes" className="text-sm font-medium text-gray-200">
             Note
           </label>
           <Textarea
@@ -151,10 +151,13 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Descrizione delle attività svolte..."
-            className="w-full min-h-[100px]"
+            className="w-full min-h-[100px] bg-[#1a1b26] border-[#383a5c] text-white placeholder:text-gray-400"
           />
         </div>
-        <Button type="submit" className="w-full">
+        <Button
+          type="submit"
+          className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
+        >
           Registra Tempo
         </Button>
       </form>

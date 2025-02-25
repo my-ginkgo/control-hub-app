@@ -25,13 +25,15 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full bg-[#1a1b26] text-white">
         <ProjectSidebar projects={projects} onAddProject={handleAddProject} />
-        <div className="flex-1 bg-background">
-          <div className="container py-8">
-            <h1 className="text-4xl font-bold mb-8 text-center">Time Tracker</h1>
+        <div className="flex-1">
+          <div className="container py-4 md:py-8 px-4 md:px-8">
+            <h1 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+              Time Tracker
+            </h1>
             <DashboardStats entries={timeEntries} />
-            <div className="grid grid-cols-1 gap-8">
+            <div className="space-y-6 md:space-y-8">
               <TimeEntry onSubmit={handleNewEntry} projects={projects} />
               {timeEntries.length > 0 && <TimeTable entries={timeEntries} />}
             </div>
