@@ -146,7 +146,7 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <h3 className="font-medium text-gray-200">{project.name}</h3>
-                    {project.isPublic ? (
+                    {project.is_public ? (
                       <Globe className="h-4 w-4 text-gray-400" />
                     ) : (
                       <Lock className="h-4 w-4 text-gray-400" />

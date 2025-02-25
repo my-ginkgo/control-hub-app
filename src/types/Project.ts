@@ -4,6 +4,5 @@ export interface Project {
   name: string;
   description: string;
   color?: string;
-  isPublic?: boolean;
+  is_public?: boolean;
 }
-
