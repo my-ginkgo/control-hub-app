@@ -23,7 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 const User = () => {
   const navigate = useNavigate();
-  const { session } = useAuth();
+  const { session, signOut } = useAuth();
   const { role, isLoading: isLoadingRole } = useRole();
   const { id } = useParams();
   const [isEditing, setIsEditing] = useState(false);
@@ -272,7 +272,7 @@ const User = () => {
               
               <Button
                 variant="outline"
-                onClick={() => session.signOut()}
+                onClick={signOut}
                 className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]"
               >
                 Logout
