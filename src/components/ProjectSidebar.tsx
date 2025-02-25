@@ -15,18 +15,21 @@ interface ProjectSidebarProps {
   onAddProject: (project: Omit<Project, "id">) => void;
   onSelectProject?: (project: Project) => void;
   selectedProject?: Project;
+  selectedClient?: Client;
+  onSelectClient?: (client: Client) => void;
 }
 
 export function ProjectSidebar({ 
   projects, 
   onAddProject, 
   onSelectProject,
-  selectedProject 
+  selectedProject,
+  selectedClient,
+  onSelectClient
 }: ProjectSidebarProps) {
   const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
   const [expandedClients, setExpandedClients] = useState<string[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const { session } = useAuth();
 
   useEffect(() => {
@@ -68,14 +71,12 @@ export function ProjectSidebar({
   };
 
   const handleSelectClient = (client: Client) => {
-    setSelectedClient(client);
+    if (onSelectClient) {
+      onSelectClient(client);
+    }
     if (onSelectProject && selectedProject) {
       onSelectProject(undefined);
     }
-  };
-
-  const handleBackFromClient = () => {
-    setSelectedClient(null);
   };
 
   return (
@@ -106,3 +107,4 @@ export function ProjectSidebar({
     </Sidebar>
   );
 }
+
