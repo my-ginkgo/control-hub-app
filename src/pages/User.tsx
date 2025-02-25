@@ -35,7 +35,10 @@ const User = () => {
         .eq("id", session?.user?.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching profile:", error);
+        throw error;
+      }
 
       return data;
     },
@@ -206,7 +209,7 @@ const User = () => {
                       ? "bg-blue-500/20 text-blue-400 border border-blue-500/30" 
                       : "bg-purple-500/20 text-purple-400 border border-purple-500/30"
                   }`}>
-                    {isLoading ? "Caricamento..." : role}
+                    {isLoading ? "Caricamento..." : role === "DIPENDENTE" ? "Dipendente" : role}
                   </span>
                 </div>
               </div>
@@ -287,3 +290,4 @@ const User = () => {
 };
 
 export default User;
+
