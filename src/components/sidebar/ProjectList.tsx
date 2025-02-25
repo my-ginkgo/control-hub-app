@@ -63,7 +63,7 @@ export function ProjectList({
   const [editFormData, setEditFormData] = useState({
     name: "",
     description: "",
-    clientId: "",
+    clientId: "no_client",
     color: "",
     isPublic: false
   });
@@ -92,7 +92,7 @@ export function ProjectList({
     setEditFormData({
       name: project.name,
       description: project.description || "",
-      clientId: project.client_id || "",
+      clientId: project.client_id || "no_client",
       color: project.color || "#4F46E5",
       isPublic: project.is_public || false
     });
@@ -138,7 +138,7 @@ export function ProjectList({
         .update({
           name: editFormData.name,
           description: editFormData.description,
-          client_id: editFormData.clientId || null,
+          client_id: editFormData.clientId === "no_client" ? null : editFormData.clientId,
           color: editFormData.color,
           is_public: editFormData.isPublic
         })
@@ -302,14 +302,14 @@ export function ProjectList({
             <div>
               <label htmlFor="client" className="text-sm text-gray-400">Cliente</label>
               <Select
-                defaultValue={editFormData.clientId}
+                value={editFormData.clientId}
                 onValueChange={(value) => setEditFormData({ ...editFormData, clientId: value })}
               >
                 <SelectTrigger className="bg-[#2a2b3d] border-[#383a5c] text-white">
                   <SelectValue placeholder="Seleziona un cliente" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#1a1b26] border-[#2a2b3d]">
-                  <SelectItem value="" className="text-white hover:bg-[#2a2b3d]">
+                  <SelectItem value="no_client" className="text-white hover:bg-[#2a2b3d]">
                     Nessun cliente
                   </SelectItem>
                   {clients.map((client) => (
