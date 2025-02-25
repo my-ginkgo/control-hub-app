@@ -95,11 +95,11 @@ const User = () => {
       <div className="container max-w-4xl mx-auto">
         <Button
           variant="ghost"
-          onClick={() => navigate("/")}
+          onClick={() => navigate(`/user/${session.user.id}`)}
           className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Torna alla Dashboard
+          Torna al Profilo
         </Button>
 
         <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
