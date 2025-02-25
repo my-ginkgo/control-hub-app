@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +37,6 @@ const User = () => {
     enabled: !!session?.user?.id,
   });
 
-  // Aggiorna gli stati quando il profilo viene caricato o ricaricato
   useEffect(() => {
     if (profile) {
       setFirstName(profile.first_name || "");
