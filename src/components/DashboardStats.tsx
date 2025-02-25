@@ -2,6 +2,26 @@
 import { Card } from "@/components/ui/card";
 import { TimeEntryData } from "./TimeEntry";
 import { ProjectTimeChart } from "./ProjectTimeChart";
+import { Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 export function DashboardStats({ entries }: { entries: TimeEntryData[] }) {
   const totalHours = entries.reduce((sum, entry) => sum + entry.hours, 0);
