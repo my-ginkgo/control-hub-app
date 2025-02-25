@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/AuthProvider";
-import { LogOut, Mail, BadgeCheck, User as UserIcon, Save } from "lucide-react";
+import { LogOut, Mail, BadgeCheck, User as UserIcon, Save, ArrowLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useRole } from "@/hooks/useRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,13 +33,18 @@ const User = () => {
 
       if (error) throw error;
 
-      setFirstName(data?.first_name || "");
-      setLastName(data?.last_name || "");
-      
       return data;
     },
     enabled: !!session?.user?.id,
   });
+
+  // Aggiorna gli stati quando il profilo viene caricato o ricaricato
+  useEffect(() => {
+    if (profile) {
+      setFirstName(profile.first_name || "");
+      setLastName(profile.last_name || "");
+    }
+  }, [profile]);
 
   const updateProfile = useMutation({
     mutationFn: async () => {
@@ -80,6 +85,15 @@ const User = () => {
   return (
     <div className="min-h-screen bg-[#1a1b26] text-white p-4 md:p-8">
       <div className="container max-w-2xl mx-auto">
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/")}
+          className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Torna alla Dashboard
+        </Button>
+
         <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
           Profilo Utente
         </h1>
@@ -190,4 +204,3 @@ const User = () => {
 };
 
 export default User;
-
