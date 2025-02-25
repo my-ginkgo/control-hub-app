@@ -3,10 +3,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { TimeEntryData } from "./TimeEntry";
 import { format } from "date-fns";
 import { Card } from "@/components/ui/card";
+import { useRole } from "@/hooks/useRole";
+import { useAuth } from "@/components/AuthProvider";
 
 export function TimeTable({ entries }: { entries: TimeEntryData[] }) {
+  const { role } = useRole();
+  const { session } = useAuth();
+
+  const filteredEntries = role === "ADMIN" 
+    ? entries 
+    : entries.filter(entry => entry.assignedUserId === session?.user?.id);
+
   return (
-    <Card className="w-full overflow-hidden animate-fadeIn">
+    <Card className="w-full overflow-hidden mt-8 animate-fadeIn">
       <Table>
         <TableHeader>
           <TableRow>
@@ -15,17 +24,19 @@ export function TimeTable({ entries }: { entries: TimeEntryData[] }) {
             <TableHead>Progetto</TableHead>
             <TableHead>Ore Reali</TableHead>
             <TableHead>Ore Fatturabili</TableHead>
+            <TableHead>Utente Assegnato</TableHead>
             <TableHead>Note</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {entries.map((entry, index) => (
+          {filteredEntries.map((entry, index) => (
             <TableRow key={index}>
               <TableCell>{format(new Date(entry.startDate), "dd/MM/yyyy HH:mm")}</TableCell>
               <TableCell>{format(new Date(entry.endDate), "dd/MM/yyyy HH:mm")}</TableCell>
               <TableCell className="font-medium">{entry.project}</TableCell>
               <TableCell>{entry.hours}</TableCell>
               <TableCell>{entry.billableHours}</TableCell>
+              <TableCell>{entry.assignedUserId}</TableCell>
               <TableCell className="max-w-[300px] truncate">{entry.notes}</TableCell>
             </TableRow>
           ))}

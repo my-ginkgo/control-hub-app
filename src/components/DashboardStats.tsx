@@ -33,7 +33,6 @@ export function DashboardStats({ entries }: { entries: TimeEntryData[] }) {
   const { role } = useRole();
   const { session } = useAuth();
 
-  // Filtra le entries in base al ruolo dell'utente
   const filteredEntries = role === "ADMIN" 
     ? entries 
     : entries.filter(entry => entry.assignedUserId === session?.user?.id);
@@ -67,14 +66,12 @@ export function DashboardStats({ entries }: { entries: TimeEntryData[] }) {
     return acc;
   }, {} as Record<string, { dates: string[]; hours: number[]; billableHours: number[] }>);
 
-  // Genera colori casuali ma consistenti per i progetti
   const projectColors = uniqueProjects.reduce((acc, project, index) => {
-    const hue = (index * 137.5) % 360;  // Usa il numero aureo per distribuire i colori
+    const hue = (index * 137.5) % 360;
     acc[project] = `hsla(${hue}, 70%, 50%, 1)`;
     return acc;
   }, {} as Record<string, string>);
 
-  // Prepara i dati per il grafico
   const chartData = {
     labels: [...new Set(filteredEntries.map(e => new Date(e.date).toLocaleDateString()))].sort(),
     datasets: uniqueProjects.map(project => ({
@@ -125,8 +122,8 @@ export function DashboardStats({ entries }: { entries: TimeEntryData[] }) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 animate-fadeIn">
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 animate-fadeIn">
         <Card className="p-6">
           <h3 className="text-sm font-medium text-muted-foreground mb-2">Ore Totali</h3>
           <p className="text-2xl font-bold">{totalHours.toFixed(1)}h</p>
@@ -143,7 +140,7 @@ export function DashboardStats({ entries }: { entries: TimeEntryData[] }) {
 
       <Card className="w-full">
         <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold">Andamento Temporale</h2>
             <Toggle
               pressed={showBillableHours}
@@ -161,4 +158,3 @@ export function DashboardStats({ entries }: { entries: TimeEntryData[] }) {
     </div>
   );
 }
-
