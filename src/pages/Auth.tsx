@@ -67,7 +67,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-[#1a1b26] px-4">
       <Card className="w-full max-w-md p-6 bg-[#24253a] border-[#383a5c]">
         <div className="flex justify-center mb-6">
-          <img src="https://gruppo4d.com/favicon.svg" alt="Gruppo4D Logo" className="w-16 h-16" />
+          <img src="logo.png" alt="Logo" className="w-20 h-20" />
         </div>
         <h1 className="text-2xl font-bold mb-6 text-center bg-gradient-to-r from-red-700 to-amber-400 bg-clip-text text-transparent">
           {isSignUp ? "Create Account" : "Welcome Back"}
