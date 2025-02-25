@@ -99,7 +99,6 @@ export function ProjectList({
     if (!projectToDelete) return;
 
     try {
-      // First delete all time entries associated with the project
       const { error: timeEntriesError } = await supabase
         .from('time_entries')
         .delete()
@@ -107,7 +106,6 @@ export function ProjectList({
 
       if (timeEntriesError) throw timeEntriesError;
 
-      // Then delete the project
       const { error: projectError } = await supabase
         .from('projects')
         .delete()
@@ -116,7 +114,7 @@ export function ProjectList({
       if (projectError) throw projectError;
 
       toast.success("Progetto eliminato con successo");
-      onProjectAdded(); // Refresh the projects list
+      onProjectAdded();
       setIsDeleteDialogOpen(false);
       setProjectToDelete(null);
     } catch (error: any) {
@@ -142,7 +140,7 @@ export function ProjectList({
       if (error) throw error;
 
       toast.success("Progetto aggiornato con successo");
-      onProjectAdded(); // Refresh the projects list
+      onProjectAdded();
       setIsEditDialogOpen(false);
       setProjectToEdit(null);
     } catch (error: any) {
@@ -294,16 +292,22 @@ export function ProjectList({
             <div>
               <label htmlFor="client" className="text-sm text-gray-400">Cliente</label>
               <Select
-                value={editFormData.clientId}
+                defaultValue={editFormData.clientId}
                 onValueChange={(value) => setEditFormData({ ...editFormData, clientId: value })}
               >
                 <SelectTrigger className="bg-[#2a2b3d] border-[#383a5c] text-white">
                   <SelectValue placeholder="Seleziona un cliente" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Nessun cliente</SelectItem>
+                <SelectContent className="bg-[#1a1b26] border-[#2a2b3d]">
+                  <SelectItem value="" className="text-white hover:bg-[#2a2b3d]">
+                    Nessun cliente
+                  </SelectItem>
                   {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
+                    <SelectItem 
+                      key={client.id} 
+                      value={client.id}
+                      className="text-white hover:bg-[#2a2b3d]"
+                    >
                       {client.name}
                     </SelectItem>
                   ))}
