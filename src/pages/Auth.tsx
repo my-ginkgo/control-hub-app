@@ -11,6 +11,8 @@ import { toast } from "sonner";
 export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
@@ -24,6 +26,13 @@ export default function Auth() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              full_name: `${firstName} ${lastName}`,
+              first_name: firstName,
+              last_name: lastName
+            }
+          }
         });
         if (error) throw error;
         navigate("/profile-setup");
@@ -50,6 +59,30 @@ export default function Auth() {
           {isSignUp ? "Create Account" : "Welcome Back"}
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {isSignUp && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required={isSignUp}
+                  className="bg-[#1a1b26] border-[#383a5c] text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required={isSignUp}
+                  className="bg-[#1a1b26] border-[#383a5c] text-white"
+                />
+              </div>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
