@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { TimeEntryData } from "@/components/TimeEntry";
 import { TimeTable } from "@/components/TimeTable";
@@ -80,6 +79,7 @@ const Index = () => {
         notes: entry.notes,
         date: entry.date,
         user_id: session?.user?.id,
+        assigned_user_id: entry.assignedUserId
       });
 
       if (error) throw error;

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Project } from "@/types/Project";
+import { useAuth } from "@/components/AuthProvider";
 import {
   Command,
   CommandEmpty,
@@ -19,7 +20,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Check } from "lucide-react";
+import { Check, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TimeEntryProps {
@@ -28,6 +29,7 @@ interface TimeEntryProps {
 }
 
 export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
+  const { session } = useAuth();
   const [hours, setHours] = useState("");
   const [billableHours, setBillableHours] = useState("");
   const [project, setProject] = useState("");
@@ -47,6 +49,7 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
       project,
       notes,
       date: new Date().toISOString(),
+      assignedUserId: session?.user?.id || "",
     });
 
     setHours("");
@@ -59,6 +62,15 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
   return (
     <Card className="p-4 md:p-6 bg-[#24253a] border-[#383a5c] shadow-lg animate-fadeIn">
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-200">
+            Utente Assegnato
+          </label>
+          <div className="flex items-center gap-2 p-2 rounded-md bg-[#1a1b26] border border-[#383a5c] text-white">
+            <User className="h-4 w-4 text-gray-400" />
+            <span>{session?.user?.email}</span>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="hours" className="text-sm font-medium text-gray-200">
@@ -175,4 +187,5 @@ export interface TimeEntryData {
   project: string;
   notes: string;
   date: string;
+  assignedUserId: string;
 }
