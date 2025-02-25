@@ -1,16 +1,15 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/components/AuthProvider";
-import { LogOut, Mail, BadgeCheck, User as UserIcon, Save, ArrowLeft, Briefcase, Calendar } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useRole } from "@/hooks/useRole";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { UserHeader } from "@/components/user/UserHeader";
+import { ProfileInfo } from "@/components/user/ProfileInfo";
+import { ProfileActions } from "@/components/user/ProfileActions";
 
 const User = () => {
   const { session, signOut } = useAuth();
@@ -94,195 +93,47 @@ const User = () => {
 
   const isLoading = isLoadingRole || isLoadingProfile;
 
+  const handleCancel = () => {
+    setIsEditing(false);
+    setFirstName(profile?.first_name || "");
+    setLastName(profile?.last_name || "");
+    setBio(profile?.bio || "");
+    setJobTitle(profile?.job_title || "");
+    setDateOfBirth(profile?.date_of_birth ? new Date(profile.date_of_birth).toISOString().split('T')[0] : "");
+  };
+
   return (
     <div className="min-h-screen bg-[#1a1b26] text-white p-4 md:p-8">
       <div className="container max-w-2xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/")}
-            className="-ml-2 text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Torna alla Dashboard
-          </Button>
-
-          {role === "ADMIN" && (
-            <Button
-              variant="outline"
-              onClick={() => navigate("/admin/users")}
-              className="border-[#383a5c] text-white hover:bg-[#2a2b3d]"
-            >
-              Gestione Utenti
-            </Button>
-          )}
-        </div>
-
-        <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-          Profilo Utente
-        </h1>
+        <UserHeader role={role} isLoadingRole={isLoadingRole} />
         
         <Card className="p-6 bg-[#24253a] border-[#383a5c] space-y-6">
-          <div className="space-y-6">
-            <div className="flex items-center space-x-4">
-              <UserIcon className="w-6 h-6 text-purple-400" />
-              <div className="flex-1">
-                <p className="text-sm text-gray-400 mb-2">Nome e Cognome</p>
-                {isEditing ? (
-                  <div className="space-y-2">
-                    <Input
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="Nome"
-                      className="bg-[#1a1b26] border-[#383a5c] text-white placeholder-gray-400"
-                    />
-                    <Input
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Cognome"
-                      className="bg-[#1a1b26] border-[#383a5c] text-white placeholder-gray-400"
-                    />
-                  </div>
-                ) : (
-                  <p className="text-lg">
-                    {profile?.first_name || profile?.last_name
-                      ? `${profile.first_name || ""} ${profile.last_name || ""}`
-                      : "Non specificato"}
-                  </p>
-                )}
-              </div>
-            </div>
+          <ProfileInfo
+            session={session}
+            profile={profile}
+            isLoading={isLoading}
+            isEditing={isEditing}
+            role={role}
+            firstName={firstName}
+            lastName={lastName}
+            bio={bio}
+            jobTitle={jobTitle}
+            dateOfBirth={dateOfBirth}
+            setFirstName={setFirstName}
+            setLastName={setLastName}
+            setBio={setBio}
+            setJobTitle={setJobTitle}
+            setDateOfBirth={setDateOfBirth}
+          />
 
-            <div className="flex items-center space-x-4">
-              <Briefcase className="w-6 h-6 text-purple-400" />
-              <div className="flex-1">
-                <p className="text-sm text-gray-400 mb-2">Ruolo Lavorativo</p>
-                {isEditing ? (
-                  <Input
-                    value={jobTitle}
-                    onChange={(e) => setJobTitle(e.target.value)}
-                    placeholder="Es. Sviluppatore Software"
-                    className="bg-[#1a1b26] border-[#383a5c] text-white placeholder-gray-400"
-                  />
-                ) : (
-                  <p className="text-lg">{profile?.job_title || "Non specificato"}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <Calendar className="w-6 h-6 text-purple-400" />
-              <div className="flex-1">
-                <p className="text-sm text-gray-400 mb-2">Data di Nascita</p>
-                {isEditing ? (
-                  <Input
-                    type="date"
-                    value={dateOfBirth}
-                    onChange={(e) => setDateOfBirth(e.target.value)}
-                    className="bg-[#1a1b26] border-[#383a5c] text-white"
-                  />
-                ) : (
-                  <p className="text-lg">
-                    {profile?.date_of_birth
-                      ? new Date(profile.date_of_birth).toLocaleDateString()
-                      : "Non specificata"}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <Mail className="w-6 h-6 text-purple-400" />
-              <div>
-                <p className="text-sm text-gray-400">Email</p>
-                <p className="text-lg">{session.user.email}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <BadgeCheck className="w-6 h-6 text-blue-400" />
-              <div>
-                <p className="text-sm text-gray-400">Ruolo</p>
-                <div className="flex items-center">
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                    role === "ADMIN" 
-                      ? "bg-blue-500/20 text-blue-400 border border-blue-500/30" 
-                      : "bg-purple-500/20 text-purple-400 border border-purple-500/30"
-                  }`}>
-                    {isLoading ? "Caricamento..." : role === "DIPENDENTE" ? "Dipendente" : role}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-start space-x-4">
-                <UserIcon className="w-6 h-6 text-purple-400 mt-1" />
-                <div className="flex-1">
-                  <p className="text-sm text-gray-400 mb-2">Bio</p>
-                  {isEditing ? (
-                    <Textarea
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                      placeholder="Raccontaci qualcosa di te..."
-                      className="bg-[#1a1b26] border-[#383a5c] text-white placeholder-gray-400 min-h-[100px]"
-                    />
-                  ) : (
-                    <p className="text-lg whitespace-pre-wrap">
-                      {profile?.bio || "Nessuna bio specificata"}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 space-y-3">
-              {isEditing ? (
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => updateProfile.mutate()}
-                    className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]"
-                    disabled={updateProfile.isPending}
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    Salva
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setIsEditing(false);
-                      setFirstName(profile?.first_name || "");
-                      setLastName(profile?.last_name || "");
-                      setBio(profile?.bio || "");
-                      setJobTitle(profile?.job_title || "");
-                      setDateOfBirth(profile?.date_of_birth ? new Date(profile.date_of_birth).toISOString().split('T')[0] : "");
-                    }}
-                    className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]"
-                  >
-                    Annulla
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  variant="outline"
-                  onClick={() => setIsEditing(true)}
-                  className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]"
-                >
-                  Modifica Profilo
-                </Button>
-              )}
-              
-              <Button
-                variant="outline"
-                onClick={signOut}
-                className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
-            </div>
-          </div>
+          <ProfileActions
+            isEditing={isEditing}
+            onSave={() => updateProfile.mutate()}
+            onCancel={handleCancel}
+            onEdit={() => setIsEditing(true)}
+            onSignOut={signOut}
+            isSaving={updateProfile.isPending}
+          />
         </Card>
       </div>
     </div>
@@ -290,4 +141,3 @@ const User = () => {
 };
 
 export default User;
-
