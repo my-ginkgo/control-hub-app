@@ -1,11 +1,10 @@
-
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
-import { type VariantProps } from "class-variance-authority"
-import { TooltipContent, TooltipProvider, TooltipTrigger, Tooltip } from "@/components/ui/tooltip"
+import { TooltipContent, TooltipTrigger, Tooltip } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { useSidebar } from "./context"
-import { sidebarMenuButtonVariants } from "./utils"
+import { Skeleton } from "@/components/ui/skeleton"
+import { sidebarMenuButtonVariants } from "./index"
 
 export const SidebarMenu = React.forwardRef<
   HTMLUListElement,
@@ -39,7 +38,7 @@ export const SidebarMenuButton = React.forwardRef<
     asChild?: boolean
     isActive?: boolean
     tooltip?: string | React.ComponentProps<typeof TooltipContent>
-  } & VariantProps<typeof sidebarMenuButtonVariants>
+  } & React.ComponentPropsWithoutRef<typeof sidebarMenuButtonVariants>
 >(
   (
     {
