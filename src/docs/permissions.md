@@ -12,7 +12,6 @@
 ### 👤 USER
 
 - 🔑 **Accesso ai propri progetti**
--
 - 🆕 **Può creare nuovi progetti**
 - ✏️ **Può modificare solo i propri progetti**
 - ⏳ **Può registrare il proprio tempo sui progetti**

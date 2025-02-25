@@ -1,25 +1,17 @@
-
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Save } from "lucide-react";
-import { useAuth } from "@/components/AuthProvider";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import { useRole } from "@/hooks/useRole";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, Save } from "lucide-react";
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 
 const User = () => {
   const navigate = useNavigate();
@@ -48,7 +40,11 @@ const User = () => {
     return null;
   }
 
-  const { data: profiles, isLoading: isLoadingProfiles, refetch } = useQuery({
+  const {
+    data: profiles,
+    isLoading: isLoadingProfiles,
+    refetch,
+  } = useQuery({
     queryKey: ["admin-profiles", userId],
     queryFn: async () => {
       try {
@@ -76,16 +72,16 @@ const User = () => {
           setJobTitle(profile.job_title || "");
           setBio(profile.bio || "");
 
-          return [{
-            ...profile,
-            ...userRole
-          }];
+          return [
+            {
+              ...profile,
+              ...userRole,
+            },
+          ];
         }
 
         // Admin view - fetch all profiles
-        const { data: profiles, error: profilesError } = await supabase
-          .from("profiles")
-          .select("*");
+        const { data: profiles, error: profilesError } = await supabase.from("profiles").select("*");
 
         if (profilesError) throw profilesError;
 
@@ -95,9 +91,9 @@ const User = () => {
 
         if (rolesError) throw rolesError;
 
-        return profiles.map(profile => ({
+        return profiles.map((profile) => ({
           ...profile,
-          ...userRoles.find(ur => ur.user_id === profile.id)
+          ...userRoles.find((ur) => ur.user_id === profile.id),
         }));
       } catch (error: any) {
         toast.error("Errore nel caricamento degli utenti: " + error.message);
@@ -109,14 +105,11 @@ const User = () => {
 
   const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase
-        .from('user_roles')
-        .update({ is_disabled: !currentStatus })
-        .eq('user_id', userId);
+      const { error } = await supabase.from("user_roles").update({ is_disabled: !currentStatus }).eq("user_id", userId);
 
       if (error) throw error;
 
-      toast.success(`Utente ${currentStatus ? 'abilitato' : 'disabilitato'} con successo`);
+      toast.success(`Utente ${currentStatus ? "abilitato" : "disabilitato"} con successo`);
       refetch();
     } catch (error: any) {
       toast.error("Errore durante l'aggiornamento dello stato: " + error.message);
@@ -129,18 +122,18 @@ const User = () => {
 
     try {
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({
           first_name: firstName,
           last_name: lastName,
           job_title: jobTitle,
           bio: bio,
         })
-        .eq('id', session.user.id);
+        .eq("id", session.user.id);
 
       if (error) throw error;
 
-      toast.success('Profilo aggiornato con successo');
+      toast.success("Profilo aggiornato con successo");
       setIsEditing(false);
       refetch();
     } catch (error: any) {
@@ -168,8 +161,7 @@ const User = () => {
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
-            className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
-          >
+            className="mb-4 -ml-2 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Torna alla Dashboard
           </Button>
@@ -185,37 +177,20 @@ const User = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm text-gray-400">Nome</label>
-                      <Input
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        className="mt-1"
-                      />
+                      <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="mt-1" />
                     </div>
                     <div>
                       <label className="text-sm text-gray-400">Cognome</label>
-                      <Input
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        className="mt-1"
-                      />
+                      <Input value={lastName} onChange={(e) => setLastName(e.target.value)} className="mt-1" />
                     </div>
                   </div>
                   <div>
                     <label className="text-sm text-gray-400">Ruolo Lavorativo</label>
-                    <Input
-                      value={jobTitle}
-                      onChange={(e) => setJobTitle(e.target.value)}
-                      className="mt-1"
-                    />
+                    <Input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} className="mt-1" />
                   </div>
                   <div>
                     <label className="text-sm text-gray-400">Bio</label>
-                    <Textarea
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                      className="mt-1"
-                      rows={4}
-                    />
+                    <Textarea value={bio} onChange={(e) => setBio(e.target.value)} className="mt-1" rows={4} />
                   </div>
                 </>
               ) : (
@@ -223,9 +198,7 @@ const User = () => {
                   <div>
                     <p className="text-sm text-gray-400">Nome e Cognome</p>
                     <p className="mt-1">
-                      {firstName || lastName
-                        ? `${firstName || ""} ${lastName || ""}`
-                        : "Non specificato"}
+                      {firstName || lastName ? `${firstName || ""} ${lastName || ""}` : "Non specificato"}
                     </p>
                   </div>
                   <div>
@@ -247,16 +220,14 @@ const User = () => {
                     variant="outline"
                     onClick={handleSaveProfile}
                     className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]"
-                    disabled={isSaving}
-                  >
+                    disabled={isSaving}>
                     <Save className="w-4 h-4 mr-2" />
                     Salva
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setIsEditing(false)}
-                    className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]"
-                  >
+                    className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]">
                     Annulla
                   </Button>
                 </div>
@@ -264,17 +235,15 @@ const User = () => {
                 <Button
                   variant="outline"
                   onClick={() => setIsEditing(true)}
-                  className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]"
-                >
+                  className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]">
                   Modifica Profilo
                 </Button>
               )}
-              
+
               <Button
                 variant="outline"
                 onClick={signOut}
-                className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]"
-              >
+                className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]">
                 Logout
               </Button>
             </div>
@@ -291,10 +260,9 @@ const User = () => {
         <Button
           variant="ghost"
           onClick={() => navigate("/")}
-          className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
-        >
+          className="mb-4 -ml-2 text-muted-foreground hover:text-foreground">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Torna alla Dashboard
+          Torna alla Dashboard ADMIN
         </Button>
 
         <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
@@ -309,9 +277,7 @@ const User = () => {
                 <TableHead className="text-gray-400">Email</TableHead>
                 <TableHead className="text-gray-400">Ruolo</TableHead>
                 <TableHead className="text-gray-400">Stato</TableHead>
-                {!id && role === "ADMIN" && (
-                  <TableHead className="text-gray-400">Azioni</TableHead>
-                )}
+                {!id && role === "ADMIN" && <TableHead className="text-gray-400">Azioni</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -329,8 +295,7 @@ const User = () => {
                         profile.role === "ADMIN"
                           ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                           : "bg-purple-500/20 text-purple-400 border border-purple-500/30"
-                      }`}
-                    >
+                      }`}>
                       {profile.role || "DIPENDENTE"}
                     </span>
                   </TableCell>
@@ -360,8 +325,7 @@ const User = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => navigate(`/user/${profile.id}`)}
-                        className="text-muted-foreground hover:text-foreground"
-                      >
+                        className="text-muted-foreground hover:text-foreground">
                         Visualizza
                       </Button>
                     </TableCell>

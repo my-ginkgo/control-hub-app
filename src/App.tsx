@@ -1,26 +1,25 @@
-
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/components/AuthProvider";
+import { ProjectDashboard } from "@/components/ProjectDashboard";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
-import Index from "@/pages/Index";
-import Auth from "@/pages/Auth";
-import User from "@/pages/User";
-import { ProjectDashboard } from "@/components/ProjectDashboard";
-import { ClientPage } from "@/pages/Client";
-import NotFound from "@/pages/NotFound";
-import { AuthProvider } from "@/components/AuthProvider";
-import { useEffect, useState } from "react";
-import { Project } from "@/types/Project";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import Auth from "@/pages/Auth";
+import Index from "@/pages/Index";
+import NotFound from "@/pages/NotFound";
+import User from "@/pages/User";
+import { Project } from "@/types/Project";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { toast } from "sonner";
+import AdminUsers from "./pages/AdminUsers";
 
 // Create a client
 const queryClient = new QueryClient();
 
 function ProjectDashboardWrapper() {
   const [project, setProject] = useState<Project | null>(null);
-  const id = window.location.pathname.split('/')[2];
+  const id = window.location.pathname.split("/")[2];
 
   useEffect(() => {
     if (id) {
@@ -30,11 +29,7 @@ function ProjectDashboardWrapper() {
 
   const fetchProject = async () => {
     try {
-      const { data, error } = await supabase
-        .from("projects")
-        .select("*")
-        .eq("id", id)
-        .single();
+      const { data, error } = await supabase.from("projects").select("*").eq("id", id).single();
 
       if (error) throw error;
       setProject(data);
@@ -44,7 +39,7 @@ function ProjectDashboardWrapper() {
   };
 
   if (!project) return null;
-  
+
   return <ProjectDashboard project={project} onBack={() => window.history.back()} />;
 }
 
@@ -57,10 +52,10 @@ function App() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/admin-users" element={<AdminUsers />} />
               <Route path="/user" element={<User />} />
               <Route path="/user/:id" element={<User />} />
               <Route path="/project/:id" element={<ProjectDashboardWrapper />} />
-              <Route path="/client/:id" element={<ClientPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster />
