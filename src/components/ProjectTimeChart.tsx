@@ -3,18 +3,17 @@ import { useState, useMemo } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { TimeEntryData } from "./TimeEntry";
-import { Line } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 import { format, startOfWeek, startOfMonth, startOfYear, isWithinInterval, subDays, subMonths, subYears } from "date-fns";
 import { it } from "date-fns/locale";
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
   Title,
   Tooltip,
   Legend,
+  BarElement,
   ChartOptions
 } from 'chart.js';
 
@@ -22,8 +21,7 @@ import {
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend
@@ -144,24 +142,22 @@ export function ProjectTimeChart({ entries }: ProjectTimeChartProps) {
         {
           label: 'Ore Reali',
           data: sortedData.map(d => d.oreReali),
+          backgroundColor: 'rgba(99, 102, 241, 0.5)',
           borderColor: 'rgb(99, 102, 241)',
-          backgroundColor: 'rgba(99, 102, 241, 0.1)',
-          tension: 0.3,
-          fill: true
+          borderWidth: 1
         },
         {
           label: 'Ore Fatturabili',
           data: sortedData.map(d => d.oreFatturabili),
+          backgroundColor: 'rgba(34, 197, 94, 0.5)',
           borderColor: 'rgb(34, 197, 94)',
-          backgroundColor: 'rgba(34, 197, 94, 0.1)',
-          tension: 0.3,
-          fill: true
+          borderWidth: 1
         }
       ]
     };
   }, [entries, timeRange]);
 
-  const options: ChartOptions<'line'> = {
+  const options: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -229,9 +225,8 @@ export function ProjectTimeChart({ entries }: ProjectTimeChartProps) {
         </div>
       </CardHeader>
       <CardContent className="h-[400px]">
-        <Line data={chartData} options={options} />
+        <Bar data={chartData} options={options} />
       </CardContent>
     </Card>
   );
 }
-
