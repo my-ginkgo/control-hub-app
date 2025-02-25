@@ -39,15 +39,11 @@ export default function Auth() {
         toast.success("Please complete your profile!");
       } else {
         // Prima verifichiamo se l'utente è disabilitato
-        const { data: userRole, error: roleError } = await supabase
+        const { data: userRole } = await supabase
           .from('user_roles')
           .select('is_disabled')
           .eq('email', email)
-          .single();
-
-        if (roleError) {
-          throw roleError;
-        }
+          .maybeSingle();
 
         if (userRole?.is_disabled) {
           throw new Error("L'account è stato disabilitato. Contatta l'amministratore.");
