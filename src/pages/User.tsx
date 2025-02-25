@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Save } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { useRole } from "@/hooks/useRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,12 +18,20 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 const User = () => {
   const navigate = useNavigate();
   const { session } = useAuth();
   const { role, isLoading: isLoadingRole } = useRole();
   const { id } = useParams();
+  const [isEditing, setIsEditing] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+  const [bio, setBio] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   // Use the ID from params, fallback to current user's ID if not provided
   const userId = id || session?.user?.id;
@@ -61,6 +69,12 @@ const User = () => {
             .single();
 
           if (roleError) throw roleError;
+
+          // Set form values
+          setFirstName(profile.first_name || "");
+          setLastName(profile.last_name || "");
+          setJobTitle(profile.job_title || "");
+          setBio(profile.bio || "");
 
           return [{
             ...profile,
@@ -109,6 +123,33 @@ const User = () => {
     }
   };
 
+  const handleSaveProfile = async () => {
+    if (!session?.user?.id) return;
+    setIsSaving(true);
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          first_name: firstName,
+          last_name: lastName,
+          job_title: jobTitle,
+          bio: bio,
+        })
+        .eq('id', session.user.id);
+
+      if (error) throw error;
+
+      toast.success('Profilo aggiornato con successo');
+      setIsEditing(false);
+      refetch();
+    } catch (error: any) {
+      toast.error("Errore durante l'aggiornamento del profilo: " + error.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (isLoadingRole || isLoadingProfiles) {
     return (
       <div className="min-h-screen bg-[#1a1b26] text-white p-4 md:p-8">
@@ -119,6 +160,131 @@ const User = () => {
     );
   }
 
+  // If viewing own profile
+  if (userId === session.user.id) {
+    return (
+      <div className="min-h-screen bg-[#1a1b26] text-white p-4 md:p-8">
+        <div className="container max-w-4xl mx-auto">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/")}
+            className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Torna alla Dashboard
+          </Button>
+
+          <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+            Il Mio Profilo
+          </h1>
+
+          <Card className="p-6 bg-[#24253a] border-[#383a5c] space-y-4">
+            <div className="space-y-4">
+              {isEditing ? (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-400">Nome</label>
+                      <Input
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-400">Cognome</label>
+                      <Input
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-400">Ruolo Lavorativo</label>
+                    <Input
+                      value={jobTitle}
+                      onChange={(e) => setJobTitle(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-400">Bio</label>
+                    <Textarea
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      className="mt-1"
+                      rows={4}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <p className="text-sm text-gray-400">Nome e Cognome</p>
+                    <p className="mt-1">
+                      {firstName || lastName
+                        ? `${firstName || ""} ${lastName || ""}`
+                        : "Non specificato"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Ruolo Lavorativo</p>
+                    <p className="mt-1">{jobTitle || "Non specificato"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Bio</p>
+                    <p className="mt-1">{bio || "Non specificata"}</p>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="pt-4 space-y-3">
+              {isEditing ? (
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={handleSaveProfile}
+                    className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]"
+                    disabled={isSaving}
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Salva
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditing(false)}
+                    className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]"
+                  >
+                    Annulla
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditing(true)}
+                  className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]"
+                >
+                  Modifica Profilo
+                </Button>
+              )}
+              
+              <Button
+                variant="outline"
+                onClick={() => session.signOut()}
+                className="w-full border-[#383a5c] text-white hover:bg-[#2a2b3d]"
+              >
+                Logout
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Admin view of all users or specific user
   return (
     <div className="min-h-screen bg-[#1a1b26] text-white p-4 md:p-8">
       <div className="container max-w-4xl mx-auto">
