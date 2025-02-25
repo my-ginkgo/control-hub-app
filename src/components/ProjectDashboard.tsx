@@ -7,9 +7,9 @@ import { useAuth } from "./AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { Project } from "@/types/Project";
 import { TimeEntryData } from "./TimeEntry";
-import { format } from "date-fns";
 import { Skeleton } from "./ui/skeleton";
 import { toast } from "sonner";
+import { ProjectTimeChart } from "./ProjectTimeChart";
 
 interface ProjectDashboardProps {
   project: Project;
@@ -105,21 +105,23 @@ export function ProjectDashboard({ project }: ProjectDashboardProps) {
 
       {isLoading ? (
         <div className="space-y-3">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-[400px] w-full" />
         </div>
       ) : (
-        timeEntries.length > 0 ? (
-          <TimeTable entries={timeEntries} />
-        ) : (
-          <Card>
-            <CardContent className="flex items-center justify-center py-6">
-              <p className="text-gray-500 dark:text-gray-400">
-                Nessuna registrazione trovata per questo progetto
-              </p>
-            </CardContent>
-          </Card>
-        )
+        <>
+          <ProjectTimeChart entries={timeEntries} />
+          {timeEntries.length > 0 ? (
+            <TimeTable entries={timeEntries} />
+          ) : (
+            <Card>
+              <CardContent className="flex items-center justify-center py-6">
+                <p className="text-gray-500 dark:text-gray-400">
+                  Nessuna registrazione trovata per questo progetto
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
     </div>
   );
