@@ -1,30 +1,32 @@
 
 import { useState } from "react";
-import { Plus, Globe, Lock, ChevronDown, ChevronUp, Briefcase } from "lucide-react";
+import { Plus, Globe, Lock, ChevronDown, ChevronUp, Building } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Client } from "@/types/Client";
 import { cn } from "@/lib/utils";
 import { useRole } from "@/hooks/useRole";
 import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader } from "@/components/ui/sidebar";
 import { NewClientDialog } from "./NewClientDialog";
-import { useNavigate } from "react-router-dom";
 
 interface ClientListProps {
   clients: Client[];
   expandedClients: string[];
   toggleClientExpand: (client: Client, event: React.MouseEvent) => void;
   onClientAdded: () => void;
+  onSelectClient?: (client: Client) => void;
+  selectedClient?: Client;
 }
 
 export function ClientList({ 
   clients, 
   expandedClients, 
   toggleClientExpand,
-  onClientAdded
+  onClientAdded,
+  onSelectClient,
+  selectedClient
 }: ClientListProps) {
   const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
   const { role } = useRole();
-  const navigate = useNavigate();
 
   const isCurrentUserClient = (client: Client) => {
     return client.user_id === client.user_id; // This will be fixed in a future update
@@ -33,7 +35,9 @@ export function ClientList({
   const handleClientClick = (client: Client, event: React.MouseEvent) => {
     const target = event.target as HTMLElement;
     if (!target.closest("button")) {
-      navigate(`/client/${client.id}`);
+      if (onSelectClient) {
+        onSelectClient(client);
+      }
     }
   };
 
@@ -56,7 +60,8 @@ export function ClientList({
               className={cn(
                 "group rounded-lg transition-all duration-200 cursor-pointer",
                 "hover:bg-black/20",
-                !client.is_public && isCurrentUserClient(client) && role === "ADMIN" && "bg-purple-500/10 hover:bg-purple-500/20"
+                !client.is_public && isCurrentUserClient(client) && role === "ADMIN" && "bg-purple-500/10 hover:bg-purple-500/20",
+                selectedClient?.id === client.id && "bg-purple-500/20"
               )}
             >
               <div
@@ -67,7 +72,7 @@ export function ClientList({
               >
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <Briefcase className="h-4 w-4 text-gray-400" />
+                    <Building className="h-4 w-4 text-gray-400" />
                     <h3 className={cn(
                       "font-medium",
                       !client.is_public && isCurrentUserClient(client) && role === "ADMIN" 

@@ -1,9 +1,11 @@
+
 import { useState } from "react";
 import { TimeEntryData } from "@/components/TimeEntry";
 import { TimeTable } from "@/components/TimeTable";
 import { DashboardStats } from "@/components/DashboardStats";
 import { ProjectSidebar } from "@/components/ProjectSidebar";
 import { Project } from "@/types/Project";
+import { Client } from "@/types/Client";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
@@ -15,12 +17,14 @@ import { Link } from "react-router-dom";
 import { TimeEntryDialog } from "@/components/TimeEntryDialog";
 import { useEffect } from "react";
 import { ProjectDashboard } from "@/components/ProjectDashboard";
+import { ClientDashboard } from "@/components/ClientDashboard";
 import { DocsDialog } from "@/components/docs/DocsDialog";
 
 const Index = () => {
   const [timeEntries, setTimeEntries] = useState<TimeEntryData[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const { session } = useAuth();
   const { theme, setTheme } = useTheme();
 
@@ -126,10 +130,17 @@ const Index = () => {
 
   const handleSelectProject = (project: Project) => {
     setSelectedProject(project);
+    setSelectedClient(null);
+  };
+
+  const handleSelectClient = (client: Client) => {
+    setSelectedClient(client);
+    setSelectedProject(null);
   };
 
   const handleBackToDashboard = () => {
     setSelectedProject(null);
+    setSelectedClient(null);
   };
 
   return (
@@ -140,6 +151,8 @@ const Index = () => {
           onAddProject={handleAddProject}
           onSelectProject={handleSelectProject}
           selectedProject={selectedProject}
+          selectedClient={selectedClient}
+          onSelectClient={handleSelectClient}
         />
         <div className="flex-1">
           <div className="container py-4 md:py-8 px-4 md:px-8">
@@ -184,6 +197,11 @@ const Index = () => {
             {selectedProject ? (
               <ProjectDashboard 
                 project={selectedProject} 
+                onBack={handleBackToDashboard}
+              />
+            ) : selectedClient ? (
+              <ClientDashboard 
+                client={selectedClient} 
                 onBack={handleBackToDashboard}
               />
             ) : (

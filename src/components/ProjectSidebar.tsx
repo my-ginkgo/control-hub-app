@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ClientList } from "./sidebar/ClientList";
 import { ProjectList } from "./sidebar/ProjectList";
+import { ClientDashboard } from "./ClientDashboard";
 
 interface ProjectSidebarProps {
   projects: Project[];
@@ -25,6 +26,7 @@ export function ProjectSidebar({
   const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
   const [expandedClients, setExpandedClients] = useState<string[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const { session } = useAuth();
 
   useEffect(() => {
@@ -65,6 +67,17 @@ export function ProjectSidebar({
     );
   };
 
+  const handleSelectClient = (client: Client) => {
+    setSelectedClient(client);
+    if (onSelectProject && selectedProject) {
+      onSelectProject(undefined);
+    }
+  };
+
+  const handleBackFromClient = () => {
+    setSelectedClient(null);
+  };
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -73,6 +86,8 @@ export function ProjectSidebar({
           expandedClients={expandedClients}
           toggleClientExpand={toggleClientExpand}
           onClientAdded={fetchClients}
+          onSelectClient={handleSelectClient}
+          selectedClient={selectedClient}
         />
         <ProjectList 
           projects={projects}
