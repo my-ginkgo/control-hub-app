@@ -38,6 +38,22 @@ export default function Auth() {
         navigate("/profile-setup");
         toast.success("Please complete your profile!");
       } else {
+        // Prima verifichiamo se l'utente è disabilitato
+        const { data: userRole, error: roleError } = await supabase
+          .from('user_roles')
+          .select('is_disabled')
+          .eq('email', email)
+          .single();
+
+        if (roleError) {
+          throw roleError;
+        }
+
+        if (userRole?.is_disabled) {
+          throw new Error("L'account è stato disabilitato. Contatta l'amministratore.");
+        }
+
+        // Se l'utente non è disabilitato, procediamo con il login
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
