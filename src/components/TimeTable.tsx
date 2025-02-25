@@ -31,12 +31,20 @@ interface TimeTableProps {
   onEntryDeleted?: () => void;
 }
 
+type TimeEntryToDelete = {
+  date: string;
+  project: string;
+} | null;
+
 export function TimeTable({ entries, onEntryDeleted }: TimeTableProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [entryToDelete, setEntryToDelete] = useState<TimeEntryData | null>(null);
+  const [entryToDelete, setEntryToDelete] = useState<TimeEntryToDelete>(null);
 
   const handleDeleteClick = (entry: TimeEntryData) => {
-    setEntryToDelete(entry);
+    setEntryToDelete({
+      date: entry.date,
+      project: entry.project
+    });
     setIsDeleteDialogOpen(true);
   };
 
