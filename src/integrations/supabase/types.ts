@@ -45,10 +45,12 @@ export type Database = {
           billable_hours: number
           created_at: string
           date: string
+          end_date: string
           hours: number
           id: string
           notes: string | null
           project_id: string
+          start_date: string
           user_id: string
         }
         Insert: {
@@ -56,10 +58,12 @@ export type Database = {
           billable_hours: number
           created_at?: string
           date?: string
+          end_date?: string
           hours: number
           id?: string
           notes?: string | null
           project_id: string
+          start_date?: string
           user_id: string
         }
         Update: {
@@ -67,10 +71,12 @@ export type Database = {
           billable_hours?: number
           created_at?: string
           date?: string
+          end_date?: string
           hours?: number
           id?: string
           notes?: string | null
           project_id?: string
+          start_date?: string
           user_id?: string
         }
         Relationships: [

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { TimeEntryData } from "@/components/TimeEntry";
 import { TimeTable } from "@/components/TimeTable";
@@ -60,6 +59,8 @@ const Index = () => {
         notes: entry.notes,
         date: entry.date,
         assignedUserId: entry.assigned_user_id,
+        startDate: entry.start_date,
+        endDate: entry.end_date,
       }));
       
       setTimeEntries(formattedEntries);
@@ -80,7 +81,9 @@ const Index = () => {
         notes: entry.notes,
         date: entry.date,
         user_id: session?.user?.id,
-        assigned_user_id: entry.assignedUserId
+        assigned_user_id: entry.assignedUserId,
+        start_date: entry.startDate,
+        end_date: entry.endDate
       });
 
       if (error) throw error;
@@ -161,4 +164,3 @@ const Index = () => {
 };
 
 export default Index;
-

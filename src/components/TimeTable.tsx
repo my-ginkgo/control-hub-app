@@ -10,7 +10,8 @@ export function TimeTable({ entries }: { entries: TimeEntryData[] }) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Data</TableHead>
+            <TableHead>Data Inizio</TableHead>
+            <TableHead>Data Fine</TableHead>
             <TableHead>Progetto</TableHead>
             <TableHead>Ore Reali</TableHead>
             <TableHead>Ore Fatturabili</TableHead>
@@ -20,7 +21,8 @@ export function TimeTable({ entries }: { entries: TimeEntryData[] }) {
         <TableBody>
           {entries.map((entry, index) => (
             <TableRow key={index}>
-              <TableCell>{format(new Date(entry.date), "dd/MM/yyyy")}</TableCell>
+              <TableCell>{format(new Date(entry.startDate), "dd/MM/yyyy HH:mm")}</TableCell>
+              <TableCell>{format(new Date(entry.endDate), "dd/MM/yyyy HH:mm")}</TableCell>
               <TableCell className="font-medium">{entry.project}</TableCell>
               <TableCell>{entry.hours}</TableCell>
               <TableCell>{entry.billableHours}</TableCell>

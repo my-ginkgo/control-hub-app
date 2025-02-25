@@ -30,6 +30,8 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
   const [userOpen, setUserOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [userSearch, setUserSearch] = useState("");
+  const [startDate, setStartDate] = useState<string>(new Date().toISOString());
+  const [endDate, setEndDate] = useState<string>(new Date().toISOString());
 
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
@@ -49,8 +51,16 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!hours || !project) {
+    if (!hours || !project || !startDate || !endDate) {
       toast.error("Per favore compila tutti i campi obbligatori");
+      return;
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (end < start) {
+      toast.error("La data di fine non può essere precedente alla data di inizio");
       return;
     }
 
@@ -61,6 +71,8 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
       notes,
       date: new Date().toISOString(),
       assignedUserId: selectedUserId || session?.user?.id || "",
+      startDate,
+      endDate
     });
 
     setHours("");
@@ -68,6 +80,8 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
     setProject("");
     setNotes("");
     setSelectedUserId("");
+    setStartDate(new Date().toISOString());
+    setEndDate(new Date().toISOString());
     toast.success("Tempo registrato con successo!");
   };
 
@@ -90,6 +104,32 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
             <span>{session?.user?.email}</span>
           </div>
         )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label htmlFor="startDate" className="text-sm font-medium text-gray-200">
+              Data Inizio *
+            </label>
+            <Input
+              id="startDate"
+              type="datetime-local"
+              value={startDate.slice(0, 16)}
+              onChange={(e) => setStartDate(new Date(e.target.value).toISOString())}
+              className="w-full bg-[#1a1b26] border-[#383a5c] text-white"
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="endDate" className="text-sm font-medium text-gray-200">
+              Data Fine *
+            </label>
+            <Input
+              id="endDate"
+              type="datetime-local"
+              value={endDate.slice(0, 16)}
+              onChange={(e) => setEndDate(new Date(e.target.value).toISOString())}
+              className="w-full bg-[#1a1b26] border-[#383a5c] text-white"
+            />
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="hours" className="text-sm font-medium text-gray-200">
@@ -159,4 +199,6 @@ export interface TimeEntryData {
   notes: string;
   date: string;
   assignedUserId: string;
+  startDate: string;
+  endDate: string;
 }
