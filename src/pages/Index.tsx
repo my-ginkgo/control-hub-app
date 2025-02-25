@@ -98,9 +98,11 @@ const Index = () => {
       const { error } = await supabase
         .from("projects")
         .insert({
-          ...project,
+          name: project.name,
+          description: project.description,
+          color: project.color,
+          is_public: project.isPublic,
           user_id: session?.user?.id,
-          is_public: project.isPublic || false,
         });
 
       if (error) throw error;
