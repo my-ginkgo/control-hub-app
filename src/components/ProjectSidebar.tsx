@@ -26,9 +26,16 @@ import { useAuth } from "@/components/AuthProvider";
 interface ProjectSidebarProps {
   projects: Project[];
   onAddProject: (project: Omit<Project, "id">) => void;
+  onSelectProject?: (project: Project) => void;
+  selectedProject?: Project;
 }
 
-export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) {
+export function ProjectSidebar({ 
+  projects, 
+  onAddProject, 
+  onSelectProject,
+  selectedProject 
+}: ProjectSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
   const { role } = useRole();
@@ -47,16 +54,23 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
     setIsOpen(false);
   };
 
-  const toggleProjectExpand = (projectId: string) => {
+  const toggleProjectExpand = (project: Project, event: React.MouseEvent) => {
+    event.stopPropagation();
     setExpandedProjects((prev) =>
-      prev.includes(projectId)
-        ? prev.filter((id) => id !== projectId)
-        : [...prev, projectId]
+      prev.includes(project.id)
+        ? prev.filter((id) => id !== project.id)
+        : [...prev, project.id]
     );
   };
 
   const isCurrentUserProject = (project: Project) => {
     return project.user_id === session?.user?.id;
+  };
+
+  const handleProjectClick = (project: Project) => {
+    if (onSelectProject) {
+      onSelectProject(project);
+    }
   };
 
   return (
@@ -142,12 +156,13 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
               className={cn(
                 "group rounded-lg transition-all duration-200",
                 "hover:bg-black/20",
-                !project.is_public && isCurrentUserProject(project) && role === "ADMIN" && "bg-purple-500/10 hover:bg-purple-500/20"
+                !project.is_public && isCurrentUserProject(project) && role === "ADMIN" && "bg-purple-500/10 hover:bg-purple-500/20",
+                selectedProject?.id === project.id && "bg-purple-500/20"
               )}
             >
               <div
                 className="p-3 cursor-pointer"
-                onClick={() => toggleProjectExpand(project.id)}
+                onClick={() => handleProjectClick(project)}
                 style={{
                   borderLeft: `4px solid ${project.color || "#4F46E5"}`,
                 }}
@@ -173,11 +188,18 @@ export function ProjectSidebar({ projects, onAddProject }: ProjectSidebarProps) 
                       )} />
                     )}
                   </div>
-                  {expandedProjects.includes(project.id) ? (
-                    <ChevronUp className="h-4 w-4 text-gray-400" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-gray-400" />
-                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-4 w-4 p-0"
+                    onClick={(e) => toggleProjectExpand(project, e)}
+                  >
+                    {expandedProjects.includes(project.id) ? (
+                      <ChevronUp className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-gray-400" />
+                    )}
+                  </Button>
                 </div>
                 <div
                   className={cn(

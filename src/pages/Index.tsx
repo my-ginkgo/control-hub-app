@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { TimeEntryData } from "@/components/TimeEntry";
 import { TimeTable } from "@/components/TimeTable";
@@ -14,10 +15,12 @@ import { useTheme } from "@/components/ThemeProvider";
 import { Link } from "react-router-dom";
 import { TimeEntryDialog } from "@/components/TimeEntryDialog";
 import { useEffect } from "react";
+import { ProjectDashboard } from "@/components/ProjectDashboard";
 
 const Index = () => {
   const [timeEntries, setTimeEntries] = useState<TimeEntryData[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const { session } = useAuth();
   const { theme, setTheme } = useTheme();
 
@@ -89,6 +92,10 @@ const Index = () => {
       if (error) throw error;
       
       fetchTimeEntries();
+      if (selectedProject?.id === project.id) {
+        // Refresh project dashboard if the new entry is for the selected project
+        setSelectedProject(project);
+      }
       toast.success("Tempo registrato con successo!");
     } catch (error: any) {
       toast.error("Error adding time entry: " + error.message);
@@ -103,7 +110,7 @@ const Index = () => {
           name: project.name,
           description: project.description,
           color: project.color,
-          is_public: project.is_public,
+          is_public: project.isPublic,
           user_id: session?.user?.id,
         });
 
@@ -116,10 +123,19 @@ const Index = () => {
     }
   };
 
+  const handleSelectProject = (project: Project) => {
+    setSelectedProject(project);
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-[#1a1b26] text-white dark:bg-[#1a1b26] dark:text-white">
-        <ProjectSidebar projects={projects} onAddProject={handleAddProject} />
+        <ProjectSidebar 
+          projects={projects} 
+          onAddProject={handleAddProject}
+          onSelectProject={handleSelectProject}
+          selectedProject={selectedProject}
+        />
         <div className="flex-1">
           <div className="container py-4 md:py-8 px-4 md:px-8">
             <div className="flex justify-between items-center mb-6 md:mb-8">
@@ -151,11 +167,18 @@ const Index = () => {
                 </Button>
               </div>
             </div>
-            <DashboardStats entries={timeEntries} />
-            <div className="space-y-6 md:space-y-8">
-              <TimeEntryDialog onSubmit={handleNewEntry} projects={projects} />
-              {timeEntries.length > 0 && <TimeTable entries={timeEntries} />}
-            </div>
+            
+            {selectedProject ? (
+              <ProjectDashboard project={selectedProject} />
+            ) : (
+              <>
+                <DashboardStats entries={timeEntries} />
+                <div className="space-y-6 md:space-y-8">
+                  <TimeEntryDialog onSubmit={handleNewEntry} projects={projects} />
+                  {timeEntries.length > 0 && <TimeTable entries={timeEntries} />}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
