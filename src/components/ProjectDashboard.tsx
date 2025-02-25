@@ -1,5 +1,8 @@
+
 import { useEffect, useState } from "react";
-import { TimeEntry } from "@/types/Project";
+import { TimeEntry } from "@/types/TimeEntry";
+import { Project } from "@/types/Project";
+import { Client } from "@/types/Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Building, Clock, Trash2 } from "lucide-react";
@@ -7,10 +10,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Separator } from "./ui/separator";
 import { ClientProjectsChart } from "./ClientProjectsChart";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { DeleteProjectDialog } from "./project/DeleteProjectDialog";
 import { useRole } from "@/hooks/useRole";
 import { useAuth } from "./AuthProvider";
+import { Skeleton } from "./ui/skeleton";
+import { ProjectTimeChart } from "./ProjectTimeChart";
+import { TimeTable } from "./TimeTable";
 
 interface ProjectDashboardProps {
   project: Project;
