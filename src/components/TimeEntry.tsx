@@ -121,16 +121,9 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
                     {projects.map((p) => (
                       <CommandItem
                         key={p.id}
-                        onSelect={(currentValue) => {
+                        onSelect={() => {
                           setProject(p.name);
                           setOpen(false);
-                          // Prevent focus from moving
-                          setTimeout(() => {
-                            const activeElement = document.activeElement as HTMLElement;
-                            if (activeElement) {
-                              activeElement.blur();
-                            }
-                          }, 0);
                         }}
                         className="flex items-center gap-2 hover:bg-[#2a2b3d] text-white p-2 cursor-pointer"
                       >
