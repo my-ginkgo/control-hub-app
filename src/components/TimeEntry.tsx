@@ -3,13 +3,6 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
 import { Project } from "@/types/Project";
 import { UserSelect } from "./time-entry/UserSelect";
 import { ProjectSelect } from "./time-entry/ProjectSelect";
@@ -33,6 +26,7 @@ interface TimeEntryProps {
   projects: Project[];
 }
 
+// Added export keyword here
 export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
   const [hours, setHours] = useState("");
   const [billableHours, setBillableHours] = useState("");
@@ -72,8 +66,8 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <ProjectSelect
         projects={projects}
-        value={project}
-        onChange={setProject}
+        selectedProject={project}
+        onProjectChange={setProject}
       />
       
       <div className="grid gap-4 md:grid-cols-2">
@@ -139,8 +133,8 @@ export function TimeEntry({ onSubmit, projects }: TimeEntryProps) {
       </div>
 
       <UserSelect
-        value={assignedUserId}
-        onChange={setAssignedUserId}
+        selectedUserId={assignedUserId}
+        onUserChange={setAssignedUserId}
       />
 
       <div className="space-y-2">
