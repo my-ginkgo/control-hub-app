@@ -3,9 +3,31 @@ import { useState, useMemo } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { TimeEntryData } from "./TimeEntry";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { Line } from "react-chartjs-2";
 import { format, startOfWeek, startOfMonth, startOfYear, isWithinInterval, subDays, subMonths, subYears } from "date-fns";
 import { it } from "date-fns/locale";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartOptions
+} from 'chart.js';
+
+// Registra i componenti necessari di Chart.js
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 type TimeRange = "daily" | "weekly" | "monthly" | "yearly" | "total";
 
@@ -101,28 +123,91 @@ export function ProjectTimeChart({ entries }: ProjectTimeChartProps) {
       return acc;
     }, {} as Record<string, { totalHours: number; billableHours: number }>);
 
-    // Converte i dati raggruppati in formato array per il grafico
-    return Object.entries(groupedData)
-      .map(([date, hours]) => {
-        const displayDate = format(
+    // Converte i dati raggruppati nel formato richiesto da Chart.js
+    const sortedData = Object.entries(groupedData)
+      .map(([date, hours]) => ({
+        date: format(
           timeRange === "weekly"
             ? startOfWeek(new Date(date.split("-W")[0] + "-01-01"), { weekStartsOn: 1 })
             : new Date(date),
           dateFormat,
           { locale: it }
-        );
-        return {
-          date: displayDate,
-          oreReali: Number(hours.totalHours.toFixed(2)),
-          oreFatturabili: Number(hours.billableHours.toFixed(2))
-        };
-      })
-      .sort((a, b) => {
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
-        return dateA.getTime() - dateB.getTime();
-      });
+        ),
+        oreReali: Number(hours.totalHours.toFixed(2)),
+        oreFatturabili: Number(hours.billableHours.toFixed(2))
+      }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    return {
+      labels: sortedData.map(d => d.date),
+      datasets: [
+        {
+          label: 'Ore Reali',
+          data: sortedData.map(d => d.oreReali),
+          borderColor: 'rgb(99, 102, 241)',
+          backgroundColor: 'rgba(99, 102, 241, 0.1)',
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: 'Ore Fatturabili',
+          data: sortedData.map(d => d.oreFatturabili),
+          borderColor: 'rgb(34, 197, 94)',
+          backgroundColor: 'rgba(34, 197, 94, 0.1)',
+          tension: 0.3,
+          fill: true
+        }
+      ]
+    };
   }, [entries, timeRange]);
+
+  const options: ChartOptions<'line'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: {
+          padding: 20,
+          usePointStyle: true,
+          pointStyle: 'circle'
+        }
+      },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        padding: 12,
+        bodySpacing: 4,
+        titleSpacing: 10
+      }
+    },
+    interaction: {
+      mode: 'nearest',
+      axis: 'x',
+      intersect: false
+    },
+    scales: {
+      x: {
+        grid: {
+          display: false
+        },
+        ticks: {
+          maxRotation: 45,
+          minRotation: 45
+        }
+      },
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)'
+        },
+        ticks: {
+          stepSize: 1
+        }
+      }
+    }
+  };
 
   return (
     <Card className="w-full">
@@ -144,39 +229,9 @@ export function ProjectTimeChart({ entries }: ProjectTimeChartProps) {
         </div>
       </CardHeader>
       <CardContent className="h-[400px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={chartData}
-            margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="date"
-              angle={-45}
-              textAnchor="end"
-              height={60}
-              interval={0}
-              tick={{ fontSize: 12 }}
-            />
-            <YAxis />
-            <Tooltip />
-            <Line
-              type="monotone"
-              dataKey="oreReali"
-              stroke="#8884d8"
-              name="Ore Reali"
-              strokeWidth={2}
-            />
-            <Line
-              type="monotone"
-              dataKey="oreFatturabili"
-              stroke="#82ca9d"
-              name="Ore Fatturabili"
-              strokeWidth={2}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <Line data={chartData} options={options} />
       </CardContent>
     </Card>
   );
 }
+
