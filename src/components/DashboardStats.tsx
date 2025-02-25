@@ -16,6 +16,9 @@ import {
 import { Toggle } from "./ui/toggle";
 import { useRole } from "@/hooks/useRole";
 import { useAuth } from "@/components/AuthProvider";
+import { Select, SelectContent, SelectTrigger, SelectValue, SelectItem } from "@/components/ui/select";
+import { startOfDay, startOfWeek, startOfMonth, startOfYear, endOfDay, endOfWeek, endOfMonth, endOfYear } from "date-fns";
+import { it } from "date-fns/locale";
 
 // Register ChartJS components
 ChartJS.register(
@@ -28,14 +31,49 @@ ChartJS.register(
   Legend
 );
 
+type DateRange = "day" | "week" | "month" | "year";
+
 export function DashboardStats({ entries }: { entries: TimeEntryData[] }) {
   const [showBillableHours, setShowBillableHours] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRange>("month");
   const { role } = useRole();
   const { session } = useAuth();
 
-  const filteredEntries = role === "ADMIN" 
+  const getDateRange = () => {
+    const now = new Date();
+    switch (dateRange) {
+      case "day":
+        return {
+          start: startOfDay(now),
+          end: endOfDay(now)
+        };
+      case "week":
+        return {
+          start: startOfWeek(now, { locale: it }),
+          end: endOfWeek(now, { locale: it })
+        };
+      case "month":
+        return {
+          start: startOfMonth(now),
+          end: endOfMonth(now)
+        };
+      case "year":
+        return {
+          start: startOfYear(now),
+          end: endOfYear(now)
+        };
+    }
+  };
+
+  const { start, end } = getDateRange();
+
+  const filteredEntries = (role === "ADMIN" 
     ? entries 
-    : entries.filter(entry => entry.assignedUserId === session?.user?.id);
+    : entries.filter(entry => entry.assignedUserId === session?.user?.id))
+    .filter(entry => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= start && entryDate <= end;
+    });
 
   const totalHours = filteredEntries.reduce((sum, entry) => sum + entry.hours, 0);
   const totalBillableHours = filteredEntries.reduce((sum, entry) => sum + entry.billableHours, 0);
@@ -123,7 +161,7 @@ export function DashboardStats({ entries }: { entries: TimeEntryData[] }) {
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 animate-fadeIn">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 animate-fadeIn">
         <Card className="p-6">
           <h3 className="text-sm font-medium text-muted-foreground mb-2">Ore Totali</h3>
           <p className="text-2xl font-bold">{totalHours.toFixed(1)}h</p>
@@ -135,6 +173,22 @@ export function DashboardStats({ entries }: { entries: TimeEntryData[] }) {
         <Card className="p-6">
           <h3 className="text-sm font-medium text-muted-foreground mb-2">Progetti Attivi</h3>
           <p className="text-2xl font-bold">{uniqueProjects.length}</p>
+        </Card>
+        <Card className="p-6">
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Periodo</h3>
+            <Select value={dateRange} onValueChange={(value: DateRange) => setDateRange(value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="day">Giorno corrente</SelectItem>
+                <SelectItem value="week">Settimana corrente</SelectItem>
+                <SelectItem value="month">Mese corrente</SelectItem>
+                <SelectItem value="year">Anno corrente</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </Card>
       </div>
 
@@ -158,3 +212,4 @@ export function DashboardStats({ entries }: { entries: TimeEntryData[] }) {
     </div>
   );
 }
+
