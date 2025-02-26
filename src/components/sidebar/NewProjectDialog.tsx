@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -53,7 +54,7 @@ export function NewProjectDialog({ isOpen, onOpenChange, clients, onProjectAdded
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild className="hidden" S>
+      <DialogTrigger asChild className="hidden">
         <Button variant="outline" size="icon" className="bg-black/20 border-0 hover:bg-black/40">
           <Plus className="h-4 w-4" />
         </Button>
@@ -133,3 +134,4 @@ export function NewProjectDialog({ isOpen, onOpenChange, clients, onProjectAdded
     </Dialog>
   );
 }
+
