@@ -1,4 +1,13 @@
-import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRole } from "@/hooks/useRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,6 +46,9 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
   const [totalBillableHours, setTotalBillableHours] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const navigate = useNavigate();
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
   useEffect(() => {
     fetchTimeEntries();
@@ -199,7 +211,7 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
         <>
           <ProjectTimeChart entries={timeEntries} />
           {timeEntries.length > 0 ? (
-            <TimeTable entries={timeEntries} />
+            <TimeTable entries={timeEntries} start={startOfMonth} end={endOfMonth} />
           ) : (
             <Card>
               <CardContent className="flex items-center justify-center py-6">

@@ -26,6 +26,10 @@ const Index = () => {
   const { session } = useAuth();
   const { theme, setTheme } = useTheme();
 
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
   useEffect(() => {
     if (session?.user?.id) {
       fetchProjects();
@@ -94,7 +98,6 @@ const Index = () => {
 
       fetchTimeEntries();
       if (selectedProject?.id === project.id) {
-        // Refresh project dashboard if the new entry is for the selected project
         setSelectedProject(project);
       }
       toast.success("Tempo registrato con successo!");
@@ -192,7 +195,14 @@ const Index = () => {
                 <DashboardStats entries={timeEntries} />
                 <div className="my-6 md:my-8 space-y-6 md:space-y-8">
                   <TimeEntryDialog onSubmit={handleNewEntry} projects={projects} />
-                  {timeEntries.length > 0 && <TimeTable entries={timeEntries} onEntryDeleted={fetchTimeEntries} />}
+                  {timeEntries.length > 0 && (
+                    <TimeTable 
+                      entries={timeEntries} 
+                      onEntryDeleted={fetchTimeEntries} 
+                      start={startOfMonth} 
+                      end={endOfMonth}
+                    />
+                  )}
                 </div>
               </>
             )}
