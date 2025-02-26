@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import { SidebarTrigger } from "../ui/sidebar";
 import { useTheme } from "../ThemeProvider";
 import { DocsDialog } from "../docs/DocsDialog";
+import { ColorWidget } from "../user/ColorWidget";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -62,6 +63,7 @@ export function MainLayout({ children, onNewClient, onNewProject, onNewTimeEntry
             className="border-[#383a5c] text-white hover:bg-[#2a2b3d]">
             {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
+          <ColorWidget />
           <DocsDialog />
           <Button
             variant="outline"

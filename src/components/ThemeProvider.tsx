@@ -65,9 +65,9 @@ export function ThemeProvider({
     root.classList.remove("light", "dark");
     root.classList.add(theme);
 
-    // Applica i colori salvati
+    // Imposta le variabili CSS personalizzate
     Object.entries(colors).forEach(([key, value]) => {
-      root.style.setProperty(`--${key}`, value);
+      root.style.setProperty(`--${key}-color`, value);
     });
   }, [theme, colors]);
 
