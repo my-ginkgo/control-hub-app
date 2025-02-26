@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,10 +10,6 @@ import { toast } from "sonner";
 import { DeleteClientDialog } from "./client/DeleteClientDialog";
 import { ClientProjectsChart } from "./ClientProjectsChart";
 import { Separator } from "./ui/separator";
-import { DateRangeSelector } from "./charts/DateRangeSelector";
-import { DateRange } from "@/types/chart";
-import { getDateRange } from "@/utils/dateRangeUtils";
-import { TimeTable } from "./TimeTable";
 
 interface ClientDashboardProps {
   client: Client;
@@ -36,17 +31,11 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRange>("month");
-  const [customDateRange, setCustomDateRange] = useState<{ start: Date | undefined; end: Date | undefined }>({
-    start: undefined,
-    end: undefined,
-  });
   const navigate = useNavigate();
-  const { start, end } = getDateRange(dateRange, customDateRange);
 
   useEffect(() => {
     fetchProjectsAndTotals();
-  }, [client.id, dateRange, customDateRange]);
+  }, [client.id]);
 
   const fetchProjectsAndTotals = async () => {
     try {
@@ -59,8 +48,7 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
           description,
           time_entries!time_entries_project_id_fkey (
             hours,
-            billable_hours,
-            start_date
+            billable_hours
           )
         `
         )
@@ -72,21 +60,15 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
       const projects = projectsData || [];
       setProjects(projects);
 
-      // Calcola i totali nel range di date selezionato
+      // Calcola i totali
       const totals = projects.reduce(
         (acc, project: any) => ({
           totalHours:
             acc.totalHours +
-            (project.time_entries?.reduce((sum: number, entry: any) => {
-              const entryDate = new Date(entry.start_date);
-              return entryDate >= start && entryDate <= end ? sum + (entry.hours || 0) : sum;
-            }, 0) || 0),
+            (project.time_entries?.reduce((sum: number, entry: any) => sum + (entry.hours || 0), 0) || 0),
           totalBillableHours:
             acc.totalBillableHours +
-            (project.time_entries?.reduce((sum: number, entry: any) => {
-              const entryDate = new Date(entry.start_date);
-              return entryDate >= start && entryDate <= end ? sum + (entry.billable_hours || 0) : sum;
-            }, 0) || 0),
+            (project.time_entries?.reduce((sum: number, entry: any) => sum + (entry.billable_hours || 0), 0) || 0),
           totalProjects: acc.totalProjects + 1,
         }),
         {
@@ -137,15 +119,6 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
         </Button>
       </div>
 
-      <div className="flex justify-end">
-        <DateRangeSelector
-          dateRange={dateRange}
-          setDateRange={setDateRange}
-          customDateRange={customDateRange}
-          setCustomDateRange={setCustomDateRange}
-        />
-      </div>
-
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
@@ -187,17 +160,9 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
 
           <Separator />
 
-          <ClientProjectsChart clientId={client.id} start={start} end={end} />
+          <ClientProjectsChart clientId={client.id} />
 
           <Separator />
-
-          <TimeTable entries={projects.flatMap((project: any) => 
-            project.time_entries.map((entry: any) => ({
-              ...entry,
-              project: project.name,
-              id: entry.id
-            }))
-          )} start={start} end={end} />
 
           <div>
             <h3 className="text-lg font-semibold mb-4">Progetti</h3>
