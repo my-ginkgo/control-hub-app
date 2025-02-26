@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { ColorConfigurator } from "@/components/ColorConfigurator";
 import { Settings2 } from "lucide-react";
+import { DashboardContainer } from "@/components/dashboard/DashboardContainer";
 
 export default function Index() {
   return (
@@ -28,6 +29,8 @@ export default function Index() {
           </DialogContent>
         </Dialog>
       </div>
+      
+      <DashboardContainer />
     </div>
   );
 }
