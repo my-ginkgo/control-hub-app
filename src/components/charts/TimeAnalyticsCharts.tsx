@@ -21,14 +21,13 @@ import { DateRangeSelector } from "./DateRangeSelector";
 import { ChartTypeSelector } from "./ChartTypeSelector";
 import { generateChartData } from "./ChartDataGenerator";
 import { getDateRange, generateTimeLabels } from "@/utils/dateRangeUtils";
-import { getChartOptions } from "@/utils/chartDataUtils";
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { InfoIcon } from "lucide-react";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryData[]; isAdmin: boolean }) {
-  const [dateRange, setDateRange] = useState<DateRange>("week");
+  const [dateRange, setDateRange] = useState<DateRange>("month"); // Cambiato da "week" a "month"
   const [chartType, setChartType] = useState<ChartType>("line");
   const [customDateRange, setCustomDateRange] = useState<{ start: Date | undefined; end: Date | undefined }>({
     start: undefined,
@@ -62,6 +61,21 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
   const chartData = generateChartData({ timeLabels, chartType, filteredEntries, getUserFullName });
   const chartOptions = getChartOptions(chartType);
 
+  const getChartTitle = () => {
+    switch (chartType) {
+      case "line":
+        return "Analisi Temporale";
+      case "groupedBar":
+        return "Confronto Progetti";
+      case "stackedBar":
+        return "Efficienza";
+      case "userWorkload":
+        return "Carico per Utente";
+      default:
+        return "";
+    }
+  };
+
   const getChartDescription = () => {
     switch (chartType) {
       case "line":
@@ -82,7 +96,7 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-semibold">Andamento Temporale</h2>
+            <h2 className="text-xl font-semibold">{getChartTitle()}</h2>
             <TooltipProvider>
               <UITooltip>
                 <TooltipTrigger asChild>
@@ -117,4 +131,3 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
     </Card>
   );
 }
-
