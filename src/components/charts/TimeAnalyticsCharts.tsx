@@ -21,13 +21,14 @@ import { DateRangeSelector } from "./DateRangeSelector";
 import { ChartTypeSelector } from "./ChartTypeSelector";
 import { generateChartData } from "./ChartDataGenerator";
 import { getDateRange, generateTimeLabels } from "@/utils/dateRangeUtils";
+import { getChartOptions } from "@/utils/chartDataUtils";
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { InfoIcon } from "lucide-react";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryData[]; isAdmin: boolean }) {
-  const [dateRange, setDateRange] = useState<DateRange>("month"); // Cambiato da "week" a "month"
+  const [dateRange, setDateRange] = useState<DateRange>("month");
   const [chartType, setChartType] = useState<ChartType>("line");
   const [customDateRange, setCustomDateRange] = useState<{ start: Date | undefined; end: Date | undefined }>({
     start: undefined,
@@ -131,3 +132,4 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
     </Card>
   );
 }
+
