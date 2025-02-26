@@ -1,6 +1,14 @@
 
 # Welcome to ControlHub
 
+## 📚 Documentazione Tecnica
+
+Per una comprensione approfondita del progetto, consulta la nostra documentazione tecnica:
+
+- [🏗️ Architettura del Progetto](src/docs/technical/architecture.md)
+- [🚀 Guida allo Sviluppo](src/docs/technical/development-guide.md)
+- [🤝 Come Contribuire](src/docs/technical/contributing.md)
+
 ## Project info
 
 **URL**: https://lovable.dev/projects/ed54b32e-0fbd-47f4-b98b-5d1d8b7d3bf3
@@ -53,13 +61,16 @@ npm run dev
 
 ## What technologies are used for this project?
 
-This project is built with .
+This project is built with:
 
 - Vite
 - TypeScript
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase
+- TanStack Query
+- Recharts
 
 ## How can I deploy this project?
 
@@ -68,3 +79,4 @@ Simply open [Lovable](https://lovable.dev/projects/ed54b32e-0fbd-47f4-b98b-5d1d8
 ## I want to use a custom domain - is that possible?
 
 We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+
