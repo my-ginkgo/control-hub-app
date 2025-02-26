@@ -8,6 +8,7 @@ import { useState } from "react";
 import { DateRange } from "@/types/chart";
 import { DateRangeSelector } from "./charts/DateRangeSelector";
 import { getDateRange } from "@/utils/dateRangeUtils";
+import { TimeTable } from "./TimeTable";
 
 export function DashboardStats({ entries }: { entries: TimeEntryData[] }) {
   const { role } = useRole();
@@ -59,6 +60,10 @@ export function DashboardStats({ entries }: { entries: TimeEntryData[] }) {
       </div>
 
       <TimeAnalyticsCharts entries={filteredEntries} isAdmin={role === "ADMIN"} />
+      
+      <div className="my-6 md:my-8 space-y-6 md:space-y-8">
+        <TimeTable entries={entries} start={start} end={end} />
+      </div>
     </div>
   );
 }

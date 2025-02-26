@@ -22,6 +22,8 @@ import { Button } from "./ui/button";
 interface TimeTableProps {
   entries: TimeEntryData[];
   onEntryDeleted?: () => void;
+  start: Date;
+  end: Date;
 }
 
 type TimeEntryToDelete = {
@@ -53,9 +55,14 @@ function UserCell({ userId }: { userId: string }) {
   );
 }
 
-export function TimeTable({ entries, onEntryDeleted }: TimeTableProps) {
+export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [entryToDelete, setEntryToDelete] = useState<TimeEntryToDelete>(null);
+
+  const filteredEntries = entries.filter((entry) => {
+    const entryDate = new Date(entry.startDate);
+    return entryDate >= start && entryDate <= end;
+  });
 
   const handleDeleteClick = (entry: TimeEntryData) => {
     setEntryToDelete({
@@ -98,7 +105,7 @@ export function TimeTable({ entries, onEntryDeleted }: TimeTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {entries.map((entry, index) => (
+          {filteredEntries.map((entry, index) => (
             <TableRow key={entry.id || `${entry.date}-${entry.project}-${index}`}>
               <TableCell>
                 {formatDistanceToNow(new Date(entry.date), {
