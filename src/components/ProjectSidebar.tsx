@@ -1,14 +1,12 @@
-
-import { useState, useEffect } from "react";
-import { Project } from "@/types/Project";
-import { Client } from "@/types/Client";
-import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 import { useAuth } from "@/components/AuthProvider";
+import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
+import { Client } from "@/types/Client";
+import { Project } from "@/types/Project";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ClientList } from "./sidebar/ClientList";
 import { ProjectList } from "./sidebar/ProjectList";
-import { ClientDashboard } from "./ClientDashboard";
 
 interface ProjectSidebarProps {
   projects: Project[];
@@ -21,15 +19,15 @@ interface ProjectSidebarProps {
   onProjectUpdated?: () => void;
 }
 
-export function ProjectSidebar({ 
-  projects, 
-  onAddProject, 
+export function ProjectSidebar({
+  projects,
+  onAddProject,
   onSelectProject,
   selectedProject,
   selectedClient,
   onSelectClient,
   onProjectDeleted,
-  onProjectUpdated
+  onProjectUpdated,
 }: ProjectSidebarProps) {
   const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
   const [expandedClients, setExpandedClients] = useState<string[]>([]);
@@ -44,10 +42,7 @@ export function ProjectSidebar({
 
   const fetchClients = async () => {
     try {
-      const { data, error } = await supabase
-        .from("clients")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("clients").select("*").order("created_at", { ascending: false });
 
       if (error) throw error;
       setClients(data || []);
@@ -59,18 +54,14 @@ export function ProjectSidebar({
   const toggleProjectExpand = (project: Project, event: React.MouseEvent) => {
     event.stopPropagation();
     setExpandedProjects((prev) =>
-      prev.includes(project.id)
-        ? prev.filter((id) => id !== project.id)
-        : [...prev, project.id]
+      prev.includes(project.id) ? prev.filter((id) => id !== project.id) : [...prev, project.id]
     );
   };
 
   const toggleClientExpand = (client: Client, event: React.MouseEvent) => {
     event.stopPropagation();
     setExpandedClients((prev) =>
-      prev.includes(client.id)
-        ? prev.filter((id) => id !== client.id)
-        : [...prev, client.id]
+      prev.includes(client.id) ? prev.filter((id) => id !== client.id) : [...prev, client.id]
     );
   };
 
@@ -86,7 +77,7 @@ export function ProjectSidebar({
   return (
     <Sidebar>
       <SidebarContent>
-        <ClientList 
+        <ClientList
           clients={clients}
           expandedClients={expandedClients}
           toggleClientExpand={toggleClientExpand}
@@ -94,7 +85,7 @@ export function ProjectSidebar({
           onSelectClient={handleSelectClient}
           selectedClient={selectedClient}
         />
-        <ProjectList 
+        <ProjectList
           projects={projects}
           clients={clients}
           expandedProjects={expandedProjects}

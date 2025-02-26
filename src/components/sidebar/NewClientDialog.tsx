@@ -49,7 +49,7 @@ export function NewClientDialog({ isOpen, onOpenChange, onClientAdded }: NewClie
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
+      <DialogTrigger asChild className="hidden">
         <Button variant="outline" size="icon" className="bg-black/20 border-0 hover:bg-black/40">
           <Plus className="h-4 w-4" />
         </Button>

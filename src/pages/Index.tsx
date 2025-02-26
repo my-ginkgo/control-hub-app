@@ -4,10 +4,11 @@ import { DashboardStats } from "@/components/DashboardStats";
 import { DocsDialog } from "@/components/docs/DocsDialog";
 import { ProjectDashboard } from "@/components/ProjectDashboard";
 import { ProjectSidebar } from "@/components/ProjectSidebar";
+import { NewClientDialog } from "@/components/sidebar/NewClientDialog";
+import { NewProjectDialog } from "@/components/sidebar/NewProjectDialog";
 import { useTheme } from "@/components/ThemeProvider";
 import { TimeEntryData } from "@/components/TimeEntry";
 import { TimeEntryDialog } from "@/components/TimeEntryDialog";
-import { TimeTable } from "@/components/TimeTable";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,8 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { NewClientDialog } from "@/components/sidebar/NewClientDialog";
-import { NewProjectDialog } from "@/components/sidebar/NewProjectDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Client } from "@/types/Client";
 import { Project } from "@/types/Project";
@@ -230,35 +229,27 @@ const Index = () => {
               <>
                 <DashboardStats entries={timeEntries} />
                 <div className="my-6 md:my-8 space-y-6 md:space-y-8">
-                  <TimeEntryDialog 
-                    onSubmit={handleNewEntry} 
+                  <TimeEntryDialog
+                    onSubmit={handleNewEntry}
                     projects={projects}
                     isOpen={isTimeEntryDialogOpen}
                     onOpenChange={setIsTimeEntryDialogOpen}
                   />
-                  <NewClientDialog 
+                  <NewClientDialog
                     isOpen={isNewClientDialogOpen}
                     onOpenChange={setIsNewClientDialogOpen}
                     onClientAdded={() => {
                       fetchProjects();
                     }}
                   />
-                  <NewProjectDialog 
+                  <NewProjectDialog
                     isOpen={isNewProjectDialogOpen}
                     onOpenChange={setIsNewProjectDialogOpen}
-                    clients={[]} 
+                    clients={[]}
                     onProjectAdded={() => {
                       fetchProjects();
                     }}
                   />
-                  {timeEntries.length > 0 && (
-                    <TimeTable 
-                      entries={timeEntries} 
-                      onEntryDeleted={fetchTimeEntries} 
-                      start={startOfMonth} 
-                      end={endOfMonth}
-                    />
-                  )}
                 </div>
               </>
             )}

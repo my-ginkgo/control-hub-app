@@ -15,7 +15,6 @@ import { Project } from "@/types/Project";
 import { ChevronDown, ChevronUp, Globe, Lock, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { NewProjectDialog } from "./NewProjectDialog";
 
 interface ProjectListProps {
   projects: Project[];
@@ -142,14 +141,8 @@ export function ProjectList({
 
   return (
     <SidebarGroup className="h-[50vh] flex flex-col">
-      <SidebarHeader className="p-4 flex justify-between items-center shrink-0">
+      <SidebarHeader className="p-4 pl-0">
         <SidebarGroupLabel className="text-lg font-semibold text-red-400">Progetti</SidebarGroupLabel>
-        <NewProjectDialog
-          isOpen={isProjectDialogOpen}
-          onOpenChange={setIsProjectDialogOpen}
-          clients={clients}
-          onProjectAdded={onProjectAdded}
-        />
       </SidebarHeader>
       <SidebarGroupContent className="overflow-y-auto">
         <div className="space-y-2 px-2">

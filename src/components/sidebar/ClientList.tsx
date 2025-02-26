@@ -9,7 +9,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "../AuthProvider";
 import { DeleteClientDialog } from "../client/DeleteClientDialog";
-import { NewClientDialog } from "./NewClientDialog";
 
 interface ClientListProps {
   clients: Client[];
@@ -72,13 +71,8 @@ export function ClientList({
 
   return (
     <SidebarGroup className="h-[50vh] flex flex-col">
-      <SidebarHeader className="p-4 flex justify-between items-center shrink-0">
+      <SidebarHeader className="p-4 pl-0">
         <SidebarGroupLabel className="text-lg font-semibold text-red-400">Clienti</SidebarGroupLabel>
-        <NewClientDialog
-          isOpen={isClientDialogOpen}
-          onOpenChange={setIsClientDialogOpen}
-          onClientAdded={onClientAdded}
-        />
       </SidebarHeader>
       <SidebarGroupContent className="overflow-y-auto">
         <div className="space-y-2 px-2">
