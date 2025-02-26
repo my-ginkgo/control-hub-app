@@ -163,28 +163,6 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
           <ClientProjectsChart clientId={client.id} />
 
           <Separator />
-
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Progetti</h3>
-            <div className="grid gap-4">
-              {isLoading ? (
-                <div className="text-sm text-gray-500">Caricamento progetti...</div>
-              ) : projects.length > 0 ? (
-                projects.map((project) => (
-                  <Card key={project.id}>
-                    <CardHeader>
-                      <CardTitle className="text-base">{project.name}</CardTitle>
-                      {project.description && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{project.description}</p>
-                      )}
-                    </CardHeader>
-                  </Card>
-                ))
-              ) : (
-                <div className="text-sm text-gray-500">Nessun progetto associato a questo cliente.</div>
-              )}
-            </div>
-          </div>
         </CardContent>
       </Card>
 
