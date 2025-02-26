@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react"
 
 type Theme = "dark" | "light"
@@ -47,7 +46,7 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
-  )
+  );
 
   const [colors, setColors] = useState<ColorTheme>(() => {
     const savedColors: Partial<ColorTheme> = {};
@@ -65,7 +64,6 @@ export function ThemeProvider({
     root.classList.remove("light", "dark");
     root.classList.add(theme);
 
-    // Imposta le variabili CSS personalizzate
     Object.entries(colors).forEach(([key, value]) => {
       root.style.setProperty(`--${key}-color`, value);
     });
