@@ -5,8 +5,8 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 222 47% 11%;
+    --foreground: 0 0% 98%;
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -34,6 +34,13 @@
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.75rem;
+
+    --sidebar-bg: 225 25% 12%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-border: 225 25% 18%;
+    --sidebar-accent: 225 25% 15%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-ring: 225 25% 25%;
   }
 
   .dark {
@@ -91,3 +98,4 @@
 .animate-fadeIn {
   animation: fadeIn 0.5s ease-out forwards;
 }
+

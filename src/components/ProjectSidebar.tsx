@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/components/AuthProvider";
 import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
@@ -75,7 +76,7 @@ export function ProjectSidebar({
   };
 
   return (
-    <Sidebar>
+    <Sidebar className="bg-sidebar border-r border-sidebar-border">
       <SidebarContent>
         <ClientList
           clients={clients}
