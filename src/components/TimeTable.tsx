@@ -20,6 +20,15 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { TimeEntryData } from "./TimeEntry";
 import { Button } from "./ui/button";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface TimeTableProps {
   entries: TimeEntryData[];
@@ -36,6 +45,8 @@ type SortConfig = {
   key: keyof TimeEntryData | null;
   direction: 'asc' | 'desc';
 };
+
+const ITEMS_PER_PAGE = 10;
 
 const fetchUserData = async (userId: string) => {
   const { data, error } = await supabase.from("profiles").select("first_name, last_name").eq("id", userId).single();
@@ -65,6 +76,7 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
   const [entryToDelete, setEntryToDelete] = useState<TimeEntryToDelete>(null);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'asc' });
+  const [currentPage, setCurrentPage] = useState(1);
 
   const filteredEntries = entries.filter((entry) => {
     const entryDate = new Date(entry.startDate);
@@ -84,6 +96,11 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
     const comparison = aValue < bValue ? -1 : 1;
     return sortConfig.direction === 'asc' ? comparison : -comparison;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(sortedEntries.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedEntries = sortedEntries.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const handleSort = (key: keyof TimeEntryData) => {
     setSortConfig((currentSort) => ({
@@ -166,7 +183,7 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedEntries.map((entry, index) => (
+              {paginatedEntries.map((entry, index) => (
                 <>
                   <TableRow
                     key={entry.id || `${entry.date}-${entry.project}-${index}`}
@@ -250,6 +267,39 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
             </TableBody>
           </Table>
         </div>
+
+        {totalPages > 1 && (
+          <div className="mt-4 flex justify-center">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(page)}
+                      isActive={currentPage === page}
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
 
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <AlertDialogContent>
