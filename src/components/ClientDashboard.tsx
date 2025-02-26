@@ -185,21 +185,7 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
             </Card>
           </div>
 
-          <Separator />
-
-          <ClientProjectsChart clientId={client.id} start={start} end={end} />
-
-          <Separator />
-
-          <TimeTable entries={projects.flatMap((project: any) => 
-            project.time_entries.map((entry: any) => ({
-              ...entry,
-              project: project.name,
-              id: entry.id
-            }))
-          )} start={start} end={end} />
-
-          <div>
+          <div className="h-[300px] overflow-auto border rounded-lg p-4">
             <h3 className="text-lg font-semibold mb-4">Progetti</h3>
             <div className="grid gap-4">
               {isLoading ? (
@@ -220,6 +206,21 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
               )}
             </div>
           </div>
+
+          <Separator />
+
+          <ClientProjectsChart clientId={client.id} start={start} end={end} />
+
+          <Separator />
+
+          <TimeTable entries={projects.flatMap((project: any) => 
+            project.time_entries.map((entry: any) => ({
+              ...entry,
+              project: project.name,
+              id: entry.id
+            }))
+          )} start={start} end={end} />
+
         </CardContent>
       </Card>
 
