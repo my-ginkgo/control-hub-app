@@ -27,6 +27,23 @@ export function generateChartData({
   const userColors = generateColors(uniqueUsers);
 
   switch (chartType) {
+    case "billableEfficiency":
+      return {
+        labels: uniqueProjects,
+        datasets: [
+          {
+            label: "Efficienza Fatturabile (%)",
+            data: uniqueProjects.map((project) => {
+              const totalHours = groupedData[project].hours.reduce((sum, h) => sum + h, 0);
+              const billableHours = groupedData[project].billableHours.reduce((sum, h) => sum + h, 0);
+              return totalHours > 0 ? ((billableHours / totalHours) * 100).toFixed(1) : 0;
+            }),
+            backgroundColor: Object.values(projectColors),
+            borderColor: Object.values(projectColors),
+          },
+        ],
+      };
+
     case "userWorkload":
       return {
         labels: timeLabels,

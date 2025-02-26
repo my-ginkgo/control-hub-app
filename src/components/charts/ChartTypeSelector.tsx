@@ -1,10 +1,10 @@
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChartType } from "@/types/chart";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ChartTypeSelectorProps {
   chartType: ChartType;
-  setChartType: (value: ChartType) => void;
+  setChartType: (type: ChartType) => void;
   isAdmin: boolean;
 }
 
@@ -12,13 +12,14 @@ export function ChartTypeSelector({ chartType, setChartType, isAdmin }: ChartTyp
   return (
     <Select value={chartType} onValueChange={(value: ChartType) => setChartType(value)}>
       <SelectTrigger className="w-[180px]">
-        <SelectValue />
+        <SelectValue placeholder="Seleziona il tipo di grafico" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="line">Analisi Temporale 📈</SelectItem>
-        <SelectItem value="groupedBar">Confronto Progetti 📊</SelectItem>
-        <SelectItem value="stackedBar">Efficienza 🏗️</SelectItem>
-        {isAdmin && <SelectItem value="userWorkload">Carico per Utente 👥</SelectItem>}
+        <SelectItem value="line">Lineare</SelectItem>
+        <SelectItem value="groupedBar">Barre Raggruppate</SelectItem>
+        <SelectItem value="stackedBar">Barre Impilate</SelectItem>
+        {isAdmin && <SelectItem value="userWorkload">Carico di Lavoro</SelectItem>}
+        <SelectItem value="billableEfficiency">Efficienza Fatturabile</SelectItem>
       </SelectContent>
     </Select>
   );
