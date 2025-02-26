@@ -26,13 +26,12 @@ export function ClientProjectsChart({ clientId }: ClientProjectsChartProps) {
 
   const fetchProjectStats = async () => {
     try {
-      // Fetch projects with their time entries
       const { data: projects, error: projectsError } = await supabase
         .from('projects')
         .select(`
           id,
           name,
-          time_entries (
+          time_entries!time_entries_project_id_fkey (
             hours,
             billable_hours
           )
@@ -79,8 +78,7 @@ export function ClientProjectsChart({ clientId }: ClientProjectsChartProps) {
                 right: 30,
                 left: 20,
                 bottom: 5,
-              }}
-            >
+              }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="projectName" />
               <YAxis />
