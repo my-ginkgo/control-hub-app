@@ -80,7 +80,7 @@ export const DocsDialog = () => {
             </ScrollArea>
           </div>
           <ScrollArea className="flex-1 h-[calc(90vh-120px)]">
-            <div className="prose prose-invert max-w-none pr-6">
+            <div className="prose prose-invert max-w-none pr-6 prose-headings:mb-4 prose-headings:mt-6 prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:my-4 prose-ul:my-4 prose-li:my-1 prose-strong:text-white/90 prose-em:text-white/90">
               <ReactMarkdown>{docs[selectedDoc] || ""}</ReactMarkdown>
             </div>
           </ScrollArea>
