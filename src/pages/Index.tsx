@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/components/AuthProvider";
 import { ClientDashboard } from "@/components/ClientDashboard";
 import { DashboardStats } from "@/components/DashboardStats";
@@ -9,11 +10,17 @@ import { TimeEntryData } from "@/components/TimeEntry";
 import { TimeEntryDialog } from "@/components/TimeEntryDialog";
 import { TimeTable } from "@/components/TimeTable";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { Client } from "@/types/Client";
 import { Project } from "@/types/Project";
-import { Moon, Sun, User } from "lucide-react";
+import { Moon, Plus, Sun, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -25,6 +32,9 @@ const Index = () => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const { session } = useAuth();
   const { theme, setTheme } = useTheme();
+  const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
+  const [isNewProjectDialogOpen, setIsNewProjectDialogOpen] = useState(false);
+  const [isTimeEntryDialogOpen, setIsTimeEntryDialogOpen] = useState(false);
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -164,6 +174,31 @@ const Index = () => {
             <div className="flex justify-between items-center mb-6 md:mb-8">
               <div className="flex items-center gap-4">
                 <img src="logo.png" alt=" Logo" className="w-12 h-12" />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button className="bg-red-500 hover:bg-red-600 text-white">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Crea
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-48 bg-[#24253a] border-[#383a5c]">
+                    <DropdownMenuItem
+                      className="text-white focus:bg-[#383a5c] focus:text-white cursor-pointer"
+                      onClick={() => setIsNewClientDialogOpen(true)}>
+                      Crea Cliente
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-white focus:bg-[#383a5c] focus:text-white cursor-pointer"
+                      onClick={() => setIsNewProjectDialogOpen(true)}>
+                      Crea Progetto
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-white focus:bg-[#383a5c] focus:text-white cursor-pointer"
+                      onClick={() => setIsTimeEntryDialogOpen(true)}>
+                      Registra Lavoro
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -194,7 +229,12 @@ const Index = () => {
               <>
                 <DashboardStats entries={timeEntries} />
                 <div className="my-6 md:my-8 space-y-6 md:space-y-8">
-                  <TimeEntryDialog onSubmit={handleNewEntry} projects={projects} />
+                  <TimeEntryDialog 
+                    onSubmit={handleNewEntry} 
+                    projects={projects}
+                    isOpen={isTimeEntryDialogOpen}
+                    onOpenChange={setIsTimeEntryDialogOpen}
+                  />
                   {timeEntries.length > 0 && (
                     <TimeTable 
                       entries={timeEntries} 
@@ -214,3 +254,4 @@ const Index = () => {
 };
 
 export default Index;
+
