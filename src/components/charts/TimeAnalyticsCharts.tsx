@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
@@ -83,9 +84,11 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
           end: endOfMonth(now),
         };
       case "year":
+        const yearStart = startOfYear(now);
+        const yearEnd = endOfYear(now);
         return {
-          start: startOfYear(now),
-          end: endOfYear(now),
+          start: yearStart,
+          end: yearEnd,
         };
       case "custom":
         return {
@@ -109,6 +112,10 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
       case "week":
         return format(date, "EEEE", { locale: it });
       case "month":
+        return format(date, "dd MMM", { locale: it });
+      case "year":
+        return format(date, "MMM", { locale: it });
+      default:
         return format(date, "dd MMM", { locale: it });
     }
   };
