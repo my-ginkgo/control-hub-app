@@ -1,7 +1,6 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Project } from '@/types/Project';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -44,17 +43,19 @@ export function ClientProjectsChart({ clientId }: ClientProjectsChartProps) {
     try {
       const { start, end } = getDateRange(dateRange, customDateRange);
 
+      // Update the query to explicitly join with user_roles table
       const { data: projects, error: projectsError } = await supabase
         .from('projects')
         .select(`
           id,
           name,
-          time_entries!time_entries_project_id_fkey (
+          time_entries(
             hours,
             billable_hours,
             start_date,
             notes,
-            user_roles!time_entries_user_id_fkey(email)
+            assigned_user_id,
+            user_roles!inner(email)
           )
         `)
         .eq('client_id', clientId);
@@ -191,4 +192,3 @@ export function ClientProjectsChart({ clientId }: ClientProjectsChartProps) {
     </div>
   );
 }
-
