@@ -118,11 +118,11 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
         </div>
         <div className="h-[400px]">
           {chartType === "billableEfficiency" ? (
-            <Bar data={chartData} options={chartOptions} />
+            <Bar options={chartOptions} data={chartData as any} />
           ) : chartType === "userWorkload" || chartType === "line" ? (
-            <Line data={chartData} options={chartOptions} />
+            <Line options={chartOptions} data={chartData as any} />
           ) : (
-            <Bar data={chartData} options={chartOptions} />
+            <Bar options={chartOptions} data={chartData as any} />
           )}
         </div>
       </div>
