@@ -65,6 +65,25 @@ const Index = () => {
     setSelectedClient(null);
   };
 
+  const handleAddProject = async (project: Omit<Project, "id">) => {
+    try {
+      const { error } = await supabase.from("projects").insert({
+        name: project.name,
+        description: project.description,
+        color: project.color,
+        is_public: project.is_public,
+        user_id: session?.user?.id,
+      });
+
+      if (error) throw error;
+      setProjects([]);
+      fetchTimeEntries();
+      toast.success("Progetto aggiunto con successo!");
+    } catch (error: any) {
+      toast.error("Error adding project: " + error.message);
+    }
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-[#1a1b26] text-white dark:bg-[#1a1b26] dark:text-white">
@@ -82,6 +101,7 @@ const Index = () => {
             setProjects([]);
             fetchTimeEntries();
           }}
+          onAddProject={handleAddProject}
         />
         <div className="flex-1 relative">
           <MainLayout
@@ -100,6 +120,8 @@ const Index = () => {
                 fetchTimeEntries={fetchTimeEntries}
                 selectedProject={selectedProject}
                 session={session}
+                isOpen={isTimeEntryDialogOpen}
+                onOpenChange={setIsTimeEntryDialogOpen}
               />
               <NewClientDialog
                 isOpen={isNewClientDialogOpen}

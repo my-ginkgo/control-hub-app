@@ -10,6 +10,8 @@ interface TimeEntryContainerProps {
   fetchTimeEntries: () => void;
   selectedProject: Project | null;
   session: { user: { id: string } } | null;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function TimeEntryContainer({
@@ -17,6 +19,8 @@ export function TimeEntryContainer({
   fetchTimeEntries,
   selectedProject,
   session,
+  isOpen,
+  onOpenChange,
 }: TimeEntryContainerProps) {
   const handleNewEntry = async (entry: TimeEntryData) => {
     try {
@@ -48,6 +52,8 @@ export function TimeEntryContainer({
     <TimeEntryDialog
       onSubmit={handleNewEntry}
       projects={projects}
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
     />
   );
 }
