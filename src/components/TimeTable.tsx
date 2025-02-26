@@ -49,26 +49,22 @@ type SortConfig = {
 const ITEMS_PER_PAGE = 10;
 
 const fetchUserData = async (userId: string) => {
-  const { data, error } = await supabase.from("profiles").select("first_name, last_name").eq("id", userId).single();
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("email")
+    .eq("user_id", userId)
+    .maybeSingle();
   if (error) throw error;
   return data;
 };
 
-function UserCell({ userId }: { userId: string }) {
-  const { data, error, isLoading } = useQuery({
-    queryKey: ["user", userId],
-    queryFn: () => fetchUserData(userId),
-  });
-
-  if (isLoading) return <TableCell className="text-amber-400">Caricamento...</TableCell>;
-  if (error) return <TableCell className="text-red-400">Errore.</TableCell>;
-  if (!userId) return <TableCell>Non assegnato</TableCell>;
-
-  return (
-    <TableCell>
-      {data.first_name} {data.last_name}
-    </TableCell>
-  );
+interface GroupedTimeEntries {
+  [userId: string]: {
+    email: string;
+    entries: TimeEntryData[];
+    totalHours: number;
+    totalBillableHours: number;
+  };
 }
 
 export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProps) {
@@ -77,28 +73,50 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'asc' });
   const [currentPage, setCurrentPage] = useState(1);
+  const [groupedEntries, setGroupedEntries] = useState<GroupedTimeEntries>({});
+
+  useEffect(() => {
+    const groupEntries = async () => {
+      const grouped: GroupedTimeEntries = {};
+      
+      for (const entry of entries) {
+        if (!grouped[entry.assignedUserId]) {
+          const userData = await fetchUserData(entry.assignedUserId);
+          grouped[entry.assignedUserId] = {
+            email: userData?.email || entry.assignedUserId,
+            entries: [],
+            totalHours: 0,
+            totalBillableHours: 0,
+          };
+        }
+        
+        grouped[entry.assignedUserId].entries.push(entry);
+        grouped[entry.assignedUserId].totalHours += Number(entry.hours);
+        grouped[entry.assignedUserId].totalBillableHours += Number(entry.billableHours);
+      }
+
+      setGroupedEntries(grouped);
+    };
+
+    groupEntries();
+  }, [entries]);
 
   // Reset pagination when date range changes
   useEffect(() => {
     setCurrentPage(1);
   }, [start, end]);
 
-  const filteredEntries = entries.filter((entry) => {
-    const entryDate = new Date(entry.startDate);
-    return entryDate >= start && entryDate <= end;
-  });
+  const filteredEntries = Object.entries(groupedEntries).filter(([_, userGroup]) => 
+    userGroup.entries.some(entry => {
+      const entryDate = new Date(entry.startDate);
+      return entryDate >= start && entryDate <= end;
+    })
+  );
 
-  const sortedEntries = [...filteredEntries].sort((a, b) => {
+  const sortedEntries = [...filteredEntries].sort(([userId1, group1], [userId2, group2]) => {
     if (!sortConfig.key) return 0;
     
-    const aValue = a[sortConfig.key];
-    const bValue = b[sortConfig.key];
-
-    if (aValue === bValue) return 0;
-    if (aValue === null) return 1;
-    if (bValue === null) return -1;
-
-    const comparison = aValue < bValue ? -1 : 1;
+    const comparison = group1.totalHours - group2.totalHours;
     return sortConfig.direction === 'asc' ? comparison : -comparison;
   });
 
@@ -116,7 +134,7 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
     }));
   };
 
-  const handleDeleteClick = (entry: TimeEntryData) => {
+  const handleDeleteClick = async (entry: TimeEntryData) => {
     setEntryToDelete({
       id: entry.id,
     });
@@ -142,40 +160,21 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
     }
   };
 
-  const toggleRow = (entryId: string) => {
+  const toggleRow = (userId: string) => {
     setExpandedRows((current) =>
-      current.includes(entryId) ? current.filter((id) => id !== entryId) : [...current, entryId]
-    );
-  };
-
-  const SortableHeader = ({ children, sortKey }: { children: React.ReactNode; sortKey: keyof TimeEntryData }) => {
-    const isActive = sortConfig.key === sortKey;
-    return (
-      <TableHead 
-        className="cursor-pointer hover:bg-muted/50 transition-colors"
-        onClick={() => handleSort(sortKey)}
-      >
-        <div className="flex items-center gap-2">
-          {children}
-          {isActive && (
-            sortConfig.direction === 'asc' 
-              ? <ArrowUpIcon className="h-4 w-4" />
-              : <ArrowDownIcon className="h-4 w-4" />
-          )}
-        </div>
-      </TableHead>
+      current.includes(userId) ? current.filter((id) => id !== userId) : [...current, userId]
     );
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Registro Ore</CardTitle>
+        <CardTitle>Registro Ore per Utente</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div className="text-sm text-muted-foreground">
-            Mostra {startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, sortedEntries.length)} di {sortedEntries.length} elementi
+            Mostra {startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, sortedEntries.length)} di {sortedEntries.length} utenti
           </div>
           
           <div className="border rounded-lg">
@@ -183,91 +182,85 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-8"></TableHead>
-                  <SortableHeader sortKey="startDate">Esecuzione</SortableHeader>
-                  <TableHead>Esecutore</TableHead>
-                  <SortableHeader sortKey="project">Progetto</SortableHeader>
-                  <SortableHeader sortKey="hours">Ore</SortableHeader>
-                  <SortableHeader sortKey="billableHours">Ore Fatturabili</SortableHeader>
-                  <TableHead>Azioni</TableHead>
+                  <TableHead>Utente</TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => handleSort('hours' as keyof TimeEntryData)}
+                  >
+                    Ore Totali
+                    {sortConfig.key === 'hours' && (
+                      sortConfig.direction === 'asc' 
+                        ? <ArrowUpIcon className="inline h-4 w-4 ml-1" />
+                        : <ArrowDownIcon className="inline h-4 w-4 ml-1" />
+                    )}
+                  </TableHead>
+                  <TableHead>Ore Fatturabili</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedEntries.map((entry, index) => (
+                {paginatedEntries.map(([userId, userGroup]) => (
                   <>
                     <TableRow
-                      key={entry.id || `${entry.date}-${entry.project}-${index}`}
-                      className={`cursor-pointer hover:bg-muted/50 ${index % 2 === 0 ? 'bg-muted/20' : ''}`}
-                      onClick={() => toggleRow(entry.id)}>
+                      key={userId}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => toggleRow(userId)}>
                       <TableCell>
-                        {expandedRows.includes(entry.id) ? (
+                        {expandedRows.includes(userId) ? (
                           <ChevronDown className="h-4 w-4" />
                         ) : (
                           <ChevronRight className="h-4 w-4" />
                         )}
                       </TableCell>
-                      <TableCell>
-                        {formatDistanceToNow(new Date(entry.startDate), {
-                          addSuffix: true,
-                          locale: it,
-                        })}
-                      </TableCell>
-                      <UserCell userId={entry.assignedUserId} />
-                      <TableCell>{entry.project}</TableCell>
-                      <TableCell>{entry.hours}</TableCell>
-                      <TableCell>{entry.billableHours}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteClick(entry);
-                          }}>
-                          <Trash2 className="h-4 w-4 text-gray-400" />
-                        </Button>
-                      </TableCell>
+                      <TableCell>{userGroup.email}</TableCell>
+                      <TableCell>{userGroup.totalHours}</TableCell>
+                      <TableCell>{userGroup.totalBillableHours}</TableCell>
                     </TableRow>
-                    {expandedRows.includes(entry.id) && (
-                      <TableRow className="bg-muted/30">
-                        <TableCell colSpan={7} className="px-6 py-4">
-                          <div className="space-y-4 bg-white/5 rounded-lg p-4 backdrop-blur-sm">
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <h4 className="text-sm font-medium text-muted-foreground">Dettagli Temporali</h4>
-                                <div className="space-y-1">
-                                  <p className="text-sm">
-                                    <span className="font-medium text-muted-foreground">Data di creazione:</span>{" "}
-                                    {new Date(entry.date).toLocaleString("it-IT")}
-                                  </p>
-                                  <p className="text-sm">
-                                    <span className="font-medium text-muted-foreground">Inizio:</span>{" "}
-                                    {new Date(entry.startDate).toLocaleString("it-IT")}
-                                  </p>
-                                  <p className="text-sm">
-                                    <span className="font-medium text-muted-foreground">Fine:</span>{" "}
-                                    {new Date(entry.endDate).toLocaleString("it-IT")}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="space-y-2">
-                                <h4 className="text-sm font-medium text-muted-foreground">Informazioni Aggiuntive</h4>
-                                <div className="space-y-1">
-                                  {entry.notes && (
-                                    <p className="text-sm">
-                                      <span className="font-medium text-muted-foreground">Note:</span> {entry.notes}
-                                    </p>
-                                  )}
-                                  <p className="text-sm">
-                                    <span className="font-medium text-muted-foreground">ID Entry:</span> {entry.id}
-                                  </p>
-                                  <p className="text-sm">
-                                    <span className="font-medium text-muted-foreground">ID Utente:</span> {entry.userId}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                    {expandedRows.includes(userId) && (
+                      <TableRow>
+                        <TableCell colSpan={4} className="p-0">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="pl-12">Data</TableHead>
+                                <TableHead>Ore</TableHead>
+                                <TableHead>Ore Fatturabili</TableHead>
+                                <TableHead>Note</TableHead>
+                                <TableHead>Azioni</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {userGroup.entries
+                                .filter(entry => {
+                                  const entryDate = new Date(entry.startDate);
+                                  return entryDate >= start && entryDate <= end;
+                                })
+                                .map((entry) => (
+                                  <TableRow key={entry.id}>
+                                    <TableCell className="pl-12">
+                                      {formatDistanceToNow(new Date(entry.startDate), {
+                                        addSuffix: true,
+                                        locale: it,
+                                      })}
+                                    </TableCell>
+                                    <TableCell>{entry.hours}</TableCell>
+                                    <TableCell>{entry.billableHours}</TableCell>
+                                    <TableCell>{entry.notes}</TableCell>
+                                    <TableCell>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteClick(entry);
+                                        }}>
+                                        <Trash2 className="h-4 w-4 text-gray-400" />
+                                      </Button>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                            </TableBody>
+                          </Table>
                         </TableCell>
                       </TableRow>
                     )}
@@ -330,3 +323,4 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
     </Card>
   );
 }
+
