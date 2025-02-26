@@ -6,7 +6,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogPortal,
 } from "@/components/ui/dialog";
 import { TimeEntry, TimeEntryData } from "@/components/TimeEntry";
 import { Project } from "@/types/Project";
@@ -24,22 +23,17 @@ export function TimeEntryDialog({ onSubmit, projects, isOpen, onOpenChange }: Ti
     onOpenChange(false);
   };
 
-  if (!isOpen) return null;
-
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange} modal={true}>
-      <DialogPortal>
-        <DialogContent className="bg-[#1a1b26] border-[#2a2b3d]">
-          <DialogHeader>
-            <DialogTitle className="text-white">Registra Ore</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Inserisci i dettagli del tuo time entry
-            </DialogDescription>
-          </DialogHeader>
-          <TimeEntry onSubmit={handleSubmit} projects={projects} />
-        </DialogContent>
-      </DialogPortal>
+      <DialogContent className="bg-[#1a1b26] border-[#2a2b3d]">
+        <DialogHeader>
+          <DialogTitle className="text-white">Registra Ore</DialogTitle>
+          <DialogDescription className="text-gray-400">
+            Inserisci i dettagli del tuo time entry
+          </DialogDescription>
+        </DialogHeader>
+        <TimeEntry onSubmit={handleSubmit} projects={projects} />
+      </DialogContent>
     </Dialog>
   );
 }
-
