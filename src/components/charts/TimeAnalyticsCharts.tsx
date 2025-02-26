@@ -25,7 +25,7 @@ type ChartType = "line" | "groupedBar" | "stackedBar" | "dbLogs";
 type DateRange = "day" | "week" | "month";
 
 interface PostgresLog {
-  timestamp: number;
+  start_date: string;
   error_severity: string;
   event_message: string;
 }
@@ -64,9 +64,7 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
       if (!isAdmin) return [];
 
       const response = await fetch(
-        `${process.env.VITE_SUPABASE_URL}/rest/v1/postgres_logs?select=*&start_date=gte.${
-          start.getTime() * 1000
-        }&start_date=lte.${end.getTime() * 1000}&order=start_date.asc`,
+        `${process.env.VITE_SUPABASE_URL}/rest/v1/postgres_logs?select=*&start_date=gte.${start.toISOString()}&start_date=lte.${end.toISOString()}&order=start_date.asc`,
         {
           headers: {
             apikey: process.env.VITE_SUPABASE_ANON_KEY || "",
@@ -124,7 +122,7 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
   const getChartData = () => {
     if (chartType === "dbLogs" && dbLogs) {
       const groupedLogs = dbLogs.reduce((acc, log) => {
-        const date = format(new Date(log.timestamp / 1000), "dd/MM/yyyy");
+        const date = format(new Date(log.start_date), "dd/MM/yyyy");
         acc[date] = (acc[date] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
