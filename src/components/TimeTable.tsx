@@ -1,4 +1,3 @@
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -97,7 +96,6 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
     return sortConfig.direction === 'asc' ? comparison : -comparison;
   });
 
-  // Pagination logic
   const totalPages = Math.ceil(sortedEntries.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedEntries = sortedEntries.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -169,152 +167,160 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
         <CardTitle>Registro Ore</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-8"></TableHead>
-                <SortableHeader sortKey="startDate">Esecuzione</SortableHeader>
-                <TableHead>Esecutore</TableHead>
-                <SortableHeader sortKey="project">Progetto</SortableHeader>
-                <SortableHeader sortKey="hours">Ore</SortableHeader>
-                <SortableHeader sortKey="billableHours">Ore Fatturabili</SortableHeader>
-                <TableHead>Azioni</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedEntries.map((entry, index) => (
-                <>
-                  <TableRow
-                    key={entry.id || `${entry.date}-${entry.project}-${index}`}
-                    className={`cursor-pointer hover:bg-muted/50 ${index % 2 === 0 ? 'bg-muted/20' : ''}`}
-                    onClick={() => toggleRow(entry.id)}>
-                    <TableCell>
-                      {expandedRows.includes(entry.id) ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {formatDistanceToNow(new Date(entry.startDate), {
-                        addSuffix: true,
-                        locale: it,
-                      })}
-                    </TableCell>
-                    <UserCell userId={entry.assignedUserId} />
-                    <TableCell>{entry.project}</TableCell>
-                    <TableCell>{entry.hours}</TableCell>
-                    <TableCell>{entry.billableHours}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteClick(entry);
-                        }}>
-                        <Trash2 className="h-4 w-4 text-gray-400" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                  {expandedRows.includes(entry.id) && (
-                    <TableRow className="bg-muted/30">
-                      <TableCell colSpan={7} className="px-6 py-4">
-                        <div className="space-y-4 bg-white/5 rounded-lg p-4 backdrop-blur-sm">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <h4 className="text-sm font-medium text-muted-foreground">Dettagli Temporali</h4>
-                              <div className="space-y-1">
-                                <p className="text-sm">
-                                  <span className="font-medium text-muted-foreground">Data di creazione:</span>{" "}
-                                  {new Date(entry.date).toLocaleString("it-IT")}
-                                </p>
-                                <p className="text-sm">
-                                  <span className="font-medium text-muted-foreground">Inizio:</span>{" "}
-                                  {new Date(entry.startDate).toLocaleString("it-IT")}
-                                </p>
-                                <p className="text-sm">
-                                  <span className="font-medium text-muted-foreground">Fine:</span>{" "}
-                                  {new Date(entry.endDate).toLocaleString("it-IT")}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="space-y-2">
-                              <h4 className="text-sm font-medium text-muted-foreground">Informazioni Aggiuntive</h4>
-                              <div className="space-y-1">
-                                {entry.notes && (
+        <div className="space-y-4">
+          <div className="text-sm text-muted-foreground">
+            Mostra {startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, sortedEntries.length)} di {sortedEntries.length} elementi
+          </div>
+          
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-8"></TableHead>
+                  <SortableHeader sortKey="startDate">Esecuzione</SortableHeader>
+                  <TableHead>Esecutore</TableHead>
+                  <SortableHeader sortKey="project">Progetto</SortableHeader>
+                  <SortableHeader sortKey="hours">Ore</SortableHeader>
+                  <SortableHeader sortKey="billableHours">Ore Fatturabili</SortableHeader>
+                  <TableHead>Azioni</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedEntries.map((entry, index) => (
+                  <>
+                    <TableRow
+                      key={entry.id || `${entry.date}-${entry.project}-${index}`}
+                      className={`cursor-pointer hover:bg-muted/50 ${index % 2 === 0 ? 'bg-muted/20' : ''}`}
+                      onClick={() => toggleRow(entry.id)}>
+                      <TableCell>
+                        {expandedRows.includes(entry.id) ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {formatDistanceToNow(new Date(entry.startDate), {
+                          addSuffix: true,
+                          locale: it,
+                        })}
+                      </TableCell>
+                      <UserCell userId={entry.assignedUserId} />
+                      <TableCell>{entry.project}</TableCell>
+                      <TableCell>{entry.hours}</TableCell>
+                      <TableCell>{entry.billableHours}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(entry);
+                          }}>
+                          <Trash2 className="h-4 w-4 text-gray-400" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                    {expandedRows.includes(entry.id) && (
+                      <TableRow className="bg-muted/30">
+                        <TableCell colSpan={7} className="px-6 py-4">
+                          <div className="space-y-4 bg-white/5 rounded-lg p-4 backdrop-blur-sm">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <h4 className="text-sm font-medium text-muted-foreground">Dettagli Temporali</h4>
+                                <div className="space-y-1">
                                   <p className="text-sm">
-                                    <span className="font-medium text-muted-foreground">Note:</span> {entry.notes}
+                                    <span className="font-medium text-muted-foreground">Data di creazione:</span>{" "}
+                                    {new Date(entry.date).toLocaleString("it-IT")}
                                   </p>
-                                )}
-                                <p className="text-sm">
-                                  <span className="font-medium text-muted-foreground">ID Entry:</span> {entry.id}
-                                </p>
-                                <p className="text-sm">
-                                  <span className="font-medium text-muted-foreground">ID Utente:</span> {entry.userId}
-                                </p>
+                                  <p className="text-sm">
+                                    <span className="font-medium text-muted-foreground">Inizio:</span>{" "}
+                                    {new Date(entry.startDate).toLocaleString("it-IT")}
+                                  </p>
+                                  <p className="text-sm">
+                                    <span className="font-medium text-muted-foreground">Fine:</span>{" "}
+                                    {new Date(entry.endDate).toLocaleString("it-IT")}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <h4 className="text-sm font-medium text-muted-foreground">Informazioni Aggiuntive</h4>
+                                <div className="space-y-1">
+                                  {entry.notes && (
+                                    <p className="text-sm">
+                                      <span className="font-medium text-muted-foreground">Note:</span> {entry.notes}
+                                    </p>
+                                  )}
+                                  <p className="text-sm">
+                                    <span className="font-medium text-muted-foreground">ID Entry:</span> {entry.id}
+                                  </p>
+                                  <p className="text-sm">
+                                    <span className="font-medium text-muted-foreground">ID Utente:</span> {entry.userId}
+                                  </p>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-
-        {totalPages > 1 && (
-          <div className="mt-4 flex justify-center">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious 
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
-                </PaginationItem>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <PaginationItem key={page}>
-                    <PaginationLink
-                      onClick={() => setCurrentPage(page)}
-                      isActive={currentPage === page}
-                    >
-                      {page}
-                    </PaginationLink>
-                  </PaginationItem>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
                 ))}
-
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+              </TableBody>
+            </Table>
           </div>
-        )}
 
-        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Sei sicuro di voler eliminare questo time entry?</AlertDialogTitle>
-              <AlertDialogDescription>Questa azione non può essere annullata</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Annulla</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteConfirm}>Elimina</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          {totalPages > 1 && (
+            <div className="mt-4 flex flex-col items-center gap-2">
+              <div className="text-sm text-muted-foreground">
+                Pagina {currentPage} di {totalPages}
+              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(page)}
+                        isActive={currentPage === page}
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+
+          <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Sei sicuro di voler eliminare questo time entry?</AlertDialogTitle>
+                <AlertDialogDescription>Questa azione non può essere annullata</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annulla</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteConfirm}>Elimina</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </CardContent>
     </Card>
   );
 }
-
