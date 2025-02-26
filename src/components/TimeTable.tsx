@@ -31,14 +31,12 @@ type TimeEntryToDelete = {
   id: string;
 } | null;
 
-// Funzione per recuperare i dati dell'utente
 const fetchUserData = async (userId: string) => {
   const { data, error } = await supabase.from("profiles").select("first_name, last_name").eq("id", userId).single();
   if (error) throw error;
   return data;
 };
 
-// Componente per mostrare il nome e il cognome dell'utente
 function UserCell({ userId }: { userId: string }) {
   const { data, error, isLoading } = useQuery({
     queryKey: ["user", userId],
@@ -104,10 +102,9 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
         <TableHeader>
           <TableRow>
             <TableHead className="w-8"></TableHead>
-            <TableHead>Creazione</TableHead>
             <TableHead>Esecuzione</TableHead>
-            <TableHead>Progetto</TableHead>
             <TableHead>Esecutore</TableHead>
+            <TableHead>Progetto</TableHead>
             <TableHead>Ore</TableHead>
             <TableHead>Ore Fatturabili</TableHead>
             <TableHead>Azioni</TableHead>
@@ -128,19 +125,13 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
                   )}
                 </TableCell>
                 <TableCell>
-                  {formatDistanceToNow(new Date(entry.date), {
-                    addSuffix: true,
-                    locale: it,
-                  })}
-                </TableCell>
-                <TableCell>
                   {formatDistanceToNow(new Date(entry.startDate), {
                     addSuffix: true,
                     locale: it,
                   })}
                 </TableCell>
-                <TableCell>{entry.project}</TableCell>
                 <UserCell userId={entry.assignedUserId} />
+                <TableCell>{entry.project}</TableCell>
                 <TableCell>{entry.hours}</TableCell>
                 <TableCell>{entry.billableHours}</TableCell>
                 <TableCell>
@@ -158,26 +149,42 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
               </TableRow>
               {expandedRows.includes(entry.id) && (
                 <TableRow className="bg-muted/30">
-                  <TableCell colSpan={8} className="px-4 py-4">
-                    <div className="space-y-2">
-                      <div>
-                        <span className="font-medium">Data di inizio:</span>{" "}
-                        {new Date(entry.startDate).toLocaleString("it-IT")}
-                      </div>
-                      <div>
-                        <span className="font-medium">Data di fine:</span>{" "}
-                        {new Date(entry.endDate).toLocaleString("it-IT")}
-                      </div>
-                      {entry.notes && (
-                        <div>
-                          <span className="font-medium">Note:</span> {entry.notes}
+                  <TableCell colSpan={7} className="px-6 py-4">
+                    <div className="space-y-4 bg-white/5 rounded-lg p-4 backdrop-blur-sm">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-medium text-muted-foreground">Dettagli Temporali</h4>
+                          <div className="space-y-1">
+                            <p className="text-sm">
+                              <span className="font-medium text-muted-foreground">Data di creazione:</span>{" "}
+                              {new Date(entry.date).toLocaleString("it-IT")}
+                            </p>
+                            <p className="text-sm">
+                              <span className="font-medium text-muted-foreground">Inizio:</span>{" "}
+                              {new Date(entry.startDate).toLocaleString("it-IT")}
+                            </p>
+                            <p className="text-sm">
+                              <span className="font-medium text-muted-foreground">Fine:</span>{" "}
+                              {new Date(entry.endDate).toLocaleString("it-IT")}
+                            </p>
+                          </div>
                         </div>
-                      )}
-                      <div>
-                        <span className="font-medium">ID:</span> {entry.id}
-                      </div>
-                      <div>
-                        <span className="font-medium">User ID:</span> {entry.userId}
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-medium text-muted-foreground">Informazioni Aggiuntive</h4>
+                          <div className="space-y-1">
+                            {entry.notes && (
+                              <p className="text-sm">
+                                <span className="font-medium text-muted-foreground">Note:</span> {entry.notes}
+                              </p>
+                            )}
+                            <p className="text-sm">
+                              <span className="font-medium text-muted-foreground">ID Entry:</span> {entry.id}
+                            </p>
+                            <p className="text-sm">
+                              <span className="font-medium text-muted-foreground">ID Utente:</span> {entry.userId}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </TableCell>
