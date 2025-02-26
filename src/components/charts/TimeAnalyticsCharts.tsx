@@ -22,6 +22,8 @@ import { ChartTypeSelector } from "./ChartTypeSelector";
 import { generateChartData } from "./ChartDataGenerator";
 import { getDateRange, generateTimeLabels } from "@/utils/dateRangeUtils";
 import { getChartOptions } from "@/utils/chartDataUtils";
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { InfoIcon } from "lucide-react";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
@@ -60,11 +62,38 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
   const chartData = generateChartData({ timeLabels, chartType, filteredEntries, getUserFullName });
   const chartOptions = getChartOptions(chartType);
 
+  const getChartDescription = () => {
+    switch (chartType) {
+      case "line":
+        return "Questo grafico mostra l'andamento delle ore registrate nel tempo per ogni progetto. Permette di visualizzare i trend di utilizzo e identificare i periodi di maggiore attività.";
+      case "groupedBar":
+        return "Il grafico a barre raggruppate confronta le ore spese sui diversi progetti nel periodo selezionato, facilitando il confronto diretto tra progetti.";
+      case "stackedBar":
+        return "Questo grafico mostra la proporzione tra ore fatturabili e non fatturabili nel tempo. Le barre impilate permettono di valutare facilmente l'efficienza di fatturazione.";
+      case "userWorkload":
+        return "Visualizza la distribuzione del carico di lavoro tra i membri del team nel periodo selezionato, permettendo di identificare eventuali squilibri nell'allocazione delle risorse.";
+      default:
+        return "";
+    }
+  };
+
   return (
     <Card className="w-full">
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Andamento Temporale</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-semibold">Andamento Temporale</h2>
+            <TooltipProvider>
+              <UITooltip>
+                <TooltipTrigger asChild>
+                  <InfoIcon className="h-5 w-5 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-sm">
+                  <p>{getChartDescription()}</p>
+                </TooltipContent>
+              </UITooltip>
+            </TooltipProvider>
+          </div>
           <div className="flex gap-4">
             <DateRangeSelector
               dateRange={dateRange}
