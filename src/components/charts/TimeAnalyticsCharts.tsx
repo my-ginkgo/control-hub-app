@@ -60,17 +60,7 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
 
   const timeLabels = generateTimeLabels(start, end, dateRange);
   const chartData = generateChartData({ timeLabels, chartType, filteredEntries, getUserFullName });
-  const chartOptions = getChartOptions(chartType === "billableEfficiency" ? {
-    scales: {
-      y: {
-        beginAtZero: true,
-        max: 100,
-        ticks: {
-          callback: (value) => `${value}%`
-        }
-      }
-    }
-  } : undefined);
+  const chartOptions = getChartOptions(chartType);
 
   const getChartDescription = () => {
     switch (chartType) {
@@ -82,8 +72,6 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
         return "Questo grafico mostra la proporzione tra ore fatturabili e non fatturabili nel tempo. Le barre impilate permettono di valutare facilmente l'efficienza di fatturazione.";
       case "userWorkload":
         return "Visualizza la distribuzione del carico di lavoro tra i membri del team nel periodo selezionato, permettendo di identificare eventuali squilibri nell'allocazione delle risorse.";
-      case "billableEfficiency":
-        return "Questo grafico mostra la percentuale di ore fatturabili rispetto alle ore totali per ciascun progetto, permettendo di valutare l'efficienza di fatturazione per progetto.";
       default:
         return "";
     }
@@ -117,12 +105,12 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
           </div>
         </div>
         <div className="h-[400px]">
-          {chartType === "billableEfficiency" ? (
-            <Bar options={chartOptions} data={chartData as any} />
-          ) : chartType === "userWorkload" || chartType === "line" ? (
-            <Line options={chartOptions} data={chartData as any} />
+          {chartType === "userWorkload" ? (
+            <Line data={chartData} options={chartOptions} />
+          ) : chartType === "line" ? (
+            <Line data={chartData} options={chartOptions} />
           ) : (
-            <Bar options={chartOptions} data={chartData as any} />
+            <Bar data={chartData} options={chartOptions} />
           )}
         </div>
       </div>

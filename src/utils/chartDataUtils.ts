@@ -1,3 +1,4 @@
+
 import { TimeEntryData } from "@/components/TimeEntry";
 import { ChartType } from "@/types/chart";
 import { formatDateLabel } from "./dateRangeUtils";
@@ -70,25 +71,8 @@ export const generateColors = (items: string[]) => {
   }, {} as Record<string, string>);
 };
 
-interface ChartOptions {
-  scales?: {
-    y?: {
-      beginAtZero?: boolean;
-      max?: number;
-      ticks?: {
-        callback?: (value: any) => string;
-      };
-    };
-    x?: any;
-  };
-  responsive?: boolean;
-  maintainAspectRatio?: boolean;
-  plugins?: any;
-  interaction?: any;
-}
-
-export const getChartOptions = (customOptions?: ChartOptions) => {
-  const defaultOptions = {
+export const getChartOptions = (chartType: ChartType) => {
+  return {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -110,12 +94,14 @@ export const getChartOptions = (customOptions?: ChartOptions) => {
         grid: {
           display: false,
         },
+        stacked: chartType === "stackedBar",
       },
       y: {
         beginAtZero: true,
         grid: {
           color: "rgba(0, 0, 0, 0.1)",
         },
+        stacked: chartType === "stackedBar",
       },
     },
     interaction: {
@@ -124,13 +110,5 @@ export const getChartOptions = (customOptions?: ChartOptions) => {
       intersect: false,
     },
   };
-
-  return {
-    ...defaultOptions,
-    ...customOptions,
-    scales: {
-      ...defaultOptions.scales,
-      ...(customOptions?.scales || {}),
-    },
-  };
 };
+
