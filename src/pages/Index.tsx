@@ -36,11 +36,32 @@ const Index = () => {
     try {
       const { data, error } = await supabase
         .from("time_entries")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select(`
+          *,
+          projects:project_id (
+            name,
+            color
+          )
+        `)
+        .order("start_date", { ascending: false });
 
       if (error) throw error;
-      setEntries(data || []);
+
+      // Transform data to match TimeEntryData format
+      const transformedEntries = data.map((entry) => ({
+        id: entry.id,
+        hours: Number(entry.hours),
+        billableHours: Number(entry.billable_hours),
+        project: entry.projects?.name || "Unknown Project",
+        projectColor: entry.projects?.color,
+        notes: entry.notes,
+        startDate: entry.start_date,
+        endDate: entry.end_date,
+        assignedUserId: entry.assigned_user_id,
+        userId: entry.user_id,
+      }));
+
+      setEntries(transformedEntries);
     } catch (error: any) {
       toast.error("Error fetching time entries: " + error.message);
     }
@@ -118,7 +139,7 @@ const Index = () => {
                 <img src="logo.png" alt=" Logo" className="w-12 h-12" />
               </div>
               <div className="flex items-center gap-2">
-                <TimeEntryDialog onSubmit={() => {}} projects={projects}>
+                <TimeEntryDialog onSubmit={fetchTimeEntries} projects={projects}>
                   <Button variant="outline" size="icon" className="border-[#383a5c] text-white hover:bg-[#2a2b3d]">
                     <Plus className="h-5 w-5" />
                   </Button>
@@ -158,3 +179,4 @@ const Index = () => {
 };
 
 export default Index;
+
