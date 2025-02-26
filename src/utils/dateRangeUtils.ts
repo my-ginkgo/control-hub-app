@@ -1,5 +1,5 @@
 
-import { endOfDay, endOfMonth, endOfWeek, endOfYear, startOfDay, startOfMonth, startOfWeek, startOfYear, format } from "date-fns";
+import { endOfDay, endOfMonth, endOfWeek, endOfYear, startOfDay, startOfMonth, startOfWeek, startOfYear, format, eachDayOfInterval, eachMonthOfInterval } from "date-fns";
 import { it } from "date-fns/locale";
 import { DateRange } from "@/types/chart";
 
@@ -22,16 +22,20 @@ export const getDateRange = (dateRange: DateRange, customDateRange: { start: Dat
         end: endOfMonth(now),
       };
     case "year":
-      const yearStart = startOfYear(now);
-      const yearEnd = endOfYear(now);
       return {
-        start: yearStart,
-        end: yearEnd,
+        start: startOfYear(now),
+        end: endOfYear(now),
       };
     case "custom":
+      if (!customDateRange.start || !customDateRange.end) {
+        return {
+          start: startOfWeek(now, { locale: it }),
+          end: endOfWeek(now, { locale: it }),
+        };
+      }
       return {
-        start: customDateRange.start ? startOfDay(customDateRange.start) : startOfWeek(now, { locale: it }),
-        end: customDateRange.end ? endOfDay(customDateRange.end) : endOfWeek(now, { locale: it }),
+        start: startOfDay(customDateRange.start),
+        end: endOfDay(customDateRange.end),
       };
   }
 };
@@ -53,24 +57,45 @@ export const formatDateLabel = (date: Date, dateRange: DateRange) => {
 
 export const generateTimeLabels = (start: Date, end: Date, dateRange: DateRange) => {
   const labels: string[] = [];
-  let current = new Date(start);
-
-  while (current <= end) {
-    switch (dateRange) {
-      case "day":
+  
+  switch (dateRange) {
+    case "day": {
+      let current = new Date(start);
+      while (current <= end) {
         labels.push(format(current, "HH:00"));
         current = new Date(current.setHours(current.getHours() + 1));
-        break;
-      case "week":
-        labels.push(format(current, "EEEE", { locale: it }));
-        current = new Date(current.setDate(current.getDate() + 1));
-        break;
-      case "month":
-        labels.push(format(current, "dd MMM", { locale: it }));
-        current = new Date(current.setDate(current.getDate() + 1));
-        break;
+      }
+      break;
+    }
+    case "week": {
+      const days = eachDayOfInterval({ start, end });
+      days.forEach(day => {
+        labels.push(format(day, "EEEE", { locale: it }));
+      });
+      break;
+    }
+    case "month": {
+      const days = eachDayOfInterval({ start, end });
+      days.forEach(day => {
+        labels.push(format(day, "dd MMM", { locale: it }));
+      });
+      break;
+    }
+    case "year": {
+      const months = eachMonthOfInterval({ start, end });
+      months.forEach(month => {
+        labels.push(format(month, "MMM", { locale: it }));
+      });
+      break;
+    }
+    case "custom": {
+      const days = eachDayOfInterval({ start, end });
+      days.forEach(day => {
+        labels.push(format(day, "dd MMM", { locale: it }));
+      });
+      break;
     }
   }
+  
   return labels;
 };
-
