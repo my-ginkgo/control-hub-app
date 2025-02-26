@@ -12,7 +12,6 @@ import { Client } from "@/types/Client";
 import { Project } from "@/types/Project";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ProjectContainer } from "@/components/project/ProjectContainer";
 import { TimeEntryContainer } from "@/components/time-entry/TimeEntryContainer";
 
 const Index = () => {
@@ -142,10 +141,6 @@ const Index = () => {
           </MainLayout>
         </div>
       </div>
-      <ProjectContainer
-        session={session}
-        onProjectsUpdate={setProjects}
-      />
     </SidebarProvider>
   );
 };
