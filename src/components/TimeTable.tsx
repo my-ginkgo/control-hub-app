@@ -1,3 +1,4 @@
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,7 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
 import { ArrowDownIcon, ArrowUpIcon, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { TimeEntryData } from "./TimeEntry";
 import { Button } from "./ui/button";
@@ -76,6 +77,11 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'asc' });
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset pagination when date range changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [start, end]);
 
   const filteredEntries = entries.filter((entry) => {
     const entryDate = new Date(entry.startDate);
