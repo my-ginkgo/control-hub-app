@@ -84,31 +84,33 @@ export function ProjectSidebar({
   };
 
   return (
-    <Sidebar>
-      <SidebarContent>
-        <ClientList 
-          clients={clients}
-          expandedClients={expandedClients}
-          toggleClientExpand={toggleClientExpand}
-          onClientAdded={fetchClients}
-          onSelectClient={handleSelectClient}
-          selectedClient={selectedClient}
-        />
-        <ProjectList 
-          projects={projects}
-          clients={clients}
-          expandedProjects={expandedProjects}
-          selectedProject={selectedProject}
-          toggleProjectExpand={toggleProjectExpand}
-          onSelectProject={onSelectProject}
-          onProjectAdded={() => {
-            if (onAddProject) {
-              fetchClients();
-            }
-          }}
-          onProjectDeleted={onProjectDeleted}
-          onProjectUpdated={onProjectUpdated}
-        />
+    <Sidebar className="border-r border-[#2a2b3d] bg-gradient-to-b from-[#1a1b26] to-[#1f2937] backdrop-blur-lg">
+      <SidebarContent className="px-2">
+        <div className="space-y-6">
+          <ClientList 
+            clients={clients}
+            expandedClients={expandedClients}
+            toggleClientExpand={toggleClientExpand}
+            onClientAdded={fetchClients}
+            onSelectClient={handleSelectClient}
+            selectedClient={selectedClient}
+          />
+          <ProjectList 
+            projects={projects}
+            clients={clients}
+            expandedProjects={expandedProjects}
+            selectedProject={selectedProject}
+            toggleProjectExpand={toggleProjectExpand}
+            onSelectProject={onSelectProject}
+            onProjectAdded={() => {
+              if (onAddProject) {
+                fetchClients();
+              }
+            }}
+            onProjectDeleted={onProjectDeleted}
+            onProjectUpdated={onProjectUpdated}
+          />
+        </div>
       </SidebarContent>
     </Sidebar>
   );
