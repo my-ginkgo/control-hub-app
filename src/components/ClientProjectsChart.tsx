@@ -8,6 +8,8 @@ import { toast } from 'sonner';
 
 interface ClientProjectsChartProps {
   clientId: string;
+  start: Date;
+  end: Date;
 }
 
 interface ProjectStats {
@@ -16,13 +18,13 @@ interface ProjectStats {
   billableHours: number;
 }
 
-export function ClientProjectsChart({ clientId }: ClientProjectsChartProps) {
+export function ClientProjectsChart({ clientId, start, end }: ClientProjectsChartProps) {
   const [stats, setStats] = useState<ProjectStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchProjectStats();
-  }, [clientId]);
+  }, [clientId, start, end]);
 
   const fetchProjectStats = async () => {
     try {
@@ -33,18 +35,24 @@ export function ClientProjectsChart({ clientId }: ClientProjectsChartProps) {
           name,
           time_entries!time_entries_project_id_fkey (
             hours,
-            billable_hours
+            billable_hours,
+            start_date
           )
         `)
         .eq('client_id', clientId);
 
       if (projectsError) throw projectsError;
 
-      // Calculate totals for each project
       const projectStats: ProjectStats[] = projects?.map((project: any) => ({
         projectName: project.name,
-        totalHours: project.time_entries?.reduce((sum: number, entry: any) => sum + (entry.hours || 0), 0) || 0,
-        billableHours: project.time_entries?.reduce((sum: number, entry: any) => sum + (entry.billable_hours || 0), 0) || 0,
+        totalHours: project.time_entries?.reduce((sum: number, entry: any) => {
+          const entryDate = new Date(entry.start_date);
+          return entryDate >= start && entryDate <= end ? sum + (entry.hours || 0) : sum;
+        }, 0) || 0,
+        billableHours: project.time_entries?.reduce((sum: number, entry: any) => {
+          const entryDate = new Date(entry.start_date);
+          return entryDate >= start && entryDate <= end ? sum + (entry.billable_hours || 0) : sum;
+        }, 0) || 0,
       })) || [];
 
       setStats(projectStats);
