@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useRole } from "@/hooks/useRole";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Lock, Unlock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -42,7 +42,7 @@ const AdminUsers = () => {
 
       if (profilesError) throw profilesError;
 
-      const { data: userRoles, error: rolesError } = await supabase.from("user_roles").select("user_id, role, email");
+      const { data: userRoles, error: rolesError } = await supabase.from("user_roles").select("user_id, role, email, is_disabled");
 
       if (rolesError) throw rolesError;
 
@@ -69,6 +69,26 @@ const AdminUsers = () => {
     },
     onError: (error) => {
       toast.error("Errore durante l'aggiornamento del ruolo: " + error.message);
+    },
+  });
+
+  const toggleUserDisabled = useMutation({
+    mutationFn: async ({ userId, isDisabled }: { userId: string; isDisabled: boolean }) => {
+      const { error } = await supabase
+        .from("user_roles")
+        .update({ is_disabled: isDisabled })
+        .eq("user_id", userId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      toast.success(
+        variables.isDisabled ? "Utente disabilitato con successo" : "Utente abilitato con successo"
+      );
+      queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
+    },
+    onError: (error) => {
+      toast.error("Errore durante l'aggiornamento dello stato utente: " + error.message);
     },
   });
 
@@ -104,6 +124,7 @@ const AdminUsers = () => {
                 <TableHead className="text-gray-400">Nome</TableHead>
                 <TableHead className="text-gray-400">Email</TableHead>
                 <TableHead className="text-gray-400">Ruolo</TableHead>
+                <TableHead className="text-gray-400">Stato</TableHead>
                 <TableHead className="text-gray-400">Azioni</TableHead>
               </TableRow>
             </TableHeader>
@@ -132,13 +153,38 @@ const AdminUsers = () => {
                     </Select>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate(`/user/${profile.id}`)}
-                      className="text-muted-foreground hover:text-foreground">
-                      Visualizza
-                    </Button>
+                    <span
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
+                        profile.is_disabled
+                          ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                          : "bg-green-500/20 text-green-400 border border-green-500/30"
+                      }`}>
+                      {profile.is_disabled ? "Disabilitato" : "Attivo"}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(`/user/${profile.id}`)}
+                        className="text-muted-foreground hover:text-foreground">
+                        Visualizza
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          toggleUserDisabled.mutate({ userId: profile.id, isDisabled: !profile.is_disabled })
+                        }
+                        className={`${
+                          profile.is_disabled
+                            ? "text-green-400 hover:text-green-300"
+                            : "text-red-400 hover:text-red-300"
+                        }`}>
+                        {profile.is_disabled ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -151,3 +197,4 @@ const AdminUsers = () => {
 };
 
 export default AdminUsers;
+
