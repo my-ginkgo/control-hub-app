@@ -49,18 +49,32 @@ type SortConfig = {
 const ITEMS_PER_PAGE = 10;
 
 const fetchUserData = async (userId: string) => {
-  const { data, error } = await supabase
+  const { data: userData, error: userError } = await supabase
     .from("user_roles")
     .select("email")
     .eq("user_id", userId)
     .maybeSingle();
-  if (error) throw error;
-  return data;
+
+  const { data: profileData, error: profileError } = await supabase
+    .from("profiles")
+    .select("first_name, last_name")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (userError || profileError) throw userError || profileError;
+
+  return {
+    email: userData?.email || userId,
+    fullName: profileData?.first_name && profileData?.last_name
+      ? `${profileData.first_name} ${profileData.last_name}`
+      : userData?.email || userId
+  };
 };
 
 interface GroupedTimeEntries {
   [userId: string]: {
     email: string;
+    fullName: string;
     entries: TimeEntryData[];
     totalHours: number;
     totalBillableHours: number;
@@ -83,7 +97,8 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
         if (!grouped[entry.assignedUserId]) {
           const userData = await fetchUserData(entry.assignedUserId);
           grouped[entry.assignedUserId] = {
-            email: userData?.email || entry.assignedUserId,
+            email: userData.email,
+            fullName: userData.fullName,
             entries: [],
             totalHours: 0,
             totalBillableHours: 0,
@@ -211,7 +226,7 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
                           <ChevronRight className="h-4 w-4" />
                         )}
                       </TableCell>
-                      <TableCell>{userGroup.email}</TableCell>
+                      <TableCell>{userGroup.fullName}</TableCell>
                       <TableCell>{userGroup.totalHours}</TableCell>
                       <TableCell>{userGroup.totalBillableHours}</TableCell>
                     </TableRow>
@@ -323,4 +338,3 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
     </Card>
   );
 }
-
