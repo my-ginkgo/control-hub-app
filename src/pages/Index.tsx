@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/components/AuthProvider";
 import { ClientDashboard } from "@/components/ClientDashboard";
 import { DashboardStats } from "@/components/DashboardStats";
@@ -6,24 +5,30 @@ import { DocsDialog } from "@/components/docs/DocsDialog";
 import { ProjectDashboard } from "@/components/ProjectDashboard";
 import { ProjectSidebar } from "@/components/ProjectSidebar";
 import { useTheme } from "@/components/ThemeProvider";
+import { TimeEntryData } from "@/components/TimeEntry";
 import { TimeEntryDialog } from "@/components/TimeEntryDialog";
+import { TimeTable } from "@/components/TimeTable";
 import { Button } from "@/components/ui/button";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { Client } from "@/types/Client";
 import { Project } from "@/types/Project";
-import { Moon, Plus, Sun, User } from "lucide-react";
+import { Moon, Sun, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 const Index = () => {
+  const [timeEntries, setTimeEntries] = useState<TimeEntryData[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [entries, setEntries] = useState<any[]>([]);
   const { session } = useAuth();
   const { theme, setTheme } = useTheme();
+
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -32,52 +37,72 @@ const Index = () => {
     }
   }, [session?.user?.id]);
 
-  const fetchTimeEntries = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("time_entries")
-        .select(`
-          *,
-          projects:project_id (
-            name,
-            color
-          )
-        `)
-        .order("start_date", { ascending: false });
-
-      if (error) throw error;
-
-      // Transform data to match TimeEntryData format
-      const transformedEntries = data.map((entry: any) => ({
-        id: entry.id,
-        hours: Number(entry.hours),
-        billableHours: Number(entry.billable_hours),
-        project: entry.projects?.name || "Unknown Project",
-        projectColor: entry.projects?.color,
-        notes: entry.notes,
-        startDate: entry.start_date,
-        endDate: entry.end_date,
-        assignedUserId: entry.assigned_user_id,
-        userId: entry.user_id,
-      }));
-
-      setEntries(transformedEntries);
-    } catch (error: any) {
-      toast.error("Error fetching time entries: " + error.message);
-    }
-  };
-
   const fetchProjects = async () => {
     try {
-      const { data, error } = await supabase
-        .from("projects")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("projects").select("*").order("created_at", { ascending: false });
 
       if (error) throw error;
       setProjects(data || []);
     } catch (error: any) {
       toast.error("Error fetching projects: " + error.message);
+    }
+  };
+
+  const fetchTimeEntries = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("time_entries")
+        .select("*, projects!time_entries_project_id_fkey(name)")
+        .eq("user_id", session?.user?.id)
+        .order("date", { ascending: false });
+
+      if (error) throw error;
+
+      const formattedEntries = data.map((entry) => ({
+        id: entry.id,
+        hours: entry.hours,
+        billableHours: entry.billable_hours,
+        project: entry.projects?.name || "",
+        notes: entry.notes,
+        date: entry.date,
+        assignedUserId: entry.assigned_user_id,
+        userId: entry.user_id,
+        startDate: entry.start_date,
+        endDate: entry.end_date,
+      }));
+
+      setTimeEntries(formattedEntries);
+    } catch (error: any) {
+      toast.error("Error fetching time entries: " + error.message);
+    }
+  };
+
+  const handleNewEntry = async (entry: TimeEntryData) => {
+    try {
+      const project = projects.find((p) => p.name === entry.project);
+      if (!project) throw new Error("Project not found");
+
+      const { error } = await supabase.from("time_entries").insert({
+        hours: entry.hours,
+        billable_hours: entry.billableHours,
+        project_id: project.id,
+        notes: entry.notes,
+        date: entry.date,
+        user_id: session?.user?.id,
+        assigned_user_id: entry.assignedUserId,
+        start_date: entry.startDate,
+        end_date: entry.endDate,
+      });
+
+      if (error) throw error;
+
+      fetchTimeEntries();
+      if (selectedProject?.id === project.id) {
+        setSelectedProject(project);
+      }
+      toast.success("Tempo registrato con successo!");
+    } catch (error: any) {
+      toast.error("Error adding time entry: " + error.message);
     }
   };
 
@@ -127,9 +152,11 @@ const Index = () => {
           onSelectClient={handleSelectClient}
           onProjectDeleted={() => {
             fetchProjects();
+            fetchTimeEntries();
           }}
           onProjectUpdated={() => {
             fetchProjects();
+            fetchTimeEntries();
           }}
         />
         <div className="flex-1">
@@ -139,11 +166,6 @@ const Index = () => {
                 <img src="logo.png" alt=" Logo" className="w-12 h-12" />
               </div>
               <div className="flex items-center gap-2">
-                <TimeEntryDialog onSubmit={fetchTimeEntries} projects={projects}>
-                  <Button variant="outline" size="icon" className="border-[#383a5c] text-white hover:bg-[#2a2b3d]">
-                    <Plus className="h-5 w-5" />
-                  </Button>
-                </TimeEntryDialog>
                 <Button
                   variant="outline"
                   size="icon"
@@ -169,7 +191,20 @@ const Index = () => {
             ) : selectedClient ? (
               <ClientDashboard client={selectedClient} onBack={handleBackToDashboard} />
             ) : (
-              <DashboardStats entries={entries} />
+              <>
+                <DashboardStats entries={timeEntries} />
+                <div className="my-6 md:my-8 space-y-6 md:space-y-8">
+                  <TimeEntryDialog onSubmit={handleNewEntry} projects={projects} />
+                  {timeEntries.length > 0 && (
+                    <TimeTable 
+                      entries={timeEntries} 
+                      onEntryDeleted={fetchTimeEntries} 
+                      start={startOfMonth} 
+                      end={endOfMonth}
+                    />
+                  )}
+                </div>
+              </>
             )}
           </div>
         </div>
