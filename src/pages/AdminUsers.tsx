@@ -1,17 +1,27 @@
+
 import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useRole } from "@/hooks/useRole";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const AdminUsers = () => {
   const navigate = useNavigate();
   const { session } = useAuth();
   const { role, isLoading: isLoadingRole } = useRole();
+  const queryClient = useQueryClient();
 
   // Redirect to auth if not logged in
   if (!session?.user) {
@@ -42,6 +52,24 @@ const AdminUsers = () => {
       }));
     },
     enabled: role === "ADMIN",
+  });
+
+  const updateUserRole = useMutation({
+    mutationFn: async ({ userId, newRole }: { userId: string; newRole: "ADMIN" | "DIPENDENTE" }) => {
+      const { error } = await supabase
+        .from("user_roles")
+        .update({ role: newRole })
+        .eq("user_id", userId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Ruolo aggiornato con successo");
+      queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
+    },
+    onError: (error) => {
+      toast.error("Errore durante l'aggiornamento del ruolo: " + error.message);
+    },
   });
 
   if (isLoadingRole || isLoadingProfiles) {
@@ -89,14 +117,19 @@ const AdminUsers = () => {
                   </TableCell>
                   <TableCell className="text-white">{profile.email}</TableCell>
                   <TableCell>
-                    <span
-                      className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${
-                        profile.role === "ADMIN"
-                          ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                          : "bg-red-500/20 text-red-400 border border-red-500/30"
-                      }`}>
-                      {profile.role}
-                    </span>
+                    <Select
+                      value={profile.role}
+                      onValueChange={(newRole: "ADMIN" | "DIPENDENTE") => {
+                        updateUserRole.mutate({ userId: profile.id, newRole });
+                      }}>
+                      <SelectTrigger className="w-[180px] bg-transparent text-white border-[#383a5c]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ADMIN">ADMIN</SelectItem>
+                        <SelectItem value="DIPENDENTE">DIPENDENTE</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </TableCell>
                   <TableCell>
                     <Button
