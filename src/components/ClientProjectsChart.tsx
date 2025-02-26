@@ -43,7 +43,6 @@ export function ClientProjectsChart({ clientId }: ClientProjectsChartProps) {
     try {
       const { start, end } = getDateRange(dateRange, customDateRange);
 
-      // Update the query to explicitly join with user_roles table
       const { data: projects, error: projectsError } = await supabase
         .from('projects')
         .select(`
