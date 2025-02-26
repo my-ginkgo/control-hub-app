@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/components/AuthProvider";
 import { ClientDashboard } from "@/components/ClientDashboard";
 import { DashboardStats } from "@/components/DashboardStats";
@@ -17,6 +16,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { NewClientDialog } from "@/components/sidebar/NewClientDialog";
+import { NewProjectDialog } from "@/components/sidebar/NewProjectDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Client } from "@/types/Client";
 import { Project } from "@/types/Project";
@@ -235,6 +236,21 @@ const Index = () => {
                     isOpen={isTimeEntryDialogOpen}
                     onOpenChange={setIsTimeEntryDialogOpen}
                   />
+                  <NewClientDialog 
+                    isOpen={isNewClientDialogOpen}
+                    onOpenChange={setIsNewClientDialogOpen}
+                    onClientAdded={() => {
+                      fetchProjects();
+                    }}
+                  />
+                  <NewProjectDialog 
+                    isOpen={isNewProjectDialogOpen}
+                    onOpenChange={setIsNewProjectDialogOpen}
+                    clients={[]} 
+                    onProjectAdded={() => {
+                      fetchProjects();
+                    }}
+                  />
                   {timeEntries.length > 0 && (
                     <TimeTable 
                       entries={timeEntries} 
@@ -254,4 +270,3 @@ const Index = () => {
 };
 
 export default Index;
-
