@@ -1,11 +1,11 @@
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { DateRange } from "@/types/chart";
-import { Input } from "@/components/ui/input";
 
 interface DateRangeSelectorProps {
   dateRange: DateRange;
@@ -20,42 +20,45 @@ export function DateRangeSelector({
   customDateRange,
   setCustomDateRange,
 }: DateRangeSelectorProps) {
-  const handleStartDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.value) {
-      setCustomDateRange({
-        ...customDateRange,
-        start: new Date(event.target.value),
-      });
-    }
-  };
-
-  const handleEndDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.value) {
-      setCustomDateRange({
-        ...customDateRange,
-        end: new Date(event.target.value),
-      });
-    }
-  };
-
   return (
     <div className="flex items-center gap-4">
       {dateRange === "custom" && (
-        <div className="flex items-center gap-2">
-          <Input
-            type="datetime-local"
-            onChange={handleStartDateChange}
-            value={customDateRange.start ? format(customDateRange.start, "yyyy-MM-dd'T'HH:mm") : ""}
-            className="w-44"
-          />
-          <span>-</span>
-          <Input
-            type="datetime-local"
-            onChange={handleEndDateChange}
-            value={customDateRange.end ? format(customDateRange.end, "yyyy-MM-dd'T'HH:mm") : ""}
-            className="w-44"
-          />
-        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="w-[280px] justify-start text-left font-normal">
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {customDateRange.start ? (
+                customDateRange.end ? (
+                  <>
+                    {format(customDateRange.start, "dd/MM/yyyy")} - {format(customDateRange.end, "dd/MM/yyyy")}
+                  </>
+                ) : (
+                  format(customDateRange.start, "dd/MM/yyyy")
+                )
+              ) : (
+                <span>Seleziona un intervallo</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              initialFocus
+              mode="range"
+              defaultMonth={customDateRange.start}
+              selected={{
+                from: customDateRange.start,
+                to: customDateRange.end,
+              }}
+              onSelect={(range) => {
+                setCustomDateRange({
+                  start: range?.from,
+                  end: range?.to,
+                });
+              }}
+              numberOfMonths={2}
+            />
+          </PopoverContent>
+        </Popover>
       )}
 
       <Select value={dateRange} onValueChange={(value: DateRange) => setDateRange(value)}>
@@ -73,3 +76,4 @@ export function DateRangeSelector({
     </div>
   );
 }
+
