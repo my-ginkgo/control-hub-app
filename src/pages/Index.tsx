@@ -1,4 +1,9 @@
 
+import { DashboardContainer } from "@/components/dashboard/DashboardContainer";
+import { useState } from "react";
+import { Project } from "@/types/Project";
+import { Client } from "@/types/Client";
+import { TimeEntryData } from "@/components/TimeEntry";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -7,13 +12,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ColorConfigurator } from "@/components/ColorConfigurator";
 import { Settings2 } from "lucide-react";
-import { DashboardContainer } from "@/components/dashboard/DashboardContainer";
-import { useState } from "react";
-import { Project } from "@/types/Project";
-import { Client } from "@/types/Client";
-import { TimeEntryData } from "@/components/TimeEntry";
+import { ColorConfigurator } from "@/components/ColorConfigurator";
 
 export default function Index() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -27,7 +27,10 @@ export default function Index() {
 
   return (
     <div className="container mx-auto py-8">
-      <div className="flex justify-end mb-6">
+      <div className="flex justify-between mb-6">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-red-700 to-amber-400 bg-clip-text text-transparent">
+          Dashboard
+        </h1>
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline" size="icon">
