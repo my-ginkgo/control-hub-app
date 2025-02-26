@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/components/AuthProvider";
 import { DeleteProjectDialog } from "@/components/project/DeleteProjectDialog";
 import { Button } from "@/components/ui/button";
@@ -8,13 +9,12 @@ import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader } f
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useRole } from "@/hooks/useRole";
-import { supabase } from "@/integrations/supabase/client";
+import { deleteProject, updateProject } from "@/services/projectService";
 import { cn } from "@/lib/utils";
 import { Client } from "@/types/Client";
 import { Project } from "@/types/Project";
 import { ChevronDown, ChevronUp, Globe, Lock, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
 interface ProjectListProps {
   projects: Project[];
@@ -86,56 +86,28 @@ export function ProjectList({
   const handleDeleteConfirm = async () => {
     if (!projectToDelete) return;
 
-    try {
-      const { error: timeEntriesError } = await supabase
-        .from("time_entries")
-        .delete()
-        .eq("project_id", projectToDelete.id);
-
-      if (timeEntriesError) throw timeEntriesError;
-
-      const { error: projectError } = await supabase.from("projects").delete().eq("id", projectToDelete.id);
-
-      if (projectError) throw projectError;
-
-      toast.success("Progetto eliminato con successo");
+    const success = await deleteProject(projectToDelete.id);
+    if (success) {
       onProjectAdded();
       if (onProjectDeleted) {
         onProjectDeleted();
       }
       setIsDeleteDialogOpen(false);
       setProjectToDelete(null);
-    } catch (error: any) {
-      toast.error("Errore durante l'eliminazione del progetto: " + error.message);
     }
   };
 
   const handleEditSave = async () => {
     if (!projectToEdit) return;
 
-    try {
-      const { error } = await supabase
-        .from("projects")
-        .update({
-          name: editFormData.name,
-          description: editFormData.description,
-          client_id: editFormData.clientId === "no_client" ? null : editFormData.clientId,
-          color: editFormData.color,
-          is_public: editFormData.isPublic,
-        })
-        .eq("id", projectToEdit.id);
-
-      if (error) throw error;
-
-      toast.success("Progetto aggiornato con successo");
+    const success = await updateProject(projectToEdit.id, editFormData);
+    if (success) {
       onProjectAdded();
       if (onProjectUpdated) {
         onProjectUpdated();
       }
       setIsEditDialogOpen(false);
       setProjectToEdit(null);
-    } catch (error: any) {
-      toast.error("Errore durante l'aggiornamento del progetto: " + error.message);
     }
   };
 
@@ -329,3 +301,4 @@ export function ProjectList({
     </SidebarGroup>
   );
 }
+
