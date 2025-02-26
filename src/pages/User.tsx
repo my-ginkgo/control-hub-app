@@ -1,5 +1,7 @@
+
 import { useAuth } from "@/components/AuthProvider";
 import { Card } from "@/components/ui/card";
+import { ColorWidget } from "@/components/user/ColorWidget";
 import { ProfileActions } from "@/components/user/ProfileActions";
 import { ProfileInfo } from "@/components/user/ProfileInfo";
 import { UserHeader } from "@/components/user/UserHeader";
@@ -100,7 +102,10 @@ const User = () => {
   return (
     <div className="min-h-screen bg-[#1a1b26] text-white p-4 md:p-8">
       <div className="container max-w-2xl mx-auto">
-        <UserHeader role={role} isLoadingRole={isLoadingRole} />
+        <div className="flex items-center justify-between mb-6">
+          <UserHeader role={role} isLoadingRole={isLoadingRole} />
+          <ColorWidget />
+        </div>
 
         <Card className="p-6 bg-[#24253a] border-[#383a5c] space-y-6">
           <ProfileInfo
