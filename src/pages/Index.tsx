@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/components/AuthProvider";
 import { ClientDashboard } from "@/components/ClientDashboard";
 import { DashboardStats } from "@/components/DashboardStats";
@@ -161,7 +160,7 @@ const Index = () => {
           <div className="container py-4 md:py-8 px-4 md:px-8">
             <div className="flex justify-between items-center mb-6 md:mb-8">
               <div className="flex items-center gap-4">
-                <img src="/logo.png" alt="Logo" className="w-12 h-12" />
+                <img src="logo.png" alt=" Logo" className="w-12 h-12" />
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -202,6 +201,6 @@ const Index = () => {
       </div>
     </SidebarProvider>
   );
-}
+};
 
 export default Index;

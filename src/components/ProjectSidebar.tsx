@@ -84,34 +84,31 @@ export function ProjectSidebar({
   };
 
   return (
-    <Sidebar className="relative border-r border-[#2a2b3d]/50 bg-gradient-to-b from-[#1a1b26] to-[#1f2937] backdrop-blur-xl shadow-xl">
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
-      <SidebarContent className="relative z-10 px-4">
-        <div className="space-y-8 py-6">
-          <ClientList 
-            clients={clients}
-            expandedClients={expandedClients}
-            toggleClientExpand={toggleClientExpand}
-            onClientAdded={fetchClients}
-            onSelectClient={handleSelectClient}
-            selectedClient={selectedClient}
-          />
-          <ProjectList 
-            projects={projects}
-            clients={clients}
-            expandedProjects={expandedProjects}
-            selectedProject={selectedProject}
-            toggleProjectExpand={toggleProjectExpand}
-            onSelectProject={onSelectProject}
-            onProjectAdded={() => {
-              if (onAddProject) {
-                fetchClients();
-              }
-            }}
-            onProjectDeleted={onProjectDeleted}
-            onProjectUpdated={onProjectUpdated}
-          />
-        </div>
+    <Sidebar>
+      <SidebarContent>
+        <ClientList 
+          clients={clients}
+          expandedClients={expandedClients}
+          toggleClientExpand={toggleClientExpand}
+          onClientAdded={fetchClients}
+          onSelectClient={handleSelectClient}
+          selectedClient={selectedClient}
+        />
+        <ProjectList 
+          projects={projects}
+          clients={clients}
+          expandedProjects={expandedProjects}
+          selectedProject={selectedProject}
+          toggleProjectExpand={toggleProjectExpand}
+          onSelectProject={onSelectProject}
+          onProjectAdded={() => {
+            if (onAddProject) {
+              fetchClients();
+            }
+          }}
+          onProjectDeleted={onProjectDeleted}
+          onProjectUpdated={onProjectUpdated}
+        />
       </SidebarContent>
     </Sidebar>
   );
