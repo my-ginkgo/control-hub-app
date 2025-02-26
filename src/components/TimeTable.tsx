@@ -1,3 +1,4 @@
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
-import { Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { TimeEntryData } from "./TimeEntry";
@@ -58,6 +59,7 @@ function UserCell({ userId }: { userId: string }) {
 export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [entryToDelete, setEntryToDelete] = useState<TimeEntryToDelete>(null);
+  const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
   const filteredEntries = entries.filter((entry) => {
     const entryDate = new Date(entry.startDate);
@@ -90,11 +92,18 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
     }
   };
 
+  const toggleRow = (entryId: string) => {
+    setExpandedRows((current) =>
+      current.includes(entryId) ? current.filter((id) => id !== entryId) : [...current, entryId]
+    );
+  };
+
   return (
     <div className="border rounded-lg">
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-8"></TableHead>
             <TableHead>Creazione</TableHead>
             <TableHead>Esecuzione</TableHead>
             <TableHead>Progetto</TableHead>
@@ -106,31 +115,75 @@ export function TimeTable({ entries, onEntryDeleted, start, end }: TimeTableProp
         </TableHeader>
         <TableBody>
           {filteredEntries.map((entry, index) => (
-            <TableRow key={entry.id || `${entry.date}-${entry.project}-${index}`}>
-              <TableCell>
-                {formatDistanceToNow(new Date(entry.date), {
-                  addSuffix: true,
-                  locale: it,
-                })}
-              </TableCell>
-              <TableCell>
-                {formatDistanceToNow(new Date(entry.startDate), {
-                  addSuffix: true,
-                  locale: it,
-                })}
-              </TableCell>
-              <TableCell>{entry.project}</TableCell>
-              <TableCell>
+            <>
+              <TableRow
+                key={entry.id || `${entry.date}-${entry.project}-${index}`}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => toggleRow(entry.id)}>
+                <TableCell>
+                  {expandedRows.includes(entry.id) ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </TableCell>
+                <TableCell>
+                  {formatDistanceToNow(new Date(entry.date), {
+                    addSuffix: true,
+                    locale: it,
+                  })}
+                </TableCell>
+                <TableCell>
+                  {formatDistanceToNow(new Date(entry.startDate), {
+                    addSuffix: true,
+                    locale: it,
+                  })}
+                </TableCell>
+                <TableCell>{entry.project}</TableCell>
                 <UserCell userId={entry.assignedUserId} />
-              </TableCell>
-              <TableCell>{entry.hours}</TableCell>
-              <TableCell>{entry.billableHours}</TableCell>
-              <TableCell>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteClick(entry)}>
-                  <Trash2 className="h-4 w-4 text-gray-400" />
-                </Button>
-              </TableCell>
-            </TableRow>
+                <TableCell>{entry.hours}</TableCell>
+                <TableCell>{entry.billableHours}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteClick(entry);
+                    }}>
+                    <Trash2 className="h-4 w-4 text-gray-400" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+              {expandedRows.includes(entry.id) && (
+                <TableRow className="bg-muted/30">
+                  <TableCell colSpan={8} className="px-4 py-4">
+                    <div className="space-y-2">
+                      <div>
+                        <span className="font-medium">Data di inizio:</span>{" "}
+                        {new Date(entry.startDate).toLocaleString("it-IT")}
+                      </div>
+                      <div>
+                        <span className="font-medium">Data di fine:</span>{" "}
+                        {new Date(entry.endDate).toLocaleString("it-IT")}
+                      </div>
+                      {entry.notes && (
+                        <div>
+                          <span className="font-medium">Note:</span> {entry.notes}
+                        </div>
+                      )}
+                      <div>
+                        <span className="font-medium">ID:</span> {entry.id}
+                      </div>
+                      <div>
+                        <span className="font-medium">User ID:</span> {entry.userId}
+                      </div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </>
           ))}
         </TableBody>
       </Table>
