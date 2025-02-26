@@ -16,7 +16,7 @@ export const ColorWidget = () => {
     setLocalColors(colors);
   }, [colors]);
 
-  const handleColorChange = (colorKey: string, value: string) => {
+  const handleColorChange = (colorKey: keyof typeof colors, value: string) => {
     const newColors = { ...localColors, [colorKey]: value };
     setLocalColors(newColors);
     setColors(newColors);
@@ -62,13 +62,13 @@ export const ColorWidget = () => {
                   type="color"
                   id={key}
                   value={value}
-                  onChange={(e) => handleColorChange(key, e.target.value)}
+                  onChange={(e) => handleColorChange(key as keyof typeof colors, e.target.value)}
                   className="w-16 h-8 p-1"
                 />
                 <Input
                   type="text"
                   value={value}
-                  onChange={(e) => handleColorChange(key, e.target.value)}
+                  onChange={(e) => handleColorChange(key as keyof typeof colors, e.target.value)}
                   className="flex-1"
                   placeholder={`Inserisci il codice colore per ${key}`}
                 />
@@ -83,3 +83,4 @@ export const ColorWidget = () => {
     </Dialog>
   );
 };
+

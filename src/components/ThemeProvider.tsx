@@ -3,6 +3,13 @@ import React, { createContext, useContext, useEffect, useState } from "react"
 
 type Theme = "dark" | "light"
 
+type ThemeColors = {
+  primary: string
+  secondary: string
+  accent: string
+  background: string
+}
+
 type ThemeProviderProps = {
   children: React.ReactNode
   defaultTheme?: Theme
@@ -12,11 +19,22 @@ type ThemeProviderProps = {
 type ThemeProviderState = {
   theme: Theme
   setTheme: (theme: Theme) => void
+  colors: ThemeColors
+  setColors: (colors: ThemeColors) => void
+}
+
+const defaultColors: ThemeColors = {
+  primary: "#9b87f5",
+  secondary: "#7E69AB",
+  accent: "#6E59A5",
+  background: "#1A1F2C",
 }
 
 const initialState: ThemeProviderState = {
   theme: "dark",
   setTheme: () => null,
+  colors: defaultColors,
+  setColors: () => null,
 }
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
@@ -31,6 +49,11 @@ export function ThemeProvider({
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   )
 
+  const [colors, setColors] = useState<ThemeColors>(() => {
+    const savedColors = localStorage.getItem("theme-colors")
+    return savedColors ? JSON.parse(savedColors) : defaultColors
+  })
+
   useEffect(() => {
     const root = window.document.documentElement
     root.classList.remove("light", "dark")
@@ -38,9 +61,19 @@ export function ThemeProvider({
     localStorage.setItem(storageKey, theme)
   }, [theme, storageKey])
 
+  useEffect(() => {
+    localStorage.setItem("theme-colors", JSON.stringify(colors))
+    const root = document.documentElement.style
+    Object.entries(colors).forEach(([key, value]) => {
+      root.setProperty(`--${key}`, value)
+    })
+  }, [colors])
+
   const value = {
     theme,
     setTheme,
+    colors,
+    setColors,
   }
 
   return (
@@ -58,3 +91,4 @@ export const useTheme = () => {
 
   return context
 }
+
