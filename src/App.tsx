@@ -12,11 +12,10 @@ import User from "@/pages/User";
 import { Project } from "@/types/Project";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import AdminUsers from "./pages/AdminUsers";
 
-// Create a client
 const queryClient = new QueryClient();
 
 function ProjectDashboardWrapper() {
@@ -59,6 +58,7 @@ function App() {
               <Route path="/user" element={<User />} />
               <Route path="/user/:id" element={<User />} />
               <Route path="/project/:id" element={<ProjectDashboardWrapper />} />
+              <Route path="/client/:id" element={<Navigate to="/" replace />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster />

@@ -23,13 +23,15 @@ export function MainLayout({ children, onNewClient, onNewProject, onNewTimeEntry
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#1a1b26]">
-      <div className="fixed top-0 left-0 right-0 z-50 bg-[#1a1b26] border-b border-[#383a5c]">
+    <div className="flex flex-col min-h-screen">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#1a1b26] border-b border-[#383a5c]">
         <div className="container py-4 md:py-4 px-4 md:px-8">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               <SidebarTrigger className="text-white hover:bg-[#2a2b3d] border-[#383a5c]" />
-              <img src="logo.png" alt=" Logo" className="w-12 h-12" />
+              <Link to="/">
+                <img src="/logo.png" alt="Logo" className="w-12 h-12" />
+              </Link>
             </div>
             <div className="flex items-center gap-4">
               <DropdownMenu>
@@ -77,8 +79,8 @@ export function MainLayout({ children, onNewClient, onNewProject, onNewTimeEntry
             </div>
           </div>
         </div>
-      </div>
-      <div className="container flex-1 mt-[88px] md:mt-[72px] px-4 md:px-8">
+      </header>
+      <div className="flex flex-1 pt-[88px] md:pt-[72px]">
         {children}
       </div>
     </div>
