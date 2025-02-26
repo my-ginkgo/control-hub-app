@@ -1,3 +1,4 @@
+
 import { AuthProvider } from "@/components/AuthProvider";
 import { ProjectDashboard } from "@/components/ProjectDashboard";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -52,7 +53,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/admin-users" element={<AdminUsers />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/user" element={<User />} />
               <Route path="/user/:id" element={<User />} />
               <Route path="/project/:id" element={<ProjectDashboardWrapper />} />
