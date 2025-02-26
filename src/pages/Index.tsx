@@ -38,7 +38,7 @@ const Index = () => {
         .from("time_entries")
         .select(`
           *,
-          projects:project_id (
+          projects:projects(
             name,
             color
           )
@@ -179,4 +179,3 @@ const Index = () => {
 };
 
 export default Index;
-
