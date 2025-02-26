@@ -10,8 +10,21 @@ import {
 import { ColorConfigurator } from "@/components/ColorConfigurator";
 import { Settings2 } from "lucide-react";
 import { DashboardContainer } from "@/components/dashboard/DashboardContainer";
+import { useState } from "react";
+import { Project } from "@/types/Project";
+import { Client } from "@/types/Client";
+import { TimeEntryData } from "@/components/TimeEntry";
 
 export default function Index() {
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [timeEntries] = useState<TimeEntryData[]>([]);
+
+  const handleBack = () => {
+    setSelectedProject(null);
+    setSelectedClient(null);
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-end mb-6">
@@ -30,8 +43,12 @@ export default function Index() {
         </Dialog>
       </div>
       
-      <DashboardContainer />
+      <DashboardContainer 
+        selectedProject={selectedProject}
+        selectedClient={selectedClient}
+        timeEntries={timeEntries}
+        onBack={handleBack}
+      />
     </div>
   );
 }
-
