@@ -21,18 +21,37 @@ const Index = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [entries, setEntries] = useState<any[]>([]);
   const { session } = useAuth();
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     if (session?.user?.id) {
       fetchProjects();
+      fetchTimeEntries();
     }
   }, [session?.user?.id]);
 
+  const fetchTimeEntries = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("time_entries")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setEntries(data || []);
+    } catch (error: any) {
+      toast.error("Error fetching time entries: " + error.message);
+    }
+  };
+
   const fetchProjects = async () => {
     try {
-      const { data, error } = await supabase.from("projects").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setProjects(data || []);
@@ -129,7 +148,7 @@ const Index = () => {
             ) : selectedClient ? (
               <ClientDashboard client={selectedClient} onBack={handleBackToDashboard} />
             ) : (
-              <DashboardStats />
+              <DashboardStats entries={entries} />
             )}
           </div>
         </div>
@@ -139,4 +158,3 @@ const Index = () => {
 };
 
 export default Index;
-
