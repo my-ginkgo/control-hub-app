@@ -52,13 +52,14 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
 
   const fetchProjectsAndTotals = async () => {
     try {
-      console.log("Fetching projects with date range:", { start, end });
+      console.log("Fetching projects for client:", client.id);
+      console.log("Date range:", { start: start.toISOString(), end: end.toISOString() });
       
       const { data: projectsData, error: projectsError } = await supabase
         .from("projects")
         .select(`
           *,
-          time_entries (
+          time_entries!time_entries_project_id_fkey (
             hours,
             billable_hours,
             start_date
@@ -182,3 +183,4 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
     </div>
   );
 }
+
