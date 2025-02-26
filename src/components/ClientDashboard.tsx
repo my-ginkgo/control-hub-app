@@ -1,10 +1,8 @@
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Client } from "@/types/Client";
 import { Project } from "@/types/Project";
-import { ArrowLeft, Building, Clock, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -15,6 +13,10 @@ import { DateRangeSelector } from "./charts/DateRangeSelector";
 import { DateRange } from "@/types/chart";
 import { getDateRange } from "@/utils/dateRangeUtils";
 import { TimeTable } from "./TimeTable";
+import { ClientHeader } from "./client/ClientHeader";
+import { ClientInfo } from "./client/ClientInfo";
+import { ClientStats } from "./client/ClientStats";
+import { ClientProjects } from "./client/ClientProjects";
 
 interface ClientDashboardProps {
   client: Client;
@@ -75,7 +77,7 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
       const projects = projectsData || [];
       setProjects(projects);
 
-      // Calcola i totali nel range di date selezionato
+      // Calculate totals within the selected date range
       const totals = projects.reduce(
         (acc, project: any) => {
           const filteredEntries = project.time_entries?.filter((entry: any) => {
@@ -125,22 +127,11 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={onBack} className="h-8 w-8">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h2 className="text-lg font-semibold">Torna alla dashboard</h2>
-        </div>
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={() => setIsDeleteDialogOpen(true)}
-          className="bg-red-500 hover:bg-red-600">
-          <Trash2 className="h-4 w-4 mr-2" />
-          Elimina Cliente
-        </Button>
-      </div>
+      <ClientHeader 
+        client={client} 
+        onBack={onBack} 
+        onDelete={() => setIsDeleteDialogOpen(true)} 
+      />
 
       <div className="flex justify-end">
         <DateRangeSelector
@@ -152,65 +143,15 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Building className="h-5 w-5 text-red-400" />
-            <CardTitle>{client.name}</CardTitle>
-          </div>
-          {client.description && <p className="text-sm text-gray-500 dark:text-gray-400">{client.description}</p>}
-        </CardHeader>
+        <ClientInfo client={client} />
         <CardContent className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Progetti Totali</CardTitle>
-                <Building className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{totals.totalProjects}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Ore Totali</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{totals.totalHours.toFixed(1)}h</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Ore Fatturabili</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{totals.totalBillableHours.toFixed(1)}h</div>
-              </CardContent>
-            </Card>
-          </div>
+          <ClientStats 
+            totalProjects={totals.totalProjects}
+            totalHours={totals.totalHours}
+            totalBillableHours={totals.totalBillableHours}
+          />
 
-          <div className="h-[300px] overflow-auto border rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-4">Progetti</h3>
-            <div className="grid gap-4">
-              {isLoading ? (
-                <div className="text-sm text-gray-500">Caricamento progetti...</div>
-              ) : projects.length > 0 ? (
-                projects.map((project) => (
-                  <Card key={project.id}>
-                    <CardHeader>
-                      <CardTitle className="text-base">{project.name}</CardTitle>
-                      {project.description && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{project.description}</p>
-                      )}
-                    </CardHeader>
-                  </Card>
-                ))
-              ) : (
-                <div className="text-sm text-gray-500">Nessun progetto associato a questo cliente.</div>
-              )}
-            </div>
-          </div>
+          <ClientProjects projects={projects} isLoading={isLoading} />
 
           <Separator />
 
@@ -229,7 +170,6 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
             start={start} 
             end={end} 
           />
-
         </CardContent>
       </Card>
 
