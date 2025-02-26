@@ -50,45 +50,48 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
 
   const fetchProjectsAndTotals = async () => {
     try {
+      console.log("Fetching projects with date range:", { start, end });
+      
       const { data: projectsData, error: projectsError } = await supabase
         .from("projects")
-        .select(
-          `
-          id,
-          name,
-          description,
-          time_entries!time_entries_project_id_fkey (
+        .select(`
+          *,
+          time_entries (
             hours,
             billable_hours,
             start_date
           )
-        `
-        )
+        `)
         .eq("client_id", client.id)
         .order("created_at", { ascending: false });
 
-      if (projectsError) throw projectsError;
+      if (projectsError) {
+        console.error("Error fetching projects:", projectsError);
+        throw projectsError;
+      }
+
+      console.log("Projects data received:", projectsData);
 
       const projects = projectsData || [];
       setProjects(projects);
 
       // Calcola i totali nel range di date selezionato
       const totals = projects.reduce(
-        (acc, project: any) => ({
-          totalHours:
-            acc.totalHours +
-            (project.time_entries?.reduce((sum: number, entry: any) => {
-              const entryDate = new Date(entry.start_date);
-              return entryDate >= start && entryDate <= end ? sum + (entry.hours || 0) : sum;
-            }, 0) || 0),
-          totalBillableHours:
-            acc.totalBillableHours +
-            (project.time_entries?.reduce((sum: number, entry: any) => {
-              const entryDate = new Date(entry.start_date);
-              return entryDate >= start && entryDate <= end ? sum + (entry.billable_hours || 0) : sum;
-            }, 0) || 0),
-          totalProjects: acc.totalProjects + 1,
-        }),
+        (acc, project: any) => {
+          const filteredEntries = project.time_entries?.filter((entry: any) => {
+            const entryDate = new Date(entry.start_date);
+            return entryDate >= start && entryDate <= end;
+          }) || [];
+
+          const totalHours = filteredEntries.reduce((sum: number, entry: any) => sum + (entry.hours || 0), 0);
+          const totalBillableHours = filteredEntries.reduce((sum: number, entry: any) => sum + (entry.billable_hours || 0), 0);
+
+          return {
+            totalHours: acc.totalHours + totalHours,
+            totalBillableHours: acc.totalBillableHours + totalBillableHours,
+            totalProjects: acc.totalProjects + 1,
+          };
+        },
         {
           totalHours: 0,
           totalBillableHours: 0,
@@ -96,9 +99,11 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
         }
       );
 
+      console.log("Calculated totals:", totals);
       setTotals(totals);
       setIsLoading(false);
     } catch (error: any) {
+      console.error("Error in fetchProjectsAndTotals:", error);
       toast.error("Errore nel caricamento dei progetti: " + error.message);
       setIsLoading(false);
     }
@@ -213,13 +218,17 @@ export function ClientDashboard({ client, onBack }: ClientDashboardProps) {
 
           <Separator />
 
-          <TimeTable entries={projects.flatMap((project: any) => 
-            project.time_entries.map((entry: any) => ({
-              ...entry,
-              project: project.name,
-              id: entry.id
-            }))
-          )} start={start} end={end} />
+          <TimeTable 
+            entries={projects.flatMap((project: any) => 
+              (project.time_entries || []).map((entry: any) => ({
+                ...entry,
+                project: project.name,
+                id: entry.id
+              }))
+            )} 
+            start={start} 
+            end={end} 
+          />
 
         </CardContent>
       </Card>
