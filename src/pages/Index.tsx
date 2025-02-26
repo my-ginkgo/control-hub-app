@@ -170,8 +170,8 @@ const Index = () => {
             fetchTimeEntries();
           }}
         />
-        <div className="flex-1">
-          <div className="container py-4 md:py-8 px-4 md:px-8">
+        <div className="flex-1 relative">
+          <div className="container py-4 md:py-8 px-4 md:px-8 overflow-x-hidden">
             <div className="flex justify-between items-center mb-6 md:mb-8">
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="text-white hover:bg-[#2a2b3d] border-[#383a5c]" />
