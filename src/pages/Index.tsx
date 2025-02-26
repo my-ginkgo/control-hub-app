@@ -6,13 +6,14 @@ import { ProjectSidebar } from "@/components/ProjectSidebar";
 import { NewClientDialog } from "@/components/sidebar/NewClientDialog";
 import { NewProjectDialog } from "@/components/sidebar/NewProjectDialog";
 import { TimeEntryData } from "@/components/TimeEntry";
-import { TimeEntryDialog } from "@/components/TimeEntryDialog";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { Client } from "@/types/Client";
 import { Project } from "@/types/Project";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ProjectContainer } from "@/components/project/ProjectContainer";
+import { TimeEntryContainer } from "@/components/time-entry/TimeEntryContainer";
 
 const Index = () => {
   const [timeEntries, setTimeEntries] = useState<TimeEntryData[]>([]);
@@ -26,20 +27,9 @@ const Index = () => {
 
   useEffect(() => {
     if (session?.user?.id) {
-      fetchProjects();
       fetchTimeEntries();
     }
   }, [session?.user?.id]);
-
-  const fetchProjects = async () => {
-    try {
-      const { data, error } = await supabase.from("projects").select("*").order("created_at", { ascending: false });
-      if (error) throw error;
-      setProjects(data || []);
-    } catch (error: any) {
-      toast.error("Error fetching projects: " + error.message);
-    }
-  };
 
   const fetchTimeEntries = async () => {
     try {
@@ -70,54 +60,6 @@ const Index = () => {
     }
   };
 
-  const handleNewEntry = async (entry: TimeEntryData) => {
-    try {
-      const project = projects.find((p) => p.name === entry.project);
-      if (!project) throw new Error("Project not found");
-
-      const { error } = await supabase.from("time_entries").insert({
-        hours: entry.hours,
-        billable_hours: entry.billableHours,
-        project_id: project.id,
-        notes: entry.notes,
-        date: entry.date,
-        user_id: session?.user?.id,
-        assigned_user_id: entry.assignedUserId,
-        start_date: entry.startDate,
-        end_date: entry.endDate,
-      });
-
-      if (error) throw error;
-
-      fetchTimeEntries();
-      if (selectedProject?.id === project.id) {
-        setSelectedProject(project);
-      }
-      toast.success("Tempo registrato con successo!");
-    } catch (error: any) {
-      toast.error("Error adding time entry: " + error.message);
-    }
-  };
-
-  const handleAddProject = async (project: Omit<Project, "id">) => {
-    try {
-      const { error } = await supabase.from("projects").insert({
-        name: project.name,
-        description: project.description,
-        color: project.color,
-        is_public: project.is_public,
-        user_id: session?.user?.id,
-      });
-
-      if (error) throw error;
-
-      fetchProjects();
-      toast.success("Progetto aggiunto con successo!");
-    } catch (error: any) {
-      toast.error("Error adding project: " + error.message);
-    }
-  };
-
   const handleBackToDashboard = () => {
     setSelectedProject(null);
     setSelectedClient(null);
@@ -128,17 +70,16 @@ const Index = () => {
       <div className="min-h-screen flex w-full bg-[#1a1b26] text-white dark:bg-[#1a1b26] dark:text-white">
         <ProjectSidebar
           projects={projects}
-          onAddProject={handleAddProject}
           onSelectProject={setSelectedProject}
           selectedProject={selectedProject}
           selectedClient={selectedClient}
           onSelectClient={setSelectedClient}
           onProjectDeleted={() => {
-            fetchProjects();
+            setProjects([]);
             fetchTimeEntries();
           }}
           onProjectUpdated={() => {
-            fetchProjects();
+            setProjects([]);
             fetchTimeEntries();
           }}
         />
@@ -154,17 +95,17 @@ const Index = () => {
               onBack={handleBackToDashboard}
             />
             <div className="my-6 md:my-8 space-y-6 md:space-y-8">
-              <TimeEntryDialog
-                onSubmit={handleNewEntry}
+              <TimeEntryContainer
                 projects={projects}
-                isOpen={isTimeEntryDialogOpen}
-                onOpenChange={setIsTimeEntryDialogOpen}
+                fetchTimeEntries={fetchTimeEntries}
+                selectedProject={selectedProject}
+                session={session}
               />
               <NewClientDialog
                 isOpen={isNewClientDialogOpen}
                 onOpenChange={setIsNewClientDialogOpen}
                 onClientAdded={() => {
-                  fetchProjects();
+                  setProjects([]);
                 }}
               />
               <NewProjectDialog
@@ -172,13 +113,17 @@ const Index = () => {
                 onOpenChange={setIsNewProjectDialogOpen}
                 clients={[]}
                 onProjectAdded={() => {
-                  fetchProjects();
+                  setProjects([]);
                 }}
               />
             </div>
           </MainLayout>
         </div>
       </div>
+      <ProjectContainer
+        session={session}
+        onProjectsUpdate={setProjects}
+      />
     </SidebarProvider>
   );
 };
