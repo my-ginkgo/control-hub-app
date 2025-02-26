@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
@@ -18,26 +17,35 @@ import {
   endOfDay,
   endOfMonth,
   endOfWeek,
+  endOfYear,
   format,
   startOfDay,
   startOfMonth,
   startOfWeek,
+  startOfYear,
 } from "date-fns";
 import { it } from "date-fns/locale";
 import { useState } from "react";
 import { Bar, Line } from "react-chartjs-2";
 import { TimeEntryData } from "../TimeEntry";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { CalendarIcon } from "lucide-react";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 type ChartType = "line" | "groupedBar" | "stackedBar" | "userWorkload";
-type DateRange = "day" | "week" | "month";
+type DateRange = "day" | "week" | "month" | "year" | "custom";
 
 export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryData[]; isAdmin: boolean }) {
   const [dateRange, setDateRange] = useState<DateRange>("week");
   const [chartType, setChartType] = useState<ChartType>("line");
+  const [customDateRange, setCustomDateRange] = useState<{ start: Date | undefined; end: Date | undefined }>({
+    start: undefined,
+    end: undefined,
+  });
 
-  // Recupera i dati degli utenti
   const { data: userProfiles } = useQuery({
     queryKey: ["userProfiles"],
     queryFn: async () => {
@@ -73,6 +81,16 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
         return {
           start: startOfMonth(now),
           end: endOfMonth(now),
+        };
+      case "year":
+        return {
+          start: startOfYear(now),
+          end: endOfYear(now),
+        };
+      case "custom":
+        return {
+          start: customDateRange.start ? startOfDay(customDateRange.start) : startOfWeek(now, { locale: it }),
+          end: customDateRange.end ? endOfDay(customDateRange.end) : endOfWeek(now, { locale: it }),
         };
     }
   };
@@ -320,16 +338,64 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">Andamento Temporale</h2>
           <div className="flex gap-4">
-            <Select value={dateRange} onValueChange={(value: DateRange) => setDateRange(value)}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="day">Giorno corrente</SelectItem>
-                <SelectItem value="week">Settimana corrente</SelectItem>
-                <SelectItem value="month">Mese corrente</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-4">
+              {dateRange === "custom" && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`w-[280px] justify-start text-left font-normal`}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {customDateRange.start ? (
+                        customDateRange.end ? (
+                          <>
+                            {format(customDateRange.start, "dd/MM/yyyy")} -{" "}
+                            {format(customDateRange.end, "dd/MM/yyyy")}
+                          </>
+                        ) : (
+                          format(customDateRange.start, "dd/MM/yyyy")
+                        )
+                      ) : (
+                        <span>Seleziona un intervallo</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      initialFocus
+                      mode="range"
+                      defaultMonth={customDateRange.start}
+                      selected={{
+                        from: customDateRange.start,
+                        to: customDateRange.end,
+                      }}
+                      onSelect={(range) => {
+                        setCustomDateRange({
+                          start: range?.from,
+                          end: range?.to,
+                        });
+                      }}
+                      numberOfMonths={2}
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
+
+              <Select value={dateRange} onValueChange={(value: DateRange) => setDateRange(value)}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="day">Giorno corrente</SelectItem>
+                  <SelectItem value="week">Settimana corrente</SelectItem>
+                  <SelectItem value="month">Mese corrente</SelectItem>
+                  <SelectItem value="year">Anno corrente</SelectItem>
+                  <SelectItem value="custom">Range personalizzato</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
             <Select value={chartType} onValueChange={(value: ChartType) => setChartType(value)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue />
