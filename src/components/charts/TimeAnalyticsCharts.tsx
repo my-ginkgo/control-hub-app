@@ -16,11 +16,10 @@ import {
 import { useState } from "react";
 import { Bar, Line } from "react-chartjs-2";
 import { TimeEntryData } from "../TimeEntry";
-import { ChartType, DateRange } from "@/types/chart";
-import { DateRangeSelector } from "./DateRangeSelector";
+import { ChartType } from "@/types/chart";
 import { ChartTypeSelector } from "./ChartTypeSelector";
 import { generateChartData } from "./ChartDataGenerator";
-import { getDateRange, generateTimeLabels } from "@/utils/dateRangeUtils";
+import { generateTimeLabels } from "@/utils/dateRangeUtils";
 import { getChartOptions } from "@/utils/chartDataUtils";
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { InfoIcon } from "lucide-react";
@@ -28,12 +27,7 @@ import { InfoIcon } from "lucide-react";
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryData[]; isAdmin: boolean }) {
-  const [dateRange, setDateRange] = useState<DateRange>("month");
   const [chartType, setChartType] = useState<ChartType>("line");
-  const [customDateRange, setCustomDateRange] = useState<{ start: Date | undefined; end: Date | undefined }>({
-    start: undefined,
-    end: undefined,
-  });
 
   const { data: userProfiles } = useQuery({
     queryKey: ["userProfiles"],
@@ -51,15 +45,15 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
     return `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
   };
 
-  const { start, end } = getDateRange(dateRange, customDateRange);
+  const timeLabels = entries.length > 0 
+    ? generateTimeLabels(
+        new Date(Math.min(...entries.map(e => new Date(e.startDate).getTime()))),
+        new Date(Math.max(...entries.map(e => new Date(e.startDate).getTime()))),
+        "month"
+      )
+    : [];
 
-  const filteredEntries = entries.filter((entry) => {
-    const entryDate = new Date(entry.startDate);
-    return entryDate >= start && entryDate <= end;
-  });
-
-  const timeLabels = generateTimeLabels(start, end, dateRange);
-  const chartData = generateChartData({ timeLabels, chartType, filteredEntries, getUserFullName });
+  const chartData = generateChartData({ timeLabels, chartType, filteredEntries: entries, getUserFullName });
   const chartOptions = getChartOptions(chartType);
 
   const getChartTitle = () => {
@@ -109,15 +103,7 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
               </UITooltip>
             </TooltipProvider>
           </div>
-          <div className="flex gap-4">
-            <DateRangeSelector
-              dateRange={dateRange}
-              setDateRange={setDateRange}
-              customDateRange={customDateRange}
-              setCustomDateRange={setCustomDateRange}
-            />
-            <ChartTypeSelector chartType={chartType} setChartType={setChartType} isAdmin={isAdmin} />
-          </div>
+          <ChartTypeSelector chartType={chartType} setChartType={setChartType} isAdmin={isAdmin} />
         </div>
         <div className="h-[400px]">
           {chartType === "userWorkload" ? (
@@ -132,4 +118,3 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
     </Card>
   );
 }
-
