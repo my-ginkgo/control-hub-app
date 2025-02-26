@@ -2,6 +2,7 @@
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   BarElement,
   CategoryScale,
@@ -35,6 +36,25 @@ type DateRange = "day" | "week" | "month";
 export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryData[]; isAdmin: boolean }) {
   const [dateRange, setDateRange] = useState<DateRange>("week");
   const [chartType, setChartType] = useState<ChartType>("line");
+
+  // Recupera i dati degli utenti
+  const { data: userProfiles } = useQuery({
+    queryKey: ["userProfiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const getUserFullName = (userId: string) => {
+    const profile = userProfiles?.find(p => p.id === userId);
+    if (!profile) return userId;
+    if (!profile.first_name && !profile.last_name) return userId;
+    return `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+  };
 
   const getDateRange = () => {
     const now = new Date();
@@ -112,15 +132,16 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
     filteredEntries.forEach((entry) => {
       const entryDate = new Date(entry.startDate);
       const dateKey = formatDateLabel(entryDate);
+      const userId = entry.assignedUserId;
 
-      if (!userWorkload[entry.assignedUserId]) {
-        userWorkload[entry.assignedUserId] = {
+      if (!userWorkload[userId]) {
+        userWorkload[userId] = {
           dates: [],
           hours: [],
         };
       }
 
-      const userData = userWorkload[entry.assignedUserId];
+      const userData = userWorkload[userId];
       const existingIndex = userData.dates.indexOf(dateKey);
 
       if (existingIndex === -1) {
@@ -182,7 +203,7 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
         return {
           labels: timeLabels,
           datasets: uniqueUsers.map((userId) => ({
-            label: userId,
+            label: getUserFullName(userId),
             data: timeLabels.map((label) => {
               const index = userWorkloadData[userId].dates.indexOf(label);
               return index !== -1 ? userWorkloadData[userId].hours[index] : 0;
