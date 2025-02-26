@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/components/AuthProvider";
 import { ClientDashboard } from "@/components/ClientDashboard";
 import { DashboardStats } from "@/components/DashboardStats";
@@ -16,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { Client } from "@/types/Client";
 import { Project } from "@/types/Project";
@@ -173,7 +174,10 @@ const Index = () => {
           <div className="container py-4 md:py-8 px-4 md:px-8">
             <div className="flex justify-between items-center mb-6 md:mb-8">
               <div className="flex items-center gap-4">
+                <SidebarTrigger className="text-white hover:bg-[#2a2b3d] border-[#383a5c]" />
                 <img src="logo.png" alt=" Logo" className="w-12 h-12" />
+              </div>
+              <div className="flex items-center gap-4">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button className="bg-red-500 hover:bg-red-600 text-white">
@@ -199,8 +203,6 @@ const Index = () => {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </div>
-              <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="icon"
