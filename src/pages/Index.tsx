@@ -38,7 +38,7 @@ const Index = () => {
         .from("time_entries")
         .select(`
           *,
-          projects:projects(
+          projects:project_id (
             name,
             color
           )
@@ -48,7 +48,7 @@ const Index = () => {
       if (error) throw error;
 
       // Transform data to match TimeEntryData format
-      const transformedEntries = data.map((entry) => ({
+      const transformedEntries = data.map((entry: any) => ({
         id: entry.id,
         hours: Number(entry.hours),
         billableHours: Number(entry.billable_hours),
