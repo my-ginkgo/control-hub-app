@@ -18,8 +18,6 @@ import {
   endOfMonth,
   endOfWeek,
   format,
-  getHours,
-  isSameDay,
   startOfDay,
   startOfMonth,
   startOfWeek,
@@ -31,14 +29,8 @@ import { TimeEntryData } from "../TimeEntry";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
-type ChartType = "line" | "groupedBar" | "stackedBar" | "dbLogs";
+type ChartType = "line" | "groupedBar" | "stackedBar" | "userWorkload";
 type DateRange = "day" | "week" | "month";
-
-interface PostgresLog {
-  start_date: string;
-  error_severity: string;
-  event_message: string;
-}
 
 export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryData[]; isAdmin: boolean }) {
   const [dateRange, setDateRange] = useState<DateRange>("week");
@@ -66,29 +58,6 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
   };
 
   const { start, end } = getDateRange();
-
-  // Fetch DB logs if user is admin
-  const { data: dbLogs } = useQuery({
-    queryKey: ["dbLogs", start.getTime(), end.getTime()],
-    queryFn: async () => {
-      if (!isAdmin) return [];
-
-      const response = await fetch(
-        `${process.env.VITE_SUPABASE_URL}/rest/v1/postgres_logs?select=*&start_date=gte.${start.toISOString()}&start_date=lte.${end.toISOString()}&order=start_date.asc`,
-        {
-          headers: {
-            apikey: process.env.VITE_SUPABASE_ANON_KEY || "",
-            Authorization: `Bearer ${process.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-        }
-      );
-
-      if (!response.ok) throw new Error("Failed to fetch logs");
-      const data = await response.json();
-      return data as PostgresLog[];
-    },
-    enabled: isAdmin && chartType === "dbLogs",
-  });
 
   const filteredEntries = entries.filter((entry) => {
     const entryDate = new Date(entry.startDate);
@@ -137,10 +106,39 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
     return groupedData;
   };
 
-  const groupedData = groupEntriesByTimeUnit();
-  const uniqueProjects = Object.keys(groupedData);
+  const groupEntriesByUser = () => {
+    const userWorkload: Record<string, { dates: string[]; hours: number[] }> = {};
 
-  // Generate labels based on date range
+    filteredEntries.forEach((entry) => {
+      const entryDate = new Date(entry.startDate);
+      const dateKey = formatDateLabel(entryDate);
+
+      if (!userWorkload[entry.assignedUserId]) {
+        userWorkload[entry.assignedUserId] = {
+          dates: [],
+          hours: [],
+        };
+      }
+
+      const userData = userWorkload[entry.assignedUserId];
+      const existingIndex = userData.dates.indexOf(dateKey);
+
+      if (existingIndex === -1) {
+        userData.dates.push(dateKey);
+        userData.hours.push(entry.hours);
+      } else {
+        userData.hours[existingIndex] += entry.hours;
+      }
+    });
+
+    return userWorkload;
+  };
+
+  const groupedData = groupEntriesByTimeUnit();
+  const userWorkloadData = groupEntriesByUser();
+  const uniqueProjects = Object.keys(groupedData);
+  const uniqueUsers = Object.keys(userWorkloadData);
+
   const generateTimeLabels = () => {
     const labels: string[] = [];
     let current = new Date(start);
@@ -172,31 +170,30 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
     return acc;
   }, {} as Record<string, string>);
 
+  const userColors = uniqueUsers.reduce((acc, userId, index) => {
+    const hue = (index * 137.5) % 360;
+    acc[userId] = `hsla(${hue}, 70%, 50%, 1)`;
+    return acc;
+  }, {} as Record<string, string>);
+
   const getChartData = () => {
-    if (chartType === "dbLogs" && dbLogs) {
-      const groupedLogs = dbLogs.reduce((acc, log) => {
-        const date = format(new Date(log.start_date), dateRange === "day" ? "HH:00" : "dd/MM/yyyy");
-        acc[date] = (acc[date] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-
-      const dates = timeLabels;
-
-      return {
-        labels: dates,
-        datasets: [
-          {
-            label: "Log Events",
-            data: dates.map((date) => groupedLogs[date] || 0),
-            backgroundColor: "hsla(200, 70%, 50%, 0.7)",
-            borderColor: "hsla(200, 70%, 50%, 1)",
-            tension: 0.3,
-          },
-        ],
-      };
-    }
-
     switch (chartType) {
+      case "userWorkload":
+        return {
+          labels: timeLabels,
+          datasets: uniqueUsers.map((userId) => ({
+            label: userId,
+            data: timeLabels.map((label) => {
+              const index = userWorkloadData[userId].dates.indexOf(label);
+              return index !== -1 ? userWorkloadData[userId].hours[index] : 0;
+            }),
+            backgroundColor: userColors[userId],
+            borderColor: userColors[userId],
+            tension: 0.3,
+            fill: false,
+          })),
+        };
+
       case "line":
         return {
           labels: timeLabels,
@@ -272,14 +269,6 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
       tooltip: {
         mode: "index" as const,
         intersect: false,
-        callbacks:
-          chartType === "dbLogs"
-            ? {
-                label: (context: any) => {
-                  return `${context.dataset.label}: ${context.parsed.y} eventi`;
-                },
-              }
-            : undefined,
       },
     },
     scales: {
@@ -328,13 +317,13 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
                 <SelectItem value="line">Analisi Temporale 📈</SelectItem>
                 <SelectItem value="groupedBar">Confronto Progetti 📊</SelectItem>
                 <SelectItem value="stackedBar">Efficienza 🏗️</SelectItem>
-                {isAdmin && <SelectItem value="dbLogs">Log Database 📑</SelectItem>}
+                {isAdmin && <SelectItem value="userWorkload">Carico per Utente 👥</SelectItem>}
               </SelectContent>
             </Select>
           </div>
         </div>
         <div className="h-[400px]">
-          {chartType === "dbLogs" ? (
+          {chartType === "userWorkload" ? (
             <Line data={getChartData()} options={chartOptions} />
           ) : chartType === "line" ? (
             <Line data={getChartData()} options={chartOptions} />
