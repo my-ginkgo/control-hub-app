@@ -84,9 +84,10 @@ export function ProjectSidebar({
   };
 
   return (
-    <Sidebar className="border-r border-[#2a2b3d] bg-gradient-to-b from-[#1a1b26] to-[#1f2937] backdrop-blur-lg">
-      <SidebarContent className="px-2">
-        <div className="space-y-6">
+    <Sidebar className="relative border-r border-[#2a2b3d]/50 bg-gradient-to-b from-[#1a1b26] to-[#1f2937] backdrop-blur-xl shadow-xl">
+      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
+      <SidebarContent className="relative z-10 px-4">
+        <div className="space-y-8 py-6">
           <ClientList 
             clients={clients}
             expandedClients={expandedClients}
