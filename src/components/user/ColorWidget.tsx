@@ -3,22 +3,23 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Settings } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 
 export const ColorWidget = () => {
-  const [colors, setColors] = useState({
-    primary: "#9b87f5",
-    secondary: "#7E69AB",
-    accent: "#6E59A5",
-    background: "#1A1F2C",
-  });
+  const { colors, setColors } = useTheme();
+  const [localColors, setLocalColors] = useState(colors);
+
+  useEffect(() => {
+    setLocalColors(colors);
+  }, [colors]);
 
   const handleColorChange = (colorKey: string, value: string) => {
-    setColors((prev) => ({ ...prev, [colorKey]: value }));
-    document.documentElement.style.setProperty(`--${colorKey}`, value);
-    localStorage.setItem(`theme-${colorKey}`, value);
+    const newColors = { ...localColors, [colorKey]: value };
+    setLocalColors(newColors);
+    setColors(newColors);
   };
 
   const resetColors = () => {
@@ -29,12 +30,12 @@ export const ColorWidget = () => {
       background: "#1A1F2C",
     };
 
-    Object.entries(defaultColors).forEach(([key, value]) => {
-      document.documentElement.style.setProperty(`--${key}`, value);
+    setLocalColors(defaultColors);
+    setColors(defaultColors);
+    Object.keys(defaultColors).forEach((key) => {
       localStorage.removeItem(`theme-${key}`);
     });
 
-    setColors(defaultColors);
     toast.success("Colori reimpostati ai valori predefiniti");
   };
 
@@ -51,7 +52,7 @@ export const ColorWidget = () => {
           <DialogTitle>Personalizza Colori</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          {Object.entries(colors).map(([key, value]) => (
+          {Object.entries(localColors).map(([key, value]) => (
             <div key={key} className="flex items-center gap-4">
               <Label htmlFor={key} className="w-24 capitalize">
                 {key}
