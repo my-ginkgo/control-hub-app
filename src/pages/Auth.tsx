@@ -39,22 +39,27 @@ export default function Auth() {
         toast.success("Please complete your profile!");
       } else {
         // Prima verifichiamo se l'utente è disabilitato
-        const { data: userRole } = await supabase
+        const { data: userRole, error: roleError } = await supabase
           .from("user_roles")
           .select("is_disabled")
           .eq("email", email)
           .maybeSingle();
 
+        if (roleError) throw roleError;
+
         if (userRole?.is_disabled) {
-          throw new Error("L'account è stato disabilitato. Contatta l'amministratore.");
+          throw new Error("L'account è stato disabilitato. Contatta l'amministratore per assistenza.");
         }
 
         // Se l'utente non è disabilitato, procediamo con il login
-        const { error } = await supabase.auth.signInWithPassword({
+        const { error: loginError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        if (error) throw error;
+
+        if (loginError) throw loginError;
+
+        toast.success("Login effettuato con successo!");
         navigate("/");
       }
     } catch (error: any) {
@@ -137,4 +142,3 @@ export default function Auth() {
     </div>
   );
 }
-
