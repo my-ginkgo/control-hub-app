@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Auth from "@/pages/Auth";
 import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
+import ProfileSetup from "@/pages/ProfileSetup";
 import User from "@/pages/User";
 import { Project } from "@/types/Project";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -54,6 +55,7 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/profile-setup" element={<ProfileSetup />} />
               <Route path="/user" element={<User />} />
               <Route path="/user/:id" element={<User />} />
               <Route path="/project/:id" element={<ProjectDashboardWrapper />} />
