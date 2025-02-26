@@ -8,6 +8,7 @@ import { DateRange } from '@/types/chart';
 import { DateRangeSelector } from './charts/DateRangeSelector';
 import { getDateRange } from '@/utils/dateRangeUtils';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface ClientProjectsChartProps {
   clientId: string;
@@ -34,6 +35,7 @@ export function ClientProjectsChart({ clientId }: ClientProjectsChartProps) {
     start: undefined,
     end: undefined,
   });
+  const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
   useEffect(() => {
     fetchProjectStats();
@@ -61,7 +63,6 @@ export function ClientProjectsChart({ clientId }: ClientProjectsChartProps) {
 
       if (projectsError) throw projectsError;
 
-      // Calculate totals for each project within the selected date range
       const projectStats: ProjectStats[] = projects?.map((project: any) => ({
         projectName: project.name,
         totalHours: project.time_entries?.reduce((sum: number, entry: any) => {
@@ -92,6 +93,14 @@ export function ClientProjectsChart({ clientId }: ClientProjectsChartProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const toggleRow = (projectName: string) => {
+    setExpandedRows((current) =>
+      current.includes(projectName)
+        ? current.filter((name) => name !== projectName)
+        : [...current, projectName]
+    );
   };
 
   if (isLoading) {
@@ -145,49 +154,71 @@ export function ClientProjectsChart({ clientId }: ClientProjectsChartProps) {
           <CardTitle>Log di Lavoro per Progetto</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-8">
-            {stats.map((project) => (
-              <div key={project.projectName} className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">{project.projectName}</h3>
-                  <div className="flex gap-4">
-                    <p className="text-sm text-muted-foreground">
-                      Ore Totali: <span className="font-medium">{project.totalHours}</span>
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Ore Fatturabili: <span className="font-medium">{project.billableHours}</span>
-                    </p>
-                  </div>
-                </div>
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-8"></TableHead>
+                  <TableHead>Progetto</TableHead>
+                  <TableHead>Ore Totali</TableHead>
+                  <TableHead>Ore Fatturabili</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {stats.map((project) => (
+                  <>
+                    <TableRow
+                      key={project.projectName}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => toggleRow(project.projectName)}
+                    >
+                      <TableCell>
+                        {expandedRows.includes(project.projectName) ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </TableCell>
+                      <TableCell>{project.projectName}</TableCell>
+                      <TableCell>{project.totalHours}</TableCell>
+                      <TableCell>{project.billableHours}</TableCell>
+                    </TableRow>
+                    {expandedRows.includes(project.projectName) && (
                       <TableRow>
-                        <TableHead>Data</TableHead>
-                        <TableHead>Utente</TableHead>
-                        <TableHead className="text-right">Ore</TableHead>
-                        <TableHead className="text-right">Ore Fatturabili</TableHead>
-                        <TableHead>Note</TableHead>
+                        <TableCell colSpan={4} className="p-0">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="pl-12">Data</TableHead>
+                                <TableHead>Utente</TableHead>
+                                <TableHead>Ore</TableHead>
+                                <TableHead>Ore Fatturabili</TableHead>
+                                <TableHead>Note</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {project.timeEntries.map((entry, index) => (
+                                <TableRow key={`${project.projectName}-${entry.date}-${index}`}>
+                                  <TableCell className="pl-12">{entry.date}</TableCell>
+                                  <TableCell>{entry.userEmail}</TableCell>
+                                  <TableCell>{entry.hours}</TableCell>
+                                  <TableCell>{entry.billableHours}</TableCell>
+                                  <TableCell>{entry.notes || "-"}</TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {project.timeEntries.map((entry, index) => (
-                        <TableRow key={`${project.projectName}-${entry.date}-${index}`}>
-                          <TableCell>{entry.date}</TableCell>
-                          <TableCell>{entry.userEmail || "N/A"}</TableCell>
-                          <TableCell className="text-right">{entry.hours}</TableCell>
-                          <TableCell className="text-right">{entry.billableHours}</TableCell>
-                          <TableCell>{entry.notes || "-"}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            ))}
+                    )}
+                  </>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>
     </div>
   );
 }
+
