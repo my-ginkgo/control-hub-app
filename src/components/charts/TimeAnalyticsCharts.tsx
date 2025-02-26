@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
@@ -12,13 +13,22 @@ import {
   Title,
   Tooltip,
 } from "chart.js";
-import { endOfDay, endOfMonth, endOfWeek, format, startOfDay, startOfMonth, startOfWeek } from "date-fns";
+import {
+  endOfDay,
+  endOfMonth,
+  endOfWeek,
+  format,
+  getHours,
+  isSameDay,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+} from "date-fns";
 import { it } from "date-fns/locale";
 import { useState } from "react";
 import { Bar, Line } from "react-chartjs-2";
 import { TimeEntryData } from "../TimeEntry";
 
-// Register ChartJS components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 type ChartType = "line" | "groupedBar" | "stackedBar" | "dbLogs";
@@ -81,37 +91,80 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
   });
 
   const filteredEntries = entries.filter((entry) => {
-    const entryDate = new Date(entry.date);
+    const entryDate = new Date(entry.startDate);
     return entryDate >= start && entryDate <= end;
   });
 
-  // Raggruppa le ore per progetto e data
-  const groupedData = filteredEntries.reduce((acc, entry) => {
-    if (!acc[entry.project]) {
-      acc[entry.project] = {
-        dates: [],
-        hours: [],
-        billableHours: [],
-      };
+  const formatDateLabel = (date: Date) => {
+    switch (dateRange) {
+      case "day":
+        return format(date, "HH:00");
+      case "week":
+        return format(date, "EEEE", { locale: it });
+      case "month":
+        return format(date, "dd MMM", { locale: it });
     }
+  };
 
-    const dateStr = new Date(entry.date).toLocaleDateString();
-    const existingIndex = acc[entry.project].dates.indexOf(dateStr);
+  const groupEntriesByTimeUnit = () => {
+    const groupedData: Record<string, { dates: string[]; hours: number[]; billableHours: number[] }> = {};
 
-    if (existingIndex === -1) {
-      acc[entry.project].dates.push(dateStr);
-      acc[entry.project].hours.push(entry.hours);
-      acc[entry.project].billableHours.push(entry.billableHours);
-    } else {
-      acc[entry.project].hours[existingIndex] += entry.hours;
-      acc[entry.project].billableHours[existingIndex] += entry.billableHours;
-    }
+    filteredEntries.forEach((entry) => {
+      const entryDate = new Date(entry.startDate);
+      const dateKey = formatDateLabel(entryDate);
 
-    return acc;
-  }, {} as Record<string, { dates: string[]; hours: number[]; billableHours: number[] }>);
+      if (!groupedData[entry.project]) {
+        groupedData[entry.project] = {
+          dates: [],
+          hours: [],
+          billableHours: [],
+        };
+      }
 
+      const projectData = groupedData[entry.project];
+      const existingIndex = projectData.dates.indexOf(dateKey);
+
+      if (existingIndex === -1) {
+        projectData.dates.push(dateKey);
+        projectData.hours.push(entry.hours);
+        projectData.billableHours.push(entry.billableHours);
+      } else {
+        projectData.hours[existingIndex] += entry.hours;
+        projectData.billableHours[existingIndex] += entry.billableHours;
+      }
+    });
+
+    return groupedData;
+  };
+
+  const groupedData = groupEntriesByTimeUnit();
   const uniqueProjects = Object.keys(groupedData);
-  const allDates = [...new Set(filteredEntries.map((e) => new Date(e.date).toLocaleDateString()))].sort();
+
+  // Generate labels based on date range
+  const generateTimeLabels = () => {
+    const labels: string[] = [];
+    let current = new Date(start);
+
+    while (current <= end) {
+      switch (dateRange) {
+        case "day":
+          labels.push(format(current, "HH:00"));
+          current = new Date(current.setHours(current.getHours() + 1));
+          break;
+        case "week":
+          labels.push(format(current, "EEEE", { locale: it }));
+          current = new Date(current.setDate(current.getDate() + 1));
+          break;
+        case "month":
+          labels.push(format(current, "dd MMM", { locale: it }));
+          current = new Date(current.setDate(current.getDate() + 1));
+          break;
+      }
+    }
+    return labels;
+  };
+
+  const timeLabels = generateTimeLabels();
 
   const projectColors = uniqueProjects.reduce((acc, project, index) => {
     const hue = (index * 137.5) % 360;
@@ -122,19 +175,19 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
   const getChartData = () => {
     if (chartType === "dbLogs" && dbLogs) {
       const groupedLogs = dbLogs.reduce((acc, log) => {
-        const date = format(new Date(log.start_date), "dd/MM/yyyy");
+        const date = format(new Date(log.start_date), dateRange === "day" ? "HH:00" : "dd/MM/yyyy");
         acc[date] = (acc[date] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
-      const dates = Object.keys(groupedLogs).sort();
+      const dates = timeLabels;
 
       return {
         labels: dates,
         datasets: [
           {
             label: "Log Events",
-            data: dates.map((date) => groupedLogs[date]),
+            data: dates.map((date) => groupedLogs[date] || 0),
             backgroundColor: "hsla(200, 70%, 50%, 0.7)",
             borderColor: "hsla(200, 70%, 50%, 1)",
             tension: 0.3,
@@ -146,10 +199,13 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
     switch (chartType) {
       case "line":
         return {
-          labels: allDates,
+          labels: timeLabels,
           datasets: uniqueProjects.map((project) => ({
             label: project,
-            data: groupedData[project].hours,
+            data: timeLabels.map((label) => {
+              const index = groupedData[project].dates.indexOf(label);
+              return index !== -1 ? groupedData[project].hours[index] : 0;
+            }),
             borderColor: projectColors[project],
             backgroundColor: projectColors[project],
             tension: 0.3,
@@ -159,35 +215,38 @@ export function TimeAnalyticsCharts({ entries, isAdmin }: { entries: TimeEntryDa
 
       case "groupedBar":
         return {
-          labels: allDates,
+          labels: timeLabels,
           datasets: uniqueProjects.map((project) => ({
             label: project,
-            data: groupedData[project].hours,
+            data: timeLabels.map((label) => {
+              const index = groupedData[project].dates.indexOf(label);
+              return index !== -1 ? groupedData[project].hours[index] : 0;
+            }),
             backgroundColor: projectColors[project],
           })),
         };
 
       case "stackedBar":
         return {
-          labels: allDates,
+          labels: timeLabels,
           datasets: [
             {
               label: "Ore Billabili",
-              data: allDates.map((date) =>
+              data: timeLabels.map((label) =>
                 uniqueProjects.reduce((sum, project) => {
-                  const dateIndex = groupedData[project].dates.indexOf(date);
-                  return sum + (dateIndex !== -1 ? groupedData[project].billableHours[dateIndex] : 0);
+                  const index = groupedData[project].dates.indexOf(label);
+                  return sum + (index !== -1 ? groupedData[project].billableHours[index] : 0);
                 }, 0)
               ),
               backgroundColor: "hsla(145, 70%, 50%, 0.7)",
             },
             {
               label: "Ore Non Billabili",
-              data: allDates.map((date) =>
+              data: timeLabels.map((label) =>
                 uniqueProjects.reduce((sum, project) => {
-                  const dateIndex = groupedData[project].dates.indexOf(date);
-                  const totalHours = dateIndex !== -1 ? groupedData[project].hours[dateIndex] : 0;
-                  const billableHours = dateIndex !== -1 ? groupedData[project].billableHours[dateIndex] : 0;
+                  const index = groupedData[project].dates.indexOf(label);
+                  const totalHours = index !== -1 ? groupedData[project].hours[index] : 0;
+                  const billableHours = index !== -1 ? groupedData[project].billableHours[index] : 0;
                   return sum + (totalHours - billableHours);
                 }, 0)
               ),
