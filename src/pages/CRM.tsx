@@ -9,7 +9,7 @@ import { DataImportExport } from '@/components/crm/DataImportExport';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Building, Plus, Users } from 'lucide-react';
+import { Building, FileSpreadsheet, Plus, Users } from 'lucide-react';
 import { Lead } from '@/types/Lead';
 import { Company } from '@/types/Company';
 
@@ -65,15 +65,15 @@ const CRM = () => {
   
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-[#1a1b26] text-white dark:bg-[#1a1b26] dark:text-white">
+      <div className="min-h-screen flex w-full bg-[#141414] text-white">
         <div className="flex-1 relative">
           <MainLayout
             onNewClient={() => {}}
             onNewProject={() => {}}
             onNewTimeEntry={() => {}}>
             <div className="mb-6">
-              <h1 className="text-3xl font-bold mb-2">CRM Dashboard</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-3xl font-bold mb-2 text-red-600">CRM Dashboard</h1>
+              <p className="text-gray-400">
                 Gestisci i tuoi lead e le relazioni con le aziende
               </p>
             </div>
@@ -85,24 +85,42 @@ const CRM = () => {
               className="w-full"
             >
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                <TabsList className="grid w-full sm:w-[400px] grid-cols-2">
-                  <TabsTrigger value="leads" className="flex items-center gap-2">
+                <TabsList className="grid w-full sm:w-[400px] grid-cols-2 bg-[#333333] text-gray-400">
+                  <TabsTrigger 
+                    value="leads" 
+                    className="flex items-center gap-2 data-[state=active]:bg-[#E50914] data-[state=active]:text-white"
+                  >
                     <Users className="h-4 w-4" />
                     Lead
                   </TabsTrigger>
-                  <TabsTrigger value="companies" className="flex items-center gap-2">
+                  <TabsTrigger 
+                    value="companies" 
+                    className="flex items-center gap-2 data-[state=active]:bg-[#E50914] data-[state=active]:text-white"
+                  >
                     <Building className="h-4 w-4" />
                     Aziende
                   </TabsTrigger>
                 </TabsList>
                 
-                <Button 
-                  onClick={activeTab === 'leads' ? handleAddLead : handleAddCompany} 
-                  className="flex items-center gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  {activeTab === 'leads' ? 'Aggiungi Lead' : 'Aggiungi Azienda'}
-                </Button>
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      const type = activeTab === 'leads' ? 'leads' : 'companies';
+                      document.getElementById(`import-export-trigger-${type}`)?.click();
+                    }}
+                    className="bg-[#333333] border-none hover:bg-[#4d4d4d]"
+                  >
+                    <FileSpreadsheet className="h-5 w-5" />
+                  </Button>
+                  
+                  <Button 
+                    onClick={activeTab === 'leads' ? handleAddLead : handleAddCompany} 
+                    className="bg-[#E50914] hover:bg-[#b2070f]"
+                  >
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
               
               <TabsContent value="leads" className="animate-fadeIn">
@@ -115,7 +133,8 @@ const CRM = () => {
                 />
                 <DataImportExport 
                   type="leads" 
-                  onDataImported={refreshLeads} 
+                  onDataImported={refreshLeads}
+                  triggerId="import-export-trigger-leads"
                 />
               </TabsContent>
               
@@ -129,7 +148,8 @@ const CRM = () => {
                 />
                 <DataImportExport 
                   type="companies" 
-                  onDataImported={refreshCompanies} 
+                  onDataImported={refreshCompanies}
+                  triggerId="import-export-trigger-companies"
                 />
               </TabsContent>
             </Tabs>

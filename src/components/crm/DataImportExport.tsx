@@ -32,9 +32,10 @@ interface ImportResult {
 interface DataImportExportProps {
   type: 'leads' | 'companies';
   onDataImported: () => void;
+  triggerId?: string;
 }
 
-export const DataImportExport = ({ type, onDataImported }: DataImportExportProps) => {
+export const DataImportExport = ({ type, onDataImported, triggerId }: DataImportExportProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'import' | 'export'>('import');
@@ -233,27 +234,36 @@ export const DataImportExport = ({ type, onDataImported }: DataImportExportProps
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="bg-emerald-700 hover:bg-emerald-800 text-white">
-          <FileSpreadsheet className="mr-2 h-4 w-4" />
-          Importa/Esporta {title}
+        <Button 
+          id={triggerId}
+          variant="outline" 
+          className="hidden"
+        >
+          <FileSpreadsheet className="h-5 w-5" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] glass">
+      <DialogContent className="sm:max-w-[500px] bg-[#141414] border border-[#333333] text-white">
         <DialogHeader>
-          <DialogTitle>Importa/Esporta {title}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-xl text-white">Importa/Esporta {title}</DialogTitle>
+          <DialogDescription className="text-gray-400">
             Importa o esporta i tuoi {title.toLowerCase()} in formato JSON.
             In futuro sarà disponibile anche il formato XLSX.
           </DialogDescription>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'import' | 'export')} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="import" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-2 bg-[#333333] text-gray-400">
+            <TabsTrigger 
+              value="import" 
+              className="flex items-center gap-2 data-[state=active]:bg-[#E50914] data-[state=active]:text-white"
+            >
               <Upload className="h-4 w-4" />
               Importa
             </TabsTrigger>
-            <TabsTrigger value="export" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="export" 
+              className="flex items-center gap-2 data-[state=active]:bg-[#E50914] data-[state=active]:text-white"
+            >
               <Download className="h-4 w-4" />
               Esporta
             </TabsTrigger>
@@ -267,16 +277,16 @@ export const DataImportExport = ({ type, onDataImported }: DataImportExportProps
                   type="file"
                   accept=".json"
                   onChange={handleFileChange}
-                  className="col-span-3"
+                  className="col-span-3 bg-[#333333] border-none text-white"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-gray-400">
                   Nota: Al momento è supportato solo il formato JSON. Il supporto per XLSX sarà disponibile in futuro.
                 </p>
               </div>
 
               {importResults.length > 0 && (
-                <div className="mt-4 max-h-[200px] overflow-y-auto border rounded-md p-2">
-                  <h3 className="font-medium mb-2">Risultati dell'importazione:</h3>
+                <div className="mt-4 max-h-[200px] overflow-y-auto border border-[#333333] rounded-md p-2">
+                  <h3 className="font-medium mb-2 text-white">Risultati dell'importazione:</h3>
                   <ul className="space-y-2">
                     {importResults.map((result, index) => (
                       <li 
@@ -291,7 +301,7 @@ export const DataImportExport = ({ type, onDataImported }: DataImportExportProps
                           <X className="h-4 w-4 text-red-500" />
                         )}
                         <span>{result.item}: </span>
-                        <span className="text-muted-foreground">{result.message}</span>
+                        <span className="text-gray-400">{result.message}</span>
                       </li>
                     ))}
                   </ul>
@@ -301,7 +311,7 @@ export const DataImportExport = ({ type, onDataImported }: DataImportExportProps
               <Button 
                 onClick={handleImport} 
                 disabled={isLoading || !importFile}
-                className="w-full"
+                className="w-full bg-[#E50914] hover:bg-[#b2070f] text-white border-none"
               >
                 {isLoading ? (
                   <>
@@ -320,14 +330,14 @@ export const DataImportExport = ({ type, onDataImported }: DataImportExportProps
 
           <TabsContent value="export" className="space-y-4 py-4">
             <div className="grid gap-4">
-              <p>
+              <p className="text-gray-300">
                 Esporta tutti i tuoi {title.toLowerCase()} in un file JSON.
               </p>
 
               <Button 
                 onClick={handleExport} 
                 disabled={isLoading}
-                className="w-full"
+                className="w-full bg-[#E50914] hover:bg-[#b2070f] text-white border-none"
               >
                 {isLoading ? (
                   <>
@@ -349,7 +359,7 @@ export const DataImportExport = ({ type, onDataImported }: DataImportExportProps
           <Button 
             variant="outline" 
             onClick={() => setIsOpen(false)}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto bg-[#333333] hover:bg-[#4d4d4d] text-white border-none"
           >
             Chiudi
           </Button>
