@@ -150,17 +150,18 @@ export const SalesNavigatorImport = ({ onLeadsImported }: SalesNavigatorImportPr
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="sm:justify-end gap-2 mt-6">
           <Button 
             variant="outline" 
             onClick={() => setIsOpen(false)}
+            className="w-full sm:w-auto"
           >
             Cancel
           </Button>
           <Button 
             onClick={handleImport} 
             disabled={isLoading || !linkedinToken}
-            className="bg-[#0077b5] hover:bg-[#0077b5]/90 text-white"
+            className="w-full sm:w-auto bg-[#0077b5] hover:bg-[#0077b5]/90 text-white"
           >
             {isLoading ? (
               <>
