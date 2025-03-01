@@ -104,48 +104,69 @@ export type Database = {
       }
       leads: {
         Row: {
+          budget: string | null
+          communication_preference: string | null
           company_id: string | null
           created_at: string
+          decision_timeline: string | null
           email: string | null
           first_name: string
           id: string
+          interests: string | null
           job_title: string | null
           last_contact_date: string | null
           last_name: string
+          lead_score: number | null
+          linkedin_url: string | null
           notes: string | null
           phone: string | null
           source: string | null
           status: string | null
+          twitter_url: string | null
           user_id: string
         }
         Insert: {
+          budget?: string | null
+          communication_preference?: string | null
           company_id?: string | null
           created_at?: string
+          decision_timeline?: string | null
           email?: string | null
           first_name: string
           id?: string
+          interests?: string | null
           job_title?: string | null
           last_contact_date?: string | null
           last_name: string
+          lead_score?: number | null
+          linkedin_url?: string | null
           notes?: string | null
           phone?: string | null
           source?: string | null
           status?: string | null
+          twitter_url?: string | null
           user_id: string
         }
         Update: {
+          budget?: string | null
+          communication_preference?: string | null
           company_id?: string | null
           created_at?: string
+          decision_timeline?: string | null
           email?: string | null
           first_name?: string
           id?: string
+          interests?: string | null
           job_title?: string | null
           last_contact_date?: string | null
           last_name?: string
+          lead_score?: number | null
+          linkedin_url?: string | null
           notes?: string | null
           phone?: string | null
           source?: string | null
           status?: string | null
+          twitter_url?: string | null
           user_id?: string
         }
         Relationships: [
