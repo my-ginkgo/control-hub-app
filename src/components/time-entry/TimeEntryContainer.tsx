@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -285,10 +284,10 @@ export function TimeEntryContainer({
             </div>
 
             <UserSelect
-              label="Assigned To"
-              value={assignedUser}
-              onChange={setAssignedUser}
+              selectedUserId={assignedUser}
+              onUserChange={setAssignedUser}
               className="bg-[#1a1b26] border-[#383a5c] text-white"
+              label="Assigned To"
             />
 
             <div className="flex justify-end gap-2 pt-4">

@@ -11,11 +11,15 @@ import { supabase } from "@/integrations/supabase/client";
 interface UserSelectProps {
   selectedUserId: string;
   onUserChange: (id: string) => void;
+  className?: string;
+  label?: string;
 }
 
 export function UserSelect({
   selectedUserId,
   onUserChange,
+  className,
+  label = "Utente Assegnato"
 }: UserSelectProps) {
   const [open, setOpen] = useState(false);
   const [users, setUsers] = useState<Array<{ id: string; email: string }>>([]);
@@ -51,7 +55,7 @@ export function UserSelect({
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium text-gray-200">
-        Utente Assegnato
+        {label}
       </label>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
@@ -59,7 +63,7 @@ export function UserSelect({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between text-left font-normal bg-[#1a1b26] border-[#383a5c] text-white hover:bg-[#2a2b3d] h-10"
+            className={cn("w-full justify-between text-left font-normal bg-[#1a1b26] border-[#383a5c] text-white hover:bg-[#2a2b3d] h-10", className)}
           >
             {selectedUserId
               ? users.find((u) => u.id === selectedUserId)?.email
