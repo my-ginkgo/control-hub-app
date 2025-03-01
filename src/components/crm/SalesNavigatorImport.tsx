@@ -60,7 +60,7 @@ export const SalesNavigatorImport = ({ onLeadsImported }: SalesNavigatorImportPr
       }
       
       // Call the edge function with the token and user ID
-      const { data, error } = await supabase.functions.invoke('salesNavigatorImport', {
+      const { data, error } = await supabase.functions.invoke('salesnavigatorimport', {
         body: { linkedinToken },
         headers: {
           'x-userid': userData.user.id,
