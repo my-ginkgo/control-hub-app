@@ -1,15 +1,18 @@
+
 import { useState, useEffect } from 'react';
 import { Lead } from '@/types/Lead';
 import { Company } from '@/types/Company';
 import { supabase } from '@/integrations/supabase/client';
 import { EditableCell } from './EditableCell';
 import { toast } from 'sonner';
-import { Trash, UserRound, ChevronDown, ChevronUp, Phone, Mail, Building, Star, Calendar } from 'lucide-react';
+import { Trash, UserRound, ChevronDown, ChevronUp, Phone, Mail, Building, Star, Calendar, Tag as TagIcon, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FilterPanel, Filters, FilterOption } from './FilterPanel';
 import { format, isAfter, isBefore, isEqual, parseISO } from 'date-fns';
+import { TagInput } from './TagInput';
+import { Badge } from '@/components/ui/badge';
 
 interface LeadsTableProps {
   onEdit: (lead: Lead) => void;
@@ -21,8 +24,10 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [expandedLeads, setExpandedLeads] = useState<Record<string, boolean>>({});
   const [filters, setFilters] = useState<Filters>({});
+  const [allTags, setAllTags] = useState<string[]>([]);
 
   const filterOptions: FilterOption[] = [
     {
@@ -53,6 +58,12 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
       id: 'company',
       label: 'Azienda',
       type: 'text'
+    },
+    {
+      id: 'tags',
+      label: 'Tag',
+      type: 'tag',
+      tagOptions: allTags
     }
   ];
 
@@ -102,6 +113,7 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
           decision_timeline: lead.decision_timeline || undefined,
           communication_preference: lead.communication_preference as Lead['communication_preference'] || undefined,
           lead_score: lead.lead_score || undefined,
+          tags: lead.tags || [],
           user_id: lead.user_id,
           created_at: lead.created_at
         };
@@ -110,11 +122,27 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
       
       setLeads(transformedLeads);
       setFilteredLeads(transformedLeads);
+      
+      // Extract all unique tags for the filter options
+      const uniqueTags = Array.from(
+        new Set(
+          transformedLeads
+            .filter(lead => lead.tags && lead.tags.length > 0)
+            .flatMap(lead => lead.tags as string[])
+        )
+      );
+      setAllTags(uniqueTags);
     } catch (error: any) {
       toast.error(`Error loading leads: ${error.message}`);
     } finally {
       setLoading(false);
     }
+  };
+
+  const refreshLeadsData = async () => {
+    setRefreshing(true);
+    await fetchLeads();
+    setRefreshing(false);
   };
 
   const fetchCompanies = async () => {
@@ -168,6 +196,13 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
       );
     }
     
+    // Filter by tags if selected
+    if (filters.tags && filters.tags.length > 0) {
+      result = result.filter(lead => 
+        lead.tags && filters.tags.some((tag: string) => lead.tags?.includes(tag))
+      );
+    }
+    
     setFilteredLeads(result);
   };
 
@@ -202,6 +237,35 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
     }
     
     toast.success('Lead updated');
+  };
+
+  const updateLeadTags = async (lead: Lead, tags: string[]) => {
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .update({ tags: tags })
+        .eq('id', lead.id);
+      
+      if (error) throw error;
+      
+      // Update the leads state
+      setLeads(leads.map(l => 
+        l.id === lead.id ? { ...l, tags } : l
+      ));
+      
+      // Update the all tags collection
+      const uniqueTags = Array.from(
+        new Set([
+          ...allTags,
+          ...tags
+        ])
+      );
+      setAllTags(uniqueTags);
+      
+      toast.success('Tags updated');
+    } catch (error: any) {
+      toast.error(`Error updating tags: ${error.message}`);
+    }
   };
 
   const deleteLead = async (id: string) => {
@@ -247,11 +311,23 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
 
   return (
     <div className="space-y-4">
-      <FilterPanel 
-        filterOptions={filterOptions} 
-        onFilterChange={setFilters} 
-        className="mb-4"
-      />
+      <div className="flex justify-between items-center">
+        <FilterPanel 
+          filterOptions={filterOptions} 
+          onFilterChange={setFilters}
+        />
+        
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={refreshLeadsData}
+          disabled={refreshing}
+          className="h-8"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
+          {refreshing ? 'Aggiornamento...' : 'Aggiorna'}
+        </Button>
+      </div>
       
       <div className="rounded-md border bg-card text-card-foreground shadow">
         <div className="overflow-x-auto">
@@ -300,6 +376,16 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
                         {lead.job_title && (
                           <div className="text-sm text-muted-foreground">
                             {lead.job_title}
+                          </div>
+                        )}
+                        {lead.tags && lead.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {lead.tags.map(tag => (
+                              <Badge key={tag} variant="outline" className="text-xs px-1 py-0">
+                                <TagIcon className="h-2 w-2 mr-1" />
+                                {tag}
+                              </Badge>
+                            ))}
                           </div>
                         )}
                       </TableCell>
@@ -489,6 +575,14 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
                                         column="last_contact_date"
                                         onUpdate={updateLeadField}
                                         type="date"
+                                      />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                      <p className="text-sm font-medium">Tags</p>
+                                      <TagInput 
+                                        tags={lead.tags || []} 
+                                        onChange={(tags) => updateLeadTags(lead, tags)}
+                                        placeholder="Aggiungi tag..."
                                       />
                                     </div>
                                   </div>

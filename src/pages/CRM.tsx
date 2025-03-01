@@ -17,6 +17,7 @@ const CRM = () => {
   const [activeTab, setActiveTab] = useState('leads');
   const [isLeadFormOpen, setIsLeadFormOpen] = useState(false);
   const [isCompanyFormOpen, setIsCompanyFormOpen] = useState(false);
+  const [isSalesNavigatorOpen, setIsSalesNavigatorOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | undefined>(undefined);
   const [selectedCompany, setSelectedCompany] = useState<Company | undefined>(undefined);
   // Add refresh counters to trigger table updates
@@ -96,22 +97,13 @@ const CRM = () => {
                   </TabsTrigger>
                 </TabsList>
                 
-                <div className="flex gap-2">
-                  {activeTab === 'leads' ? (
-                    <>
-                      <Button onClick={handleAddLead} className="flex items-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        Aggiungi Lead
-                      </Button>
-                      <SalesNavigatorImport onLeadsImported={refreshLeads} />
-                    </>
-                  ) : (
-                    <Button onClick={handleAddCompany} className="flex items-center gap-2">
-                      <Plus className="h-4 w-4" />
-                      Aggiungi Azienda
-                    </Button>
-                  )}
-                </div>
+                <Button 
+                  onClick={activeTab === 'leads' ? handleAddLead : handleAddCompany} 
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  {activeTab === 'leads' ? 'Aggiungi Lead' : 'Aggiungi Azienda'}
+                </Button>
               </div>
               
               <TabsContent value="leads" className="animate-fadeIn">
@@ -122,6 +114,7 @@ const CRM = () => {
                   lead={selectedLead} 
                   onLeadAdded={refreshLeads} 
                 />
+                <SalesNavigatorImport onLeadsImported={refreshLeads} />
               </TabsContent>
               
               <TabsContent value="companies" className="animate-fadeIn">

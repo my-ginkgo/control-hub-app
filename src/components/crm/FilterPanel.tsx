@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { CalendarIcon, FilterIcon, X } from 'lucide-react';
+import { CalendarIcon, FilterIcon, X, Tag as TagIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -16,10 +16,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 export interface FilterOption {
   id: string;
   label: string;
-  type: 'select' | 'date' | 'text' | 'number';
+  type: 'select' | 'date' | 'text' | 'number' | 'tag';
   options?: string[];
   min?: number;
   max?: number;
+  tagOptions?: string[];
 }
 
 export interface Filters {
@@ -74,6 +75,17 @@ export const FilterPanel = ({ filterOptions, onFilterChange, className }: Filter
     delete newFilters[id];
     setActiveFilters(newFilters);
     onFilterChange(newFilters);
+  };
+  
+  const handleTagClick = (id: string, tag: string) => {
+    const currentTags = tempFilters[id] || [];
+    
+    // If tag already exists, remove it, otherwise add it
+    if (currentTags.includes(tag)) {
+      updateTempFilter(id, currentTags.filter((t: string) => t !== tag));
+    } else {
+      updateTempFilter(id, [...currentTags, tag]);
+    }
   };
   
   return (
@@ -177,6 +189,22 @@ export const FilterPanel = ({ filterOptions, onFilterChange, className }: Filter
                       />
                     </div>
                   )}
+                  
+                  {option.type === 'tag' && option.tagOptions && (
+                    <div className="flex flex-wrap gap-2">
+                      {option.tagOptions.map(tag => (
+                        <Badge 
+                          key={tag} 
+                          variant={tempFilters[option.id]?.includes(tag) ? "default" : "outline"}
+                          className="cursor-pointer px-2 py-1"
+                          onClick={() => handleTagClick(option.id, tag)}
+                        >
+                          <TagIcon className="mr-1 h-3 w-3" />
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -202,6 +230,33 @@ export const FilterPanel = ({ filterOptions, onFilterChange, className }: Filter
         if (displayValue === "_all") displayValue = "Tutti";
         if (option.type === 'date' && displayValue instanceof Date) {
           displayValue = format(displayValue, 'dd/MM/yyyy');
+        }
+        
+        // Handle tag array display
+        if (option.type === 'tag' && Array.isArray(displayValue)) {
+          return displayValue.map(tag => (
+            <Badge key={`${key}-${tag}`} variant="outline" className="flex items-center gap-1 py-1">
+              <TagIcon className="h-3 w-3" />
+              <span className="font-medium">{option.label}:</span> {tag}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-4 w-4 p-0 ml-1"
+                onClick={() => {
+                  const updatedTags = activeFilters[key].filter((t: string) => t !== tag);
+                  if (updatedTags.length === 0) {
+                    removeFilter(key);
+                  } else {
+                    const newFilters = {...activeFilters, [key]: updatedTags};
+                    setActiveFilters(newFilters);
+                    onFilterChange(newFilters);
+                  }
+                }}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          ));
         }
         
         return (

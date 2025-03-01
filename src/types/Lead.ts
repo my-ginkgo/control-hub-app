@@ -19,6 +19,7 @@ export interface Lead {
   decision_timeline?: string; // Added decision timeline
   communication_preference?: 'email' | 'phone' | 'in-person' | 'video'; // Added communication preference
   lead_score?: number; // Added lead scoring (1-100)
+  tags?: string[]; // Added tags for better organization
   user_id?: string;
   created_at?: string;
 }
