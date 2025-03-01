@@ -27,7 +27,7 @@ export function DeleteProjectDialog({
   onConfirmDelete,
 }: DeleteProjectDialogProps) {
   const [confirmationText, setConfirmationText] = useState("");
-  const confirmationWord = "elimina"; // The word user needs to type
+  const confirmationWord = "conferma"; // The word user needs to type
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

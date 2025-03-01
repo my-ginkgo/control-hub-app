@@ -162,7 +162,7 @@ export default function Projects() {
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {projects.map((project) => (
-                      <Link key={project.id} to={`/project/${project.id}`}>
+                      <Link key={project.id} to={`/administration/project/${project.id}`}>
                         <Card className="bg-[#1a1b26] border-[#2a2b3d] text-white hover:bg-[#22232e] transition-colors cursor-pointer h-full">
                           <CardHeader>
                             <CardTitle className="flex items-center text-red-600">
