@@ -74,7 +74,7 @@ const CRM = () => {
             <div className="mb-6">
               <h1 className="text-3xl font-bold mb-2">CRM Dashboard</h1>
               <p className="text-muted-foreground">
-                Manage your leads and company relationships
+                Gestisci i tuoi lead e le relazioni con le aziende
               </p>
             </div>
             
@@ -88,11 +88,11 @@ const CRM = () => {
                 <TabsList className="grid w-full sm:w-[400px] grid-cols-2">
                   <TabsTrigger value="leads" className="flex items-center gap-2">
                     <Users className="h-4 w-4" />
-                    Leads
+                    Lead
                   </TabsTrigger>
                   <TabsTrigger value="companies" className="flex items-center gap-2">
                     <Building className="h-4 w-4" />
-                    Companies
+                    Aziende
                   </TabsTrigger>
                 </TabsList>
                 
@@ -101,14 +101,14 @@ const CRM = () => {
                     <>
                       <Button onClick={handleAddLead} className="flex items-center gap-2">
                         <Plus className="h-4 w-4" />
-                        Add Lead
+                        Aggiungi Lead
                       </Button>
                       <SalesNavigatorImport onLeadsImported={refreshLeads} />
                     </>
                   ) : (
                     <Button onClick={handleAddCompany} className="flex items-center gap-2">
                       <Plus className="h-4 w-4" />
-                      Add Company
+                      Aggiungi Azienda
                     </Button>
                   )}
                 </div>
