@@ -22,7 +22,6 @@ interface MainLayoutProps {
 export function MainLayout({ children, onNewClient, onNewProject, onNewTimeEntry }: MainLayoutProps) {
   const { theme, setTheme } = useTheme();
   const location = useLocation();
-  const isTrackingPage = location.pathname === "/" || location.pathname === "/tracking" || location.pathname.startsWith("/project/");
   const isCrmPage = location.pathname === "/crm";
 
   return (
@@ -50,12 +49,6 @@ export function MainLayout({ children, onNewClient, onNewProject, onNewTimeEntry
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-popover border-border">
-                <DropdownMenuItem asChild className="text-popover-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer">
-                  <Link to="/">
-                    <Clock className="h-4 w-4 mr-2" />
-                    Time Tracking
-                  </Link>
-                </DropdownMenuItem>
                 <DropdownMenuItem asChild className="text-popover-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer">
                   <Link to="/administration">
                     <Settings className="h-4 w-4 mr-2" />
@@ -85,34 +78,6 @@ export function MainLayout({ children, onNewClient, onNewProject, onNewTimeEntry
           </div>
         </div>
         <div className="flex items-center gap-4">
-          {isTrackingPage && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Crea
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-popover border-border">
-                <DropdownMenuItem
-                  className="text-popover-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer"
-                  onClick={onNewClient}>
-                  Crea Cliente
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-popover-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer"
-                  onClick={onNewProject}>
-                  Crea Progetto
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-popover-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer"
-                  onClick={onNewTimeEntry}>
-                  Registra Lavoro
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-          
           {isCrmPage && (
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => {}}>
               <Plus className="h-4 w-4 mr-2" />

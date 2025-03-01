@@ -69,8 +69,8 @@ const Dashboard = () => {
   };
 
   const handleAddTimeEntry = () => {
-    // Redirect to time tracking page
-    window.location.href = "/tracking";
+    // Redirect to administration page
+    window.location.href = "/administration";
   };
 
   return (
@@ -111,26 +111,26 @@ const Dashboard = () => {
               )}
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Time Tracking Module Card */}
+                {/* Administration Module Card */}
                 <Card className="overflow-hidden border-0 bg-[#1E1E1E] hover:bg-[#333333] transition-all group">
                   <CardHeader className="relative z-10 border-b border-gray-800">
                     <CardTitle className="flex items-center gap-2 text-red-600">
                       <Clock className="h-5 w-5 text-red-600" />
-                      Time Tracking
+                      Amministrazione
                     </CardTitle>
                     <CardDescription className="text-gray-400">
-                      Traccia il tempo per i tuoi progetti, analizza la produttività e gestisci il lavoro dei clienti.
+                      Gestisci progetti, clienti e traccia il tempo per le tue attività
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-6 text-gray-300">
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-red-600"></div>
-                        <span>Registra ore fatturabili e non</span>
+                        <span>Gestisci progetti e clienti</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-red-600"></div>
-                        <span>Assegna ore a progetti specifici</span>
+                        <span>Registra ore su progetti specifici</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-red-600"></div>
@@ -140,8 +140,8 @@ const Dashboard = () => {
                   </CardContent>
                   <CardFooter>
                     <Button asChild className="w-full bg-red-600 hover:bg-red-700 group-hover:shadow-lg transition-all duration-300">
-                      <Link to="/tracking" className="flex items-center justify-center gap-2">
-                        Vai al Time Tracking
+                      <Link to="/administration" className="flex items-center justify-center gap-2">
+                        Vai all'Amministrazione
                         <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                       </Link>
                     </Button>
@@ -186,9 +186,9 @@ const Dashboard = () => {
                 </Card>
               </div>
 
-              {/* Administration Section */}
+              {/* Administration Quick Links */}
               <div className="mt-8">
-                <h2 className="text-xl font-bold text-white mb-4">Amministrazione</h2>
+                <h2 className="text-xl font-bold text-white mb-4">Accesso Rapido</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Projects Card */}
                   <Card className="overflow-hidden border-0 bg-[#1E1E1E] hover:bg-[#333333] transition-all group">
@@ -226,27 +226,6 @@ const Dashboard = () => {
                       <Button asChild variant="ghost" size="sm" className="w-full text-red-500 hover:text-red-400 hover:bg-transparent p-0">
                         <Link to="/administration/clients" className="flex items-center justify-center gap-1">
                           Visualizza Clienti
-                          <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                  
-                  {/* Calendar Card */}
-                  <Card className="overflow-hidden border-0 bg-[#1E1E1E] hover:bg-[#333333] transition-all group">
-                    <CardHeader className="relative z-10 border-b border-gray-800 pb-3">
-                      <CardTitle className="flex items-center gap-2 text-red-600 text-lg">
-                        <Calendar className="h-4 w-4 text-red-600" />
-                        Calendario
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4 pb-3 text-gray-300 text-sm">
-                      <p>Pianifica e visualizza le attività</p>
-                    </CardContent>
-                    <CardFooter className="pt-0">
-                      <Button asChild variant="ghost" size="sm" className="w-full text-red-500 hover:text-red-400 hover:bg-transparent p-0">
-                        <Link to="/calendar" className="flex items-center justify-center gap-1">
-                          Vai al Calendario
                           <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                         </Link>
                       </Button>
