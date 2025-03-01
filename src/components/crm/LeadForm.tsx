@@ -26,7 +26,9 @@ const STATUS_OPTIONS = [
   'negotiation',
   'closed-won',
   'closed-lost'
-];
+] as const;
+
+type LeadStatus = typeof STATUS_OPTIONS[number];
 
 const SOURCE_OPTIONS = [
   'website',
@@ -44,7 +46,7 @@ export const LeadForm = ({ open, onOpenChange, lead, onLeadAdded }: LeadFormProp
   const [email, setEmail] = useState(lead?.email || '');
   const [phone, setPhone] = useState(lead?.phone || '');
   const [jobTitle, setJobTitle] = useState(lead?.job_title || '');
-  const [status, setStatus] = useState(lead?.status || 'new');
+  const [status, setStatus] = useState<LeadStatus>(lead?.status as LeadStatus || 'new');
   const [source, setSource] = useState(lead?.source || '');
   const [notes, setNotes] = useState(lead?.notes || '');
   const [companyId, setCompanyId] = useState(lead?.company_id || '');
@@ -77,6 +79,9 @@ export const LeadForm = ({ open, onOpenChange, lead, onLeadAdded }: LeadFormProp
     setIsLoading(true);
 
     try {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+
       const formData = {
         first_name: firstName,
         last_name: lastName,
@@ -87,7 +92,8 @@ export const LeadForm = ({ open, onOpenChange, lead, onLeadAdded }: LeadFormProp
         source,
         notes,
         company_id: companyId || null,
-        last_contact_date: lastContactDate || null
+        last_contact_date: lastContactDate || null,
+        user_id: userData.user.id
       };
 
       if (lead?.id) {
@@ -103,7 +109,7 @@ export const LeadForm = ({ open, onOpenChange, lead, onLeadAdded }: LeadFormProp
         // Add new lead
         const { error } = await supabase
           .from('leads')
-          .insert([formData]);
+          .insert(formData);
 
         if (error) throw error;
         toast.success('Lead added successfully');
@@ -196,7 +202,10 @@ export const LeadForm = ({ open, onOpenChange, lead, onLeadAdded }: LeadFormProp
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select value={status} onValueChange={setStatus}>
+              <Select 
+                value={status} 
+                onValueChange={(value: LeadStatus) => setStatus(value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>

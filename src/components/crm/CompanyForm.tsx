@@ -36,6 +36,9 @@ export const CompanyForm = ({ open, onOpenChange, company, onCompanyAdded }: Com
     setIsLoading(true);
 
     try {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+
       const formData = {
         name,
         description,
@@ -49,6 +52,7 @@ export const CompanyForm = ({ open, onOpenChange, company, onCompanyAdded }: Com
         country,
         phone,
         email,
+        user_id: userData.user.id
       };
 
       if (company?.id) {
@@ -64,7 +68,7 @@ export const CompanyForm = ({ open, onOpenChange, company, onCompanyAdded }: Com
         // Add new company
         const { error } = await supabase
           .from('companies')
-          .insert([formData]);
+          .insert(formData);
 
         if (error) throw error;
         toast.success('Company added successfully');

@@ -35,9 +35,11 @@ export const LeadsTable = () => {
       
       if (error) throw error;
       
-      const formattedLeads = data?.map(lead => ({
+      // Properly transform the data to match our Lead type
+      const formattedLeads: Lead[] = data?.map(lead => ({
         ...lead,
-        company_name: lead.companies?.name
+        company_name: lead.companies?.name,
+        status: (lead.status as Lead['status']) || 'new'
       })) || [];
       
       setLeads(formattedLeads);
