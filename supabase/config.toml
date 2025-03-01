@@ -1,1 +1,5 @@
+
 project_id = "gganwremavfeuxndtueu"
+
+[functions.salesNavigatorImport]
+verify_jwt = false

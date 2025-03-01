@@ -5,6 +5,7 @@ import { CompaniesTable } from '@/components/crm/CompaniesTable';
 import { LeadsTable } from '@/components/crm/LeadsTable';
 import { LeadForm } from '@/components/crm/LeadForm';
 import { CompanyForm } from '@/components/crm/CompanyForm';
+import { SalesNavigatorImport } from '@/components/crm/SalesNavigatorImport';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -95,17 +96,22 @@ const CRM = () => {
                   </TabsTrigger>
                 </TabsList>
                 
-                {activeTab === 'leads' ? (
-                  <Button onClick={handleAddLead} className="flex items-center gap-2">
-                    <Plus className="h-4 w-4" />
-                    Add Lead
-                  </Button>
-                ) : (
-                  <Button onClick={handleAddCompany} className="flex items-center gap-2">
-                    <Plus className="h-4 w-4" />
-                    Add Company
-                  </Button>
-                )}
+                <div className="flex gap-2">
+                  {activeTab === 'leads' ? (
+                    <>
+                      <Button onClick={handleAddLead} className="flex items-center gap-2">
+                        <Plus className="h-4 w-4" />
+                        Add Lead
+                      </Button>
+                      <SalesNavigatorImport onLeadsImported={refreshLeads} />
+                    </>
+                  ) : (
+                    <Button onClick={handleAddCompany} className="flex items-center gap-2">
+                      <Plus className="h-4 w-4" />
+                      Add Company
+                    </Button>
+                  )}
+                </div>
               </div>
               
               <TabsContent value="leads" className="animate-fadeIn">
