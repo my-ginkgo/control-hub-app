@@ -38,12 +38,14 @@ export function TimeEntryContainer({
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(false);
 
+  // Set selectedProject when prop changes
   useEffect(() => {
     if (selectedProject?.name) {
       setSelectedProject(selectedProject.name);
     }
   }, [selectedProject]);
 
+  // Reset form fields to initial state
   const resetForm = () => {
     if (selectedProject?.name) {
       setSelectedProject(selectedProject.name);
@@ -53,11 +55,18 @@ export function TimeEntryContainer({
     setHours("1");
     setBillableHours("1");
     setNotes("");
-    setAssignedUser("");
+    setAssignedUser(session?.user?.id || "");
     setIsBillable(true);
     setStartDate(new Date());
     setEndDate(new Date());
   };
+
+  // Initialize assignedUser with current user ID on component mount
+  useEffect(() => {
+    if (session?.user?.id && !assignedUser) {
+      setAssignedUser(session.user.id);
+    }
+  }, [session, assignedUser]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +111,7 @@ export function TimeEntryContainer({
   };
 
   return (
-    <div>
+    <div className="w-full">
       {/* Recent Time Entries */}
       <RecentTimeEntries 
         timeEntries={timeEntries}
@@ -111,7 +120,7 @@ export function TimeEntryContainer({
 
       {/* Time Entry Dialog */}
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="bg-[#1a1b26] border-[#2a2b3d]">
+        <DialogContent className="bg-[#1a1b26] border-[#2a2b3d] max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white">Add Time Entry</DialogTitle>
           </DialogHeader>

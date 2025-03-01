@@ -46,6 +46,13 @@ export function UserSelect({
     fetchUsers();
   }, []);
 
+  // Initialize selectedUserId with current user if not set
+  useEffect(() => {
+    if (!selectedUserId && session?.user?.id) {
+      onUserChange(session.user.id);
+    }
+  }, [selectedUserId, session, onUserChange]);
+
   const filteredUsers = users.filter((user) =>
     user.email.toLowerCase().includes(userSearch.toLowerCase())
   );
@@ -66,7 +73,7 @@ export function UserSelect({
             className={cn("w-full justify-between text-left font-normal bg-[#1a1b26] border-[#383a5c] text-white hover:bg-[#2a2b3d] h-10", className)}
           >
             {selectedUserId
-              ? users.find((u) => u.id === selectedUserId)?.email
+              ? users.find((u) => u.id === selectedUserId)?.email || "Me"
               : "Seleziona un utente..."}
           </Button>
         </PopoverTrigger>
