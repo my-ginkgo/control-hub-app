@@ -1,29 +1,27 @@
 
 import { useState, useEffect } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { EditableCell } from '@/components/crm/EditableCell';
 import { Company } from '@/types/Company';
 import { supabase } from '@/integrations/supabase/client';
+import { EditableCell } from './EditableCell';
 import { toast } from 'sonner';
-import { CompanyForm } from '@/components/crm/CompanyForm';
-import { Trash2, Plus, Search, Building } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Building, Trash } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-export const CompaniesTable = () => {
+interface CompaniesTableProps {
+  onEdit: (company: Company) => void;
+}
+
+export const CompaniesTable = ({ onEdit }: CompaniesTableProps) => {
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingCompany, setEditingCompany] = useState<Company | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchCompanies();
   }, []);
 
   const fetchCompanies = async () => {
-    setIsLoading(true);
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('companies')
         .select('*')
@@ -32,44 +30,47 @@ export const CompaniesTable = () => {
       if (error) throw error;
       setCompanies(data || []);
     } catch (error: any) {
-      toast.error(`Error fetching companies: ${error.message}`);
+      toast.error(`Error loading companies: ${error.message}`);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const updateCompanyCell = async (company: Company, column: string, value: any) => {
+  const updateCompanyField = async (company: Company, field: string, value: any) => {
     try {
       const { error } = await supabase
         .from('companies')
-        .update({ [column]: value })
+        .update({ [field]: value })
         .eq('id', company.id);
       
       if (error) throw error;
       
-      setCompanies(prev => 
-        prev.map(c => c.id === company.id ? { ...c, [column]: value } : c)
-      );
+      setCompanies(companies.map(c => 
+        c.id === company.id ? { ...c, [field]: value } : c
+      ));
+      toast.success('Company updated');
     } catch (error: any) {
-      toast.error(`Failed to update: ${error.message}`);
+      toast.error(`Error updating company: ${error.message}`);
     }
   };
 
   const deleteCompany = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this company? This will remove all associated leads.')) {
-      return;
-    }
+    if (!confirm('Are you sure you want to delete this company?')) return;
     
     try {
-      // First, update leads to remove reference to this company
-      const { error: leadsError } = await supabase
+      // First check if there are any leads associated with this company
+      const { data: leadData, error: leadError } = await supabase
         .from('leads')
-        .update({ company_id: null })
-        .eq('company_id', id);
+        .select('id')
+        .eq('company_id', id)
+        .limit(1);
       
-      if (leadsError) throw leadsError;
+      if (leadError) throw leadError;
       
-      // Then delete the company
+      if (leadData && leadData.length > 0) {
+        return toast.error('Cannot delete company with associated leads. Please remove leads first.');
+      }
+      
       const { error } = await supabase
         .from('companies')
         .delete()
@@ -77,150 +78,126 @@ export const CompaniesTable = () => {
       
       if (error) throw error;
       
-      setCompanies(prev => prev.filter(c => c.id !== id));
-      toast.success('Company deleted successfully');
+      setCompanies(companies.filter(c => c.id !== id));
+      toast.success('Company deleted');
     } catch (error: any) {
-      toast.error(`Failed to delete: ${error.message}`);
+      toast.error(`Error deleting company: ${error.message}`);
     }
   };
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const filteredCompanies = companies.filter(company => 
-    company.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    company.industry?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    company.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    company.country?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleEditCompany = (company: Company) => {
-    setEditingCompany(company);
-    setShowAddForm(true);
-  };
+  if (loading) {
+    return <div className="text-center py-4">Loading companies...</div>;
+  }
 
   return (
-    <div className="glass p-4 space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <Building className="h-6 w-6" />
-          Companies
-        </h2>
-        <Button onClick={() => { setEditingCompany(undefined); setShowAddForm(true); }}>
-          <Plus className="h-4 w-4 mr-2" /> Add Company
-        </Button>
-      </div>
-      
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search companies..."
-          className="pl-10"
-          value={searchTerm}
-          onChange={handleSearch}
-        />
-      </div>
-      
-      <div className="rounded-md border overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[250px]">Name</TableHead>
-              <TableHead>Industry</TableHead>
-              <TableHead>Employees</TableHead>
-              <TableHead>Website</TableHead>
-              <TableHead>City</TableHead>
-              <TableHead>Country</TableHead>
-              <TableHead className="w-[100px] text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">Loading companies...</TableCell>
-              </TableRow>
-            ) : filteredCompanies.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">
-                  {searchTerm ? 'No companies match your search' : 'No companies found. Add your first company!'}
-                </TableCell>
-              </TableRow>
+    <div className="rounded-md border bg-card text-card-foreground shadow">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="border-b bg-muted/50">
+              <th className="px-4 py-3 text-left font-medium">Name</th>
+              <th className="px-4 py-3 text-left font-medium">Industry</th>
+              <th className="px-4 py-3 text-left font-medium">Phone</th>
+              <th className="px-4 py-3 text-left font-medium">Email</th>
+              <th className="px-4 py-3 text-left font-medium">Website</th>
+              <th className="px-4 py-3 text-left font-medium">City</th>
+              <th className="px-4 py-3 text-left font-medium">Country</th>
+              <th className="px-4 py-3 text-right font-medium w-24">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {companies.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">
+                  No companies found. Add your first company to get started.
+                </td>
+              </tr>
             ) : (
-              filteredCompanies.map(company => (
-                <TableRow key={company.id}>
-                  <TableCell className="font-medium">
-                    <div 
-                      className="cursor-pointer hover:underline" 
-                      onClick={() => handleEditCompany(company)}
-                    >
-                      {company.name}
-                    </div>
-                  </TableCell>
-                  <TableCell>
+              companies.map((company) => (
+                <tr key={company.id} className="border-b hover:bg-muted/50">
+                  <td className="px-4 py-2">
+                    <EditableCell
+                      value={company.name}
+                      row={company}
+                      column="name"
+                      onUpdate={updateCompanyField}
+                    />
+                  </td>
+                  <td className="px-4 py-2">
                     <EditableCell
                       value={company.industry || ''}
                       row={company}
                       column="industry"
-                      onUpdate={updateCompanyCell}
+                      onUpdate={updateCompanyField}
                     />
-                  </TableCell>
-                  <TableCell>
+                  </td>
+                  <td className="px-4 py-2">
                     <EditableCell
-                      value={company.employee_count?.toString() || ''}
+                      value={company.phone || ''}
                       row={company}
-                      column="employee_count"
-                      type="number"
-                      onUpdate={updateCompanyCell}
+                      column="phone"
+                      onUpdate={updateCompanyField}
                     />
-                  </TableCell>
-                  <TableCell>
+                  </td>
+                  <td className="px-4 py-2">
+                    <EditableCell
+                      value={company.email || ''}
+                      row={company}
+                      column="email"
+                      onUpdate={updateCompanyField}
+                      type="text"
+                    />
+                  </td>
+                  <td className="px-4 py-2">
                     <EditableCell
                       value={company.website || ''}
                       row={company}
                       column="website"
-                      onUpdate={updateCompanyCell}
+                      onUpdate={updateCompanyField}
                     />
-                  </TableCell>
-                  <TableCell>
+                  </td>
+                  <td className="px-4 py-2">
                     <EditableCell
                       value={company.city || ''}
                       row={company}
                       column="city"
-                      onUpdate={updateCompanyCell}
+                      onUpdate={updateCompanyField}
                     />
-                  </TableCell>
-                  <TableCell>
+                  </td>
+                  <td className="px-4 py-2">
                     <EditableCell
                       value={company.country || ''}
                       row={company}
                       column="country"
-                      onUpdate={updateCompanyCell}
+                      onUpdate={updateCompanyField}
                     />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteCompany(company.id)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                  </td>
+                  <td className="px-4 py-2 text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => onEdit(company)} 
+                        title="Edit company"
+                      >
+                        <Building className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => deleteCompany(company.id)} 
+                        title="Delete company"
+                      >
+                        <Trash className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
               ))
             )}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
-      
-      <CompanyForm 
-        open={showAddForm} 
-        onOpenChange={setShowAddForm}
-        company={editingCompany}
-        onCompanyAdded={fetchCompanies}
-      />
     </div>
   );
 };

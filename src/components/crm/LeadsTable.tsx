@@ -1,24 +1,21 @@
 
 import { useState, useEffect } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { EditableCell } from '@/components/crm/EditableCell';
 import { Lead } from '@/types/Lead';
 import { Company } from '@/types/Company';
 import { supabase } from '@/integrations/supabase/client';
+import { EditableCell } from './EditableCell';
 import { toast } from 'sonner';
-import { LeadForm } from '@/components/crm/LeadForm';
-import { Trash2, Plus, Search, User } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { Trash, UserRound } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-export const LeadsTable = () => {
+interface LeadsTableProps {
+  onEdit: (lead: Lead) => void;
+}
+
+export const LeadsTable = ({ onEdit }: LeadsTableProps) => {
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [companies, setCompanies] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingLead, setEditingLead] = useState<Lead | undefined>(undefined);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchLeads();
@@ -26,27 +23,32 @@ export const LeadsTable = () => {
   }, []);
 
   const fetchLeads = async () => {
-    setIsLoading(true);
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('leads')
-        .select('*, companies(name)')
+        .select(`
+          *,
+          companies (
+            id,
+            name
+          )
+        `)
         .order('last_name');
       
       if (error) throw error;
       
-      // Properly transform the data to match our Lead type
-      const formattedLeads: Lead[] = data?.map(lead => ({
+      // Transform data to include company_name
+      const transformedLeads = data?.map(lead => ({
         ...lead,
-        company_name: lead.companies?.name,
-        status: (lead.status as Lead['status']) || 'new'
+        company_name: lead.companies?.name || null
       })) || [];
       
-      setLeads(formattedLeads);
+      setLeads(transformedLeads);
     } catch (error: any) {
-      toast.error(`Error fetching leads: ${error.message}`);
+      toast.error(`Error loading leads: ${error.message}`);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -54,42 +56,56 @@ export const LeadsTable = () => {
     try {
       const { data, error } = await supabase
         .from('companies')
-        .select('id, name');
+        .select('id, name')
+        .order('name');
       
       if (error) throw error;
-      
-      const companyMap: Record<string, string> = {};
-      data?.forEach(company => {
-        companyMap[company.id] = company.name;
-      });
-      
-      setCompanies(companyMap);
+      setCompanies(data || []);
     } catch (error: any) {
-      toast.error(`Error fetching companies: ${error.message}`);
+      toast.error(`Error loading companies: ${error.message}`);
     }
   };
 
-  const updateLeadCell = async (lead: Lead, column: string, value: any) => {
+  const updateLeadField = async (lead: Lead, field: string, value: any) => {
     try {
-      const { error } = await supabase
-        .from('leads')
-        .update({ [column]: value })
-        .eq('id', lead.id);
+      // If updating company, we need to use company_id
+      if (field === 'company_name') {
+        const companyId = value ? companies.find(c => c.name === value)?.id : null;
+        if (value && !companyId) {
+          return toast.error('Invalid company selected');
+        }
+        
+        const { error } = await supabase
+          .from('leads')
+          .update({ company_id: companyId })
+          .eq('id', lead.id);
+        
+        if (error) throw error;
+        
+        setLeads(leads.map(l => 
+          l.id === lead.id ? { ...l, company_id: companyId, company_name: value } : l
+        ));
+      } else {
+        const { error } = await supabase
+          .from('leads')
+          .update({ [field]: value })
+          .eq('id', lead.id);
+        
+        if (error) throw error;
+        
+        setLeads(leads.map(l => 
+          l.id === lead.id ? { ...l, [field]: value } : l
+        ));
+      }
       
-      if (error) throw error;
-      
-      setLeads(prev => 
-        prev.map(l => l.id === lead.id ? { ...l, [column]: value } : l)
-      );
+      toast.success('Lead updated');
     } catch (error: any) {
-      toast.error(`Failed to update: ${error.message}`);
+      toast.error(`Error updating lead: ${error.message}`);
     }
   };
 
   const deleteLead = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this lead?')) {
-      return;
-    }
+    if (!confirm('Are you sure you want to delete this lead?')) return;
     
     try {
       const { error } = await supabase
@@ -99,154 +115,131 @@ export const LeadsTable = () => {
       
       if (error) throw error;
       
-      setLeads(prev => prev.filter(l => l.id !== id));
-      toast.success('Lead deleted successfully');
+      setLeads(leads.filter(l => l.id !== id));
+      toast.success('Lead deleted');
     } catch (error: any) {
-      toast.error(`Failed to delete: ${error.message}`);
+      toast.error(`Error deleting lead: ${error.message}`);
     }
   };
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
+  if (loading) {
+    return <div className="text-center py-4">Loading leads...</div>;
+  }
 
-  const filteredLeads = leads.filter(lead => 
-    `${lead.first_name} ${lead.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.status?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleEditLead = (lead: Lead) => {
-    setEditingLead(lead);
-    setShowAddForm(true);
-  };
-
-  const getStatusBadge = (status: string) => {
-    const statusColors: Record<string, string> = {
-      'new': 'bg-blue-500',
-      'contacted': 'bg-purple-500',
-      'qualified': 'bg-yellow-500',
-      'proposal': 'bg-orange-500',
-      'negotiation': 'bg-indigo-500',
-      'closed-won': 'bg-green-500',
-      'closed-lost': 'bg-red-500'
-    };
-    
-    return (
-      <Badge className={`${statusColors[status] || 'bg-gray-500'}`}>
-        {status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}
-      </Badge>
-    );
-  };
+  const statusOptions = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'closed-won', 'closed-lost'];
+  const sourceOptions = ['website', 'referral', 'social media', 'event', 'cold call', 'email campaign', 'other'];
+  const companyOptions = companies.map(c => c.name);
 
   return (
-    <div className="glass p-4 space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <User className="h-6 w-6" />
-          Leads
-        </h2>
-        <Button onClick={() => { setEditingLead(undefined); setShowAddForm(true); }}>
-          <Plus className="h-4 w-4 mr-2" /> Add Lead
-        </Button>
-      </div>
-      
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search leads..."
-          className="pl-10"
-          value={searchTerm}
-          onChange={handleSearch}
-        />
-      </div>
-      
-      <div className="rounded-md border overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[200px]">Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Contact</TableHead>
-              <TableHead className="w-[100px] text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">Loading leads...</TableCell>
-              </TableRow>
-            ) : filteredLeads.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">
-                  {searchTerm ? 'No leads match your search' : 'No leads found. Add your first lead!'}
-                </TableCell>
-              </TableRow>
+    <div className="rounded-md border bg-card text-card-foreground shadow">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="border-b bg-muted/50">
+              <th className="px-4 py-3 text-left font-medium">Name</th>
+              <th className="px-4 py-3 text-left font-medium">Email</th>
+              <th className="px-4 py-3 text-left font-medium">Phone</th>
+              <th className="px-4 py-3 text-left font-medium">Status</th>
+              <th className="px-4 py-3 text-left font-medium">Company</th>
+              <th className="px-4 py-3 text-left font-medium">Source</th>
+              <th className="px-4 py-3 text-left font-medium">Last Contact</th>
+              <th className="px-4 py-3 text-right font-medium w-24">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {leads.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">
+                  No leads found. Add your first lead to get started.
+                </td>
+              </tr>
             ) : (
-              filteredLeads.map(lead => (
-                <TableRow key={lead.id}>
-                  <TableCell className="font-medium">
-                    <div 
-                      className="cursor-pointer hover:underline" 
-                      onClick={() => handleEditLead(lead)}
-                    >
-                      {lead.first_name} {lead.last_name}
-                    </div>
-                  </TableCell>
-                  <TableCell>
+              leads.map((lead) => (
+                <tr key={lead.id} className="border-b hover:bg-muted/50">
+                  <td className="px-4 py-2">
+                    {`${lead.first_name} ${lead.last_name}`}
+                  </td>
+                  <td className="px-4 py-2">
                     <EditableCell
                       value={lead.email || ''}
                       row={lead}
                       column="email"
-                      onUpdate={updateLeadCell}
+                      onUpdate={updateLeadField}
                     />
-                  </TableCell>
-                  <TableCell>
+                  </td>
+                  <td className="px-4 py-2">
                     <EditableCell
                       value={lead.phone || ''}
                       row={lead}
                       column="phone"
-                      onUpdate={updateLeadCell}
+                      onUpdate={updateLeadField}
                     />
-                  </TableCell>
-                  <TableCell>
-                    {lead.company_name || '-'}
-                  </TableCell>
-                  <TableCell>
-                    {lead.status && getStatusBadge(lead.status)}
-                  </TableCell>
-                  <TableCell>
-                    {lead.last_contact_date 
-                      ? new Date(lead.last_contact_date).toLocaleDateString() 
-                      : '-'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteLead(lead.id)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                  </td>
+                  <td className="px-4 py-2">
+                    <EditableCell
+                      value={lead.status || 'new'}
+                      row={lead}
+                      column="status"
+                      onUpdate={updateLeadField}
+                      type="select"
+                      options={statusOptions}
+                    />
+                  </td>
+                  <td className="px-4 py-2">
+                    <EditableCell
+                      value={lead.company_name || ''}
+                      row={lead}
+                      column="company_name"
+                      onUpdate={updateLeadField}
+                      type="select"
+                      options={companyOptions}
+                    />
+                  </td>
+                  <td className="px-4 py-2">
+                    <EditableCell
+                      value={lead.source || ''}
+                      row={lead}
+                      column="source"
+                      onUpdate={updateLeadField}
+                      type="select"
+                      options={sourceOptions}
+                    />
+                  </td>
+                  <td className="px-4 py-2">
+                    <EditableCell
+                      value={lead.last_contact_date || ''}
+                      row={lead}
+                      column="last_contact_date"
+                      onUpdate={updateLeadField}
+                      type="date"
+                    />
+                  </td>
+                  <td className="px-4 py-2 text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => onEdit(lead)} 
+                        title="Edit lead"
+                      >
+                        <UserRound className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => deleteLead(lead.id)} 
+                        title="Delete lead"
+                      >
+                        <Trash className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
               ))
             )}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
-      
-      <LeadForm 
-        open={showAddForm} 
-        onOpenChange={setShowAddForm}
-        lead={editingLead}
-        onLeadAdded={fetchLeads}
-      />
     </div>
   );
 };
