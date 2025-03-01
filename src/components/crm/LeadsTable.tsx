@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Lead } from '@/types/Lead';
 import { Company } from '@/types/Company';
@@ -113,7 +112,7 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
           decision_timeline: lead.decision_timeline || undefined,
           communication_preference: lead.communication_preference as Lead['communication_preference'] || undefined,
           lead_score: lead.lead_score || undefined,
-          tags: lead.tags || [],
+          tags: Array.isArray(lead.tags) ? lead.tags : [],
           user_id: lead.user_id,
           created_at: lead.created_at
         };
@@ -241,23 +240,25 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
 
   const updateLeadTags = async (lead: Lead, tags: string[]) => {
     try {
+      const tagsToSave = tags || [];
+      
       const { error } = await supabase
         .from('leads')
-        .update({ tags: tags })
+        .update({ tags: tagsToSave })
         .eq('id', lead.id);
       
       if (error) throw error;
       
       // Update the leads state
       setLeads(leads.map(l => 
-        l.id === lead.id ? { ...l, tags } : l
+        l.id === lead.id ? { ...l, tags: tagsToSave } : l
       ));
       
       // Update the all tags collection
       const uniqueTags = Array.from(
         new Set([
           ...allTags,
-          ...tags
+          ...tagsToSave
         ])
       );
       setAllTags(uniqueTags);
