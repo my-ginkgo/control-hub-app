@@ -16,9 +16,15 @@ import { ProjectTimeChart } from "@/components/ProjectTimeChart";
 import { TimeEntryData } from "@/components/TimeEntry";
 import { format, endOfMonth, startOfMonth } from "date-fns";
 
+interface ProjectWithClient extends Project {
+  clients?: {
+    name: string;
+  };
+}
+
 export default function Projects() {
   const { session } = useAuth();
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectWithClient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [timeEntries, setTimeEntries] = useState<TimeEntryData[]>([]);
   const [startDate] = useState<Date>(startOfMonth(new Date()));

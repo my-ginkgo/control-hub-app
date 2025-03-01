@@ -15,6 +15,7 @@ import Projects from "./pages/Projects";
 import Clients from "./pages/Clients";
 import ProjectDetail from "./pages/ProjectDetail";
 import ClientDetail from "./pages/ClientDetail";
+import Administration from "./pages/Administration";
 
 function App() {
   return (
@@ -28,10 +29,11 @@ function App() {
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/profile-setup" element={<ProfileSetup />} />
             <Route path="/crm" element={<CRM />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/clients" element={<Clients />} />
-            <Route path="/project/:id" element={<ProjectDetail />} />
-            <Route path="/client/:id" element={<ClientDetail />} />
+            <Route path="/administration" element={<Administration />} />
+            <Route path="/administration/projects" element={<Projects />} />
+            <Route path="/administration/clients" element={<Clients />} />
+            <Route path="/administration/project/:id" element={<ProjectDetail />} />
+            <Route path="/administration/client/:id" element={<ClientDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>

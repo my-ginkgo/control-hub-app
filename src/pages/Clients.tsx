@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -131,7 +130,7 @@ export default function Clients() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {clients.map((client) => (
-                    <Link key={client.id} to={`/client/${client.id}`}>
+                    <Link key={client.id} to={`/administration/client/${client.id}`}>
                       <Card className="bg-[#1a1b26] border-[#2a2b3d] text-white hover:bg-[#22232e] transition-colors cursor-pointer h-full">
                         <CardHeader>
                           <CardTitle className="flex items-center text-red-600">

@@ -36,7 +36,7 @@ export default function ClientDetail() {
     } catch (error: any) {
       console.error("Error fetching client:", error.message);
       toast.error("Errore nel caricamento del cliente");
-      navigate("/clients");
+      navigate("/administration/clients");
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +55,7 @@ export default function ClientDetail() {
   };
 
   const handleBack = () => {
-    navigate("/clients");
+    navigate("/administration/clients");
   };
 
   if (isLoading) {

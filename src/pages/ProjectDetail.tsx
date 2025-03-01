@@ -36,7 +36,7 @@ export default function ProjectDetail() {
     } catch (error: any) {
       console.error("Error fetching project:", error.message);
       toast.error("Errore nel caricamento del progetto");
-      navigate("/projects");
+      navigate("/administration/projects");
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +55,7 @@ export default function ProjectDetail() {
   };
 
   const handleBack = () => {
-    navigate("/projects");
+    navigate("/administration/projects");
   };
 
   if (isLoading) {

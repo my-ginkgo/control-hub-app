@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Moon, Plus, Sun, User, Clock, BarChart3, Home, Layers, Briefcase, Building } from "lucide-react";
+import { Moon, Plus, Sun, User, Clock, BarChart3, Home, Layers, Briefcase, Building, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { SidebarTrigger } from "../ui/sidebar";
 import { useTheme } from "../ThemeProvider";
@@ -57,13 +57,19 @@ export function MainLayout({ children, onNewClient, onNewProject, onNewTimeEntry
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="text-popover-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer">
-                  <Link to="/projects">
+                  <Link to="/administration">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Amministrazione
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="text-popover-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer">
+                  <Link to="/administration/projects">
                     <Briefcase className="h-4 w-4 mr-2" />
                     Progetti
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="text-popover-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer">
-                  <Link to="/clients">
+                  <Link to="/administration/clients">
                     <Building className="h-4 w-4 mr-2" />
                     Clienti
                   </Link>
