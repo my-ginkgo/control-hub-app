@@ -122,6 +122,7 @@ export type Database = {
           phone: string | null
           source: string | null
           status: string | null
+          tags: string[] | null
           twitter_url: string | null
           user_id: string
         }
@@ -144,6 +145,7 @@ export type Database = {
           phone?: string | null
           source?: string | null
           status?: string | null
+          tags?: string[] | null
           twitter_url?: string | null
           user_id: string
         }
@@ -166,6 +168,7 @@ export type Database = {
           phone?: string | null
           source?: string | null
           status?: string | null
+          tags?: string[] | null
           twitter_url?: string | null
           user_id?: string
         }
