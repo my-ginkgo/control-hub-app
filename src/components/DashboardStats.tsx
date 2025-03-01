@@ -45,17 +45,17 @@ export function DashboardStats({ entries }: { entries: TimeEntryData[] }) {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 animate-fadeIn">
-        <Card className="p-6">
-          <h3 className="text-sm font-medium text-muted-foreground mb-2">Ore Totali</h3>
-          <p className="text-2xl font-bold">{totalHours.toFixed(1)}h</p>
+        <Card className="p-6 bg-[#1E1E1E] border-0 text-white">
+          <h3 className="text-sm font-medium text-gray-400 mb-2">Ore Totali</h3>
+          <p className="text-2xl font-bold text-red-600">{totalHours.toFixed(1)}h</p>
         </Card>
-        <Card className="p-6">
-          <h3 className="text-sm font-medium text-muted-foreground mb-2">Ore Fatturabili</h3>
-          <p className="text-2xl font-bold">{totalBillableHours.toFixed(1)}h</p>
+        <Card className="p-6 bg-[#1E1E1E] border-0 text-white">
+          <h3 className="text-sm font-medium text-gray-400 mb-2">Ore Fatturabili</h3>
+          <p className="text-2xl font-bold text-red-600">{totalBillableHours.toFixed(1)}h</p>
         </Card>
-        <Card className="p-6">
-          <h3 className="text-sm font-medium text-muted-foreground mb-2">Progetti Attivi</h3>
-          <p className="text-2xl font-bold">{uniqueProjects.length}</p>
+        <Card className="p-6 bg-[#1E1E1E] border-0 text-white">
+          <h3 className="text-sm font-medium text-gray-400 mb-2">Progetti Attivi</h3>
+          <p className="text-2xl font-bold text-red-600">{uniqueProjects.length}</p>
         </Card>
       </div>
 

@@ -86,7 +86,7 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-[#1a1b26] text-white dark:bg-[#1a1b26] dark:text-white">
+      <div className="min-h-screen flex w-full bg-[#141414] text-white dark:bg-[#141414] dark:text-white">
         <ProjectSidebar
           projects={projects}
           onSelectProject={setSelectedProject}
@@ -109,8 +109,8 @@ const Index = () => {
             onNewProject={() => setIsNewProjectDialogOpen(true)}
             onNewTimeEntry={() => setIsTimeEntryDialogOpen(true)}>
             <div className="mb-6">
-              <h1 className="text-3xl font-bold mb-2">Time Tracking</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-3xl font-bold mb-2 text-red-600">Time Tracking</h1>
+              <p className="text-gray-400">
                 Manage your projects, clients and track your work hours
               </p>
             </div>

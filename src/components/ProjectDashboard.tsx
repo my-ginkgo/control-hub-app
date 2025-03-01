@@ -155,7 +155,11 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={onBack} className="mb-4 -ml-2 text-muted-foreground hover:text-foreground">
+        <Button 
+          variant="ghost" 
+          onClick={onBack} 
+          className="mb-4 -ml-2 text-gray-400 hover:text-white hover:bg-[#333333]"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Torna alla Dashboard
         </Button>
@@ -164,49 +168,55 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
             variant="destructive"
             size="sm"
             onClick={() => setIsDeleteDialogOpen(true)}
-            className="bg-red-500 hover:bg-red-600">
+            className="bg-red-600 hover:bg-red-700">
             <Trash2 className="h-4 w-4 mr-2" />
             Elimina Progetto
           </Button>
         )}
       </div>
 
-      <Card>
+      <Card className="bg-[#1E1E1E] border-0 text-white">
         <CardHeader>
-          <CardTitle className="text-xl font-semibold bg-gradient-to-r from-red-700 to-amber-400 bg-clip-text text-transparent">
+          <CardTitle className="text-xl font-semibold text-red-600">
             {project.name}
           </CardTitle>
-          {project.description && <p className="text-sm text-gray-500 dark:text-gray-400">{project.description}</p>}
+          {project.description && <p className="text-sm text-gray-400">{project.description}</p>}
           {client && (
             <div className="mt-4">
-              <Separator className="my-4" />
+              <Separator className="my-4 bg-gray-800" />
               <Link
                 to={`/client/${client.id}`}
-                className="flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
+                className="flex items-center text-sm text-gray-400 hover:text-white transition-colors">
                 <Building className="mr-2 h-4 w-4" />
                 Cliente: {client.name}
               </Link>
               {client.description && (
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{client.description}</p>
+                <p className="mt-2 text-sm text-gray-500">{client.description}</p>
               )}
             </div>
           )}
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Ore Totali</p>
-            {isLoading ? <Skeleton className="h-6 w-20" /> : <p className="text-2xl font-bold">{totalHours}</p>}
+            <p className="text-sm font-medium text-gray-400">Ore Totali</p>
+            {isLoading ? 
+              <Skeleton className="h-6 w-20 bg-gray-700" /> : 
+              <p className="text-2xl font-bold text-red-600">{totalHours}</p>
+            }
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Ore Fatturabili</p>
-            {isLoading ? <Skeleton className="h-6 w-20" /> : <p className="text-2xl font-bold">{totalBillableHours}</p>}
+            <p className="text-sm font-medium text-gray-400">Ore Fatturabili</p>
+            {isLoading ? 
+              <Skeleton className="h-6 w-20 bg-gray-700" /> : 
+              <p className="text-2xl font-bold text-red-600">{totalBillableHours}</p>
+            }
           </div>
         </CardContent>
       </Card>
 
       {isLoading ? (
         <div className="space-y-3">
-          <Skeleton className="h-[400px] w-full" />
+          <Skeleton className="h-[400px] w-full bg-gray-700" />
         </div>
       ) : (
         <>
@@ -214,9 +224,9 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
           {timeEntries.length > 0 ? (
             <TimeTable entries={timeEntries} start={startOfMonth} end={endOfMonth} />
           ) : (
-            <Card>
+            <Card className="bg-[#1E1E1E] border-0 text-white">
               <CardContent className="flex items-center justify-center py-6">
-                <p className="text-gray-500 dark:text-gray-400">Nessuna registrazione trovata per questo progetto</p>
+                <p className="text-gray-400">Nessuna registrazione trovata per questo progetto</p>
               </CardContent>
             </Card>
           )}
