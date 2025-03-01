@@ -4,7 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-userid',
 }
 
 interface ImportResult {
@@ -61,8 +61,13 @@ serve(async (req) => {
   }
 
   try {
-    // Get token from request
+    console.log('Received request to sales navigator import function');
+    
+    // Get token and user ID from request
     const { linkedinToken } = await req.json();
+    const userId = req.headers.get('x-userid');
+    
+    console.log('User ID from header:', userId);
     
     if (!linkedinToken) {
       return new Response(
@@ -77,13 +82,30 @@ serve(async (req) => {
       );
     }
 
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: 'User ID is required' }),
+        { 
+          status: 400, 
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders 
+          } 
+        }
+      );
+    }
+
     console.log('Received import request with token:', linkedinToken.substring(0, 4) + '****');
 
     // Create Supabase client
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Missing Supabase environment variables');
+    }
+    
+    const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
     // Simulate API call to LinkedIn
     const results: ImportResult[] = [];
@@ -101,14 +123,25 @@ serve(async (req) => {
         // First check if company exists
         let companyId = null;
         
-        const { data: companyData } = await supabaseAdmin
+        const { data: companyData, error: companyQueryError } = await supabaseAdmin
           .from('companies')
           .select('id')
           .eq('name', lead.company_name)
           .maybeSingle();
         
+        if (companyQueryError) {
+          console.error('Error querying company:', companyQueryError);
+          results.push({
+            lead: `${lead.first_name} ${lead.last_name}`,
+            status: 'error',
+            message: `Company query failed: ${companyQueryError.message}`
+          });
+          continue;
+        }
+        
         if (companyData) {
           companyId = companyData.id;
+          console.log('Found existing company:', lead.company_name, 'with ID:', companyId);
         } else {
           // Create company if it doesn't exist
           const { data: newCompany, error: companyError } = await supabaseAdmin
@@ -116,7 +149,7 @@ serve(async (req) => {
             .insert({
               name: lead.company_name,
               industry: 'Technology',  // Default for mock data
-              user_id: req.headers.get('x-userid') || null
+              user_id: userId
             })
             .select('id')
             .single();
@@ -132,6 +165,7 @@ serve(async (req) => {
           }
           
           companyId = newCompany.id;
+          console.log('Created new company:', lead.company_name, 'with ID:', companyId);
         }
         
         // Create the lead
@@ -146,7 +180,7 @@ serve(async (req) => {
             linkedin_url: lead.linkedin_url,
             source: 'linkedin',
             status: 'new',
-            user_id: req.headers.get('x-userid') || null
+            user_id: userId
           });
         
         if (leadError) {
@@ -157,6 +191,7 @@ serve(async (req) => {
             message: `Import failed: ${leadError.message}`
           });
         } else {
+          console.log('Successfully imported lead:', `${lead.first_name} ${lead.last_name}`);
           results.push({
             lead: `${lead.first_name} ${lead.last_name}`,
             status: 'success',
@@ -165,6 +200,7 @@ serve(async (req) => {
         }
       } else {
         // Simulate failure for some leads
+        console.log('Failed to import lead:', `${lead.first_name} ${lead.last_name}`);
         results.push({
           lead: `${lead.first_name} ${lead.last_name}`,
           status: 'error',

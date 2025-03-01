@@ -48,10 +48,22 @@ export const SalesNavigatorImport = ({ onLeadsImported }: SalesNavigatorImportPr
     setImportResults([]);
 
     try {
+      // Get current user ID
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        throw new Error(`Authentication error: ${userError.message}`);
+      }
+      
+      if (!userData?.user?.id) {
+        throw new Error('User not authenticated');
+      }
+      
+      // Call the edge function with the token and user ID
       const { data, error } = await supabase.functions.invoke('salesNavigatorImport', {
         body: { linkedinToken },
         headers: {
-          'x-userid': (await supabase.auth.getUser()).data.user?.id,
+          'x-userid': userData.user.id,
         }
       });
 
