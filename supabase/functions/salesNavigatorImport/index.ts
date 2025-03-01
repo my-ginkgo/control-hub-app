@@ -1,156 +1,206 @@
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1'
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-Deno.serve(async (req) => {
-  // Handle CORS preflight requests
+interface ImportResult {
+  lead: string;
+  status: 'success' | 'error';
+  message: string;
+}
+
+// Mock data for simulation
+const mockLeads = [
+  { 
+    first_name: 'Marco', 
+    last_name: 'Rossi', 
+    job_title: 'Marketing Director', 
+    company_name: 'Techno Solutions',
+    linkedin_url: 'https://linkedin.com/in/marcorossi'
+  },
+  { 
+    first_name: 'Laura', 
+    last_name: 'Bianchi', 
+    job_title: 'CTO', 
+    company_name: 'Digital Innovations',
+    linkedin_url: 'https://linkedin.com/in/laurabianchi'
+  },
+  { 
+    first_name: 'Giuseppe', 
+    last_name: 'Verdi', 
+    job_title: 'Sales Manager', 
+    company_name: 'Global Connect',
+    linkedin_url: 'https://linkedin.com/in/giuseppeverdi'
+  },
+  { 
+    first_name: 'Sofia', 
+    last_name: 'Ferrari', 
+    job_title: 'Product Owner', 
+    company_name: 'Creative Labs',
+    linkedin_url: 'https://linkedin.com/in/sofiaferrari'
+  },
+  { 
+    first_name: 'Alessandro', 
+    last_name: 'Romano', 
+    job_title: 'CEO', 
+    company_name: 'Startup Ventures',
+    linkedin_url: 'https://linkedin.com/in/alessandroromano'
+  }
+];
+
+serve(async (req) => {
+  // Handle CORS preflight request
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { 
+      headers: corsHeaders
+    });
   }
 
   try {
-    const { linkedinToken } = await req.json()
+    // Get token from request
+    const { linkedinToken } = await req.json();
     
     if (!linkedinToken) {
       return new Response(
         JSON.stringify({ error: 'LinkedIn token is required' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      )
+        { 
+          status: 400, 
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders 
+          } 
+        }
+      );
     }
 
-    // Create a Supabase client with the Admin key
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    console.log('Received import request with token:', linkedinToken.substring(0, 4) + '****');
 
-    // This is where you would implement the Sales Navigator API calls
-    // Since LinkedIn doesn't provide a public API for Sales Navigator,
-    // we'll simulate the response for now
-    
-    console.log("Attempting to import leads from Sales Navigator with token:", linkedinToken.substring(0, 10) + "...")
-    
-    // Simulated response - in a real implementation, you would call the LinkedIn API
-    const mockLeads = [
-      {
-        first_name: "Marco",
-        last_name: "Rossi",
-        email: "marco.rossi@example.com",
-        job_title: "Marketing Director",
-        company_name: "TechCorp Italia",
-        phone: "+3902123456789",
-        linkedin_url: "https://www.linkedin.com/in/marcorossi/",
-        source: "sales_navigator"
-      },
-      {
-        first_name: "Giulia",
-        last_name: "Bianchi",
-        email: "giulia.bianchi@example.com",
-        job_title: "CTO",
-        company_name: "Innovare Srl",
-        phone: "+3903987654321",
-        linkedin_url: "https://www.linkedin.com/in/giuliabianchi/",
-        source: "sales_navigator"
-      },
-      {
-        first_name: "Antonio",
-        last_name: "Verdi",
-        email: "antonio.verdi@example.com",
-        job_title: "Sales Manager",
-        company_name: "Global Solutions SpA",
-        linkedin_url: "https://www.linkedin.com/in/antonioverdi/",
-        source: "sales_navigator"
-      }
-    ]
+    // Create Supabase client
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
-    // Process each lead: first check if company exists, then add the lead
-    const importResults = []
+    // Simulate API call to LinkedIn
+    const results: ImportResult[] = [];
+    const successRate = 0.8; // 80% success rate for simulation
     
+    // Process mock leads
     for (const lead of mockLeads) {
-      // Check if company exists or create it
-      let companyId = null
+      // Simulate some processing delay
+      await new Promise(resolve => setTimeout(resolve, 200));
       
-      if (lead.company_name) {
-        // Check if company already exists
-        let { data: existingCompany } = await supabase
+      // Random success/failure for simulation
+      const isSuccess = Math.random() < successRate;
+      
+      if (isSuccess) {
+        // First check if company exists
+        let companyId = null;
+        
+        const { data: companyData } = await supabaseAdmin
           .from('companies')
           .select('id')
           .eq('name', lead.company_name)
-          .maybeSingle()
+          .maybeSingle();
         
-        if (existingCompany) {
-          companyId = existingCompany.id
-          console.log(`Company ${lead.company_name} already exists with ID ${companyId}`)
+        if (companyData) {
+          companyId = companyData.id;
         } else {
-          // Create new company
-          const { data: newCompany, error: companyError } = await supabase
+          // Create company if it doesn't exist
+          const { data: newCompany, error: companyError } = await supabaseAdmin
             .from('companies')
             .insert({
               name: lead.company_name,
-              industry: 'Not specified',
-              source: 'sales_navigator'
+              industry: 'Technology',  // Default for mock data
+              user_id: req.headers.get('x-userid') || null
             })
             .select('id')
-            .single()
+            .single();
           
           if (companyError) {
-            console.error(`Error creating company ${lead.company_name}:`, companyError)
-            importResults.push({
+            console.error('Error creating company:', companyError);
+            results.push({
               lead: `${lead.first_name} ${lead.last_name}`,
               status: 'error',
               message: `Failed to create company: ${companyError.message}`
-            })
-            continue
+            });
+            continue;
           }
           
-          companyId = newCompany.id
-          console.log(`Created new company ${lead.company_name} with ID ${companyId}`)
+          companyId = newCompany.id;
         }
-      }
-      
-      // Insert the lead
-      const { error: leadError } = await supabase
-        .from('leads')
-        .insert({
-          first_name: lead.first_name,
-          last_name: lead.last_name,
-          email: lead.email,
-          phone: lead.phone,
-          job_title: lead.job_title,
-          company_id: companyId,
-          linkedin_url: lead.linkedin_url,
-          source: 'sales_navigator',
-          status: 'new'
-        })
-      
-      if (leadError) {
-        console.error(`Error importing lead ${lead.first_name} ${lead.last_name}:`, leadError)
-        importResults.push({
+        
+        // Create the lead
+        const { error: leadError } = await supabaseAdmin
+          .from('leads')
+          .insert({
+            first_name: lead.first_name,
+            last_name: lead.last_name,
+            job_title: lead.job_title,
+            company_id: companyId,
+            company_name: lead.company_name,
+            linkedin_url: lead.linkedin_url,
+            source: 'linkedin',
+            status: 'new',
+            user_id: req.headers.get('x-userid') || null
+          });
+        
+        if (leadError) {
+          console.error('Error creating lead:', leadError);
+          results.push({
+            lead: `${lead.first_name} ${lead.last_name}`,
+            status: 'error',
+            message: `Import failed: ${leadError.message}`
+          });
+        } else {
+          results.push({
+            lead: `${lead.first_name} ${lead.last_name}`,
+            status: 'success',
+            message: 'Successfully imported'
+          });
+        }
+      } else {
+        // Simulate failure for some leads
+        results.push({
           lead: `${lead.first_name} ${lead.last_name}`,
           status: 'error',
-          message: `Failed to import: ${leadError.message}`
-        })
-      } else {
-        importResults.push({
-          lead: `${lead.first_name} ${lead.last_name}`,
-          status: 'success',
-          message: 'Successfully imported'
-        })
+          message: 'Connection timed out or profile unavailable'
+        });
       }
     }
 
     return new Response(
-      JSON.stringify({ success: true, imported: importResults }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+      JSON.stringify({ 
+        imported: results,
+        message: 'Import process completed'
+      }),
+      { 
+        status: 200, 
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders 
+        } 
+      }
+    );
   } catch (error) {
-    console.error("Error in Sales Navigator import:", error.message)
+    console.error('Error in SalesNavigator import:', error);
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    )
+      JSON.stringify({ 
+        error: 'Internal Server Error',
+        details: error.message 
+      }),
+      { 
+        status: 500, 
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders 
+        } 
+      }
+    );
   }
-})
+});

@@ -50,6 +50,9 @@ export const SalesNavigatorImport = ({ onLeadsImported }: SalesNavigatorImportPr
     try {
       const { data, error } = await supabase.functions.invoke('salesNavigatorImport', {
         body: { linkedinToken },
+        headers: {
+          'x-userid': (await supabase.auth.getUser()).data.user?.id,
+        }
       });
 
       if (error) throw error;
@@ -105,8 +108,8 @@ export const SalesNavigatorImport = ({ onLeadsImported }: SalesNavigatorImportPr
               className="col-span-3"
             />
             <p className="text-xs text-muted-foreground">
-              Note: In a production environment, this would use LinkedIn's OAuth flow.
-              For demo purposes, any text in the field will simulate an import.
+              Note: For demo purposes, any text in the field will simulate an import of mock data.
+              In a production environment, this would use LinkedIn's OAuth flow.
             </p>
           </div>
 
