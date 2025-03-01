@@ -12,6 +12,13 @@ export interface Lead {
   last_contact_date?: string;
   company_id?: string;
   company_name?: string; // For display purposes
+  linkedin_url?: string; // Added LinkedIn profile
+  twitter_url?: string; // Added Twitter profile
+  interests?: string; // Added interests
+  budget?: string; // Added budget information
+  decision_timeline?: string; // Added decision timeline
+  communication_preference?: 'email' | 'phone' | 'in-person' | 'video'; // Added communication preference
+  lead_score?: number; // Added lead scoring (1-100)
   user_id?: string;
   created_at?: string;
 }
