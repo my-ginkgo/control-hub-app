@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Lead } from '@/types/Lead';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { EditableCell } from './EditableCell';

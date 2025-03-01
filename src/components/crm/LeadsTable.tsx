@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lead } from '@/types/Lead';
 import { Company } from '@/types/Company';
 import { supabase } from '@/integrations/supabase/client';
