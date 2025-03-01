@@ -6,8 +6,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Moon, Plus, Sun, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Moon, Plus, Sun, User, Clock, BarChart3 } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { SidebarTrigger } from "../ui/sidebar";
 import { useTheme } from "../ThemeProvider";
 import { DocsDialog } from "../docs/DocsDialog";
@@ -21,6 +21,8 @@ interface MainLayoutProps {
 
 export function MainLayout({ children, onNewClient, onNewProject, onNewTimeEntry }: MainLayoutProps) {
   const { theme, setTheme } = useTheme();
+  const location = useLocation();
+  const isTrackingPage = location.pathname === "/" || location.pathname.startsWith("/project/");
 
   return (
     <div className="container py-4 md:py-8 px-4 md:px-8 overflow-x-hidden">
@@ -28,33 +30,50 @@ export function MainLayout({ children, onNewClient, onNewProject, onNewTimeEntry
         <div className="flex items-center gap-4">
           <SidebarTrigger className="bg-popover hover:bg-muted text-popover-foreground" />
           <img src="logo.png" alt="Logo" className="w-12 h-12" />
+          
+          <div className="hidden md:flex items-center gap-4 ml-4">
+            <Button variant="ghost" asChild className="gap-2">
+              <Link to="/">
+                <Clock className="h-4 w-4" />
+                Tracking
+              </Link>
+            </Button>
+            <Button variant="ghost" asChild className="gap-2">
+              <Link to="/crm">
+                <BarChart3 className="h-4 w-4" />
+                CRM
+              </Link>
+            </Button>
+          </div>
         </div>
         <div className="flex items-center gap-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Plus className="h-4 w-4 mr-2" />
-                Crea
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-popover border-border">
-              <DropdownMenuItem
-                className="text-popover-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer"
-                onClick={onNewClient}>
-                Crea Cliente
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-popover-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer"
-                onClick={onNewProject}>
-                Crea Progetto
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-popover-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer"
-                onClick={onNewTimeEntry}>
-                Registra Lavoro
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {isTrackingPage && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Crea
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-popover border-border">
+                <DropdownMenuItem
+                  className="text-popover-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer"
+                  onClick={onNewClient}>
+                  Crea Cliente
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-popover-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer"
+                  onClick={onNewProject}>
+                  Crea Progetto
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-popover-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer"
+                  onClick={onNewTimeEntry}>
+                  Registra Lavoro
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           <Button
             variant="outline"
             size="icon"

@@ -5,7 +5,6 @@ import { CompaniesTable } from '@/components/crm/CompaniesTable';
 import { LeadsTable } from '@/components/crm/LeadsTable';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ProjectSidebar } from '@/components/ProjectSidebar';
 import { Building, Users } from 'lucide-react';
 
 const CRM = () => {
@@ -14,16 +13,6 @@ const CRM = () => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-[#1a1b26] text-white dark:bg-[#1a1b26] dark:text-white">
-        <ProjectSidebar
-          projects={[]}
-          onSelectProject={() => {}}
-          selectedProject={null}
-          selectedClient={null}
-          onSelectClient={() => {}}
-          onProjectDeleted={() => {}}
-          onProjectUpdated={() => {}}
-          onAddProject={() => {}}
-        />
         <div className="flex-1 relative">
           <MainLayout
             onNewClient={() => {}}

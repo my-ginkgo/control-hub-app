@@ -108,6 +108,12 @@ const Index = () => {
             onNewClient={() => setIsNewClientDialogOpen(true)}
             onNewProject={() => setIsNewProjectDialogOpen(true)}
             onNewTimeEntry={() => setIsTimeEntryDialogOpen(true)}>
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold mb-2">Time Tracking</h1>
+              <p className="text-muted-foreground">
+                Manage your projects, clients and track your work hours
+              </p>
+            </div>
             <DashboardContainer
               selectedProject={selectedProject}
               selectedClient={selectedClient}
