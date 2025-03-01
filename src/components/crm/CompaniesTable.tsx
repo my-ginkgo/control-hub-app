@@ -9,15 +9,17 @@ import { Button } from '@/components/ui/button';
 
 interface CompaniesTableProps {
   onEdit: (company: Company) => void;
+  refresh?: number; // Add a refresh counter prop to trigger refetching
 }
 
-export const CompaniesTable = ({ onEdit }: CompaniesTableProps) => {
+export const CompaniesTable = ({ onEdit, refresh = 0 }: CompaniesTableProps) => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Update the dependency array to include the refresh counter
   useEffect(() => {
     fetchCompanies();
-  }, []);
+  }, [refresh]);
 
   const fetchCompanies = async () => {
     try {
@@ -96,12 +98,12 @@ export const CompaniesTable = ({ onEdit }: CompaniesTableProps) => {
           <thead>
             <tr className="border-b bg-muted/50">
               <th className="px-4 py-3 text-left font-medium">Name</th>
-              <th className="px-4 py-3 text-left font-medium">Industry</th>
-              <th className="px-4 py-3 text-left font-medium">Phone</th>
-              <th className="px-4 py-3 text-left font-medium">Email</th>
-              <th className="px-4 py-3 text-left font-medium">Website</th>
-              <th className="px-4 py-3 text-left font-medium">City</th>
-              <th className="px-4 py-3 text-left font-medium">Country</th>
+              <th className="hidden md:table-cell px-4 py-3 text-left font-medium">Industry</th>
+              <th className="hidden md:table-cell px-4 py-3 text-left font-medium">Phone</th>
+              <th className="hidden md:table-cell px-4 py-3 text-left font-medium">Email</th>
+              <th className="hidden lg:table-cell px-4 py-3 text-left font-medium">Website</th>
+              <th className="hidden lg:table-cell px-4 py-3 text-left font-medium">City</th>
+              <th className="hidden lg:table-cell px-4 py-3 text-left font-medium">Country</th>
               <th className="px-4 py-3 text-right font-medium w-24">Actions</th>
             </tr>
           </thead>
@@ -123,7 +125,7 @@ export const CompaniesTable = ({ onEdit }: CompaniesTableProps) => {
                       onUpdate={updateCompanyField}
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="hidden md:table-cell px-4 py-2">
                     <EditableCell
                       value={company.industry || ''}
                       row={company}
@@ -131,7 +133,7 @@ export const CompaniesTable = ({ onEdit }: CompaniesTableProps) => {
                       onUpdate={updateCompanyField}
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="hidden md:table-cell px-4 py-2">
                     <EditableCell
                       value={company.phone || ''}
                       row={company}
@@ -139,7 +141,7 @@ export const CompaniesTable = ({ onEdit }: CompaniesTableProps) => {
                       onUpdate={updateCompanyField}
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="hidden md:table-cell px-4 py-2">
                     <EditableCell
                       value={company.email || ''}
                       row={company}
@@ -148,7 +150,7 @@ export const CompaniesTable = ({ onEdit }: CompaniesTableProps) => {
                       type="text"
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="hidden lg:table-cell px-4 py-2">
                     <EditableCell
                       value={company.website || ''}
                       row={company}
@@ -156,7 +158,7 @@ export const CompaniesTable = ({ onEdit }: CompaniesTableProps) => {
                       onUpdate={updateCompanyField}
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="hidden lg:table-cell px-4 py-2">
                     <EditableCell
                       value={company.city || ''}
                       row={company}
@@ -164,7 +166,7 @@ export const CompaniesTable = ({ onEdit }: CompaniesTableProps) => {
                       onUpdate={updateCompanyField}
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="hidden lg:table-cell px-4 py-2">
                     <EditableCell
                       value={company.country || ''}
                       row={company}

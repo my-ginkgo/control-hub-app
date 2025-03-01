@@ -10,9 +10,10 @@ import { Button } from '@/components/ui/button';
 
 interface LeadsTableProps {
   onEdit: (lead: Lead) => void;
+  refresh?: number; // Add refresh counter prop
 }
 
-export const LeadsTable = ({ onEdit }: LeadsTableProps) => {
+export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +21,7 @@ export const LeadsTable = ({ onEdit }: LeadsTableProps) => {
   useEffect(() => {
     fetchLeads();
     fetchCompanies();
-  }, []);
+  }, [refresh]); // Add refresh to dependencies
 
   const fetchLeads = async () => {
     try {
@@ -38,11 +39,26 @@ export const LeadsTable = ({ onEdit }: LeadsTableProps) => {
       
       if (error) throw error;
       
-      // Transform data to include company_name
-      const transformedLeads = data?.map(lead => ({
-        ...lead,
-        company_name: lead.companies?.name || null
-      })) || [];
+      // Transform data to include company_name with correct type handling
+      const transformedLeads = data?.map(lead => {
+        const typedLead: Lead = {
+          id: lead.id,
+          first_name: lead.first_name,
+          last_name: lead.last_name,
+          email: lead.email || undefined,
+          phone: lead.phone || undefined,
+          job_title: lead.job_title || undefined,
+          status: (lead.status as Lead['status']) || 'new',
+          source: lead.source || undefined,
+          notes: lead.notes || undefined,
+          last_contact_date: lead.last_contact_date || undefined,
+          company_id: lead.company_id || undefined,
+          company_name: lead.companies?.name || undefined,
+          user_id: lead.user_id,
+          created_at: lead.created_at
+        };
+        return typedLead;
+      }) || [];
       
       setLeads(transformedLeads);
     } catch (error: any) {
@@ -137,12 +153,12 @@ export const LeadsTable = ({ onEdit }: LeadsTableProps) => {
           <thead>
             <tr className="border-b bg-muted/50">
               <th className="px-4 py-3 text-left font-medium">Name</th>
-              <th className="px-4 py-3 text-left font-medium">Email</th>
-              <th className="px-4 py-3 text-left font-medium">Phone</th>
+              <th className="hidden md:table-cell px-4 py-3 text-left font-medium">Email</th>
+              <th className="hidden md:table-cell px-4 py-3 text-left font-medium">Phone</th>
               <th className="px-4 py-3 text-left font-medium">Status</th>
-              <th className="px-4 py-3 text-left font-medium">Company</th>
-              <th className="px-4 py-3 text-left font-medium">Source</th>
-              <th className="px-4 py-3 text-left font-medium">Last Contact</th>
+              <th className="hidden lg:table-cell px-4 py-3 text-left font-medium">Company</th>
+              <th className="hidden lg:table-cell px-4 py-3 text-left font-medium">Source</th>
+              <th className="hidden xl:table-cell px-4 py-3 text-left font-medium">Last Contact</th>
               <th className="px-4 py-3 text-right font-medium w-24">Actions</th>
             </tr>
           </thead>
@@ -159,7 +175,7 @@ export const LeadsTable = ({ onEdit }: LeadsTableProps) => {
                   <td className="px-4 py-2">
                     {`${lead.first_name} ${lead.last_name}`}
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="hidden md:table-cell px-4 py-2">
                     <EditableCell
                       value={lead.email || ''}
                       row={lead}
@@ -167,7 +183,7 @@ export const LeadsTable = ({ onEdit }: LeadsTableProps) => {
                       onUpdate={updateLeadField}
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="hidden md:table-cell px-4 py-2">
                     <EditableCell
                       value={lead.phone || ''}
                       row={lead}
@@ -185,7 +201,7 @@ export const LeadsTable = ({ onEdit }: LeadsTableProps) => {
                       options={statusOptions}
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="hidden lg:table-cell px-4 py-2">
                     <EditableCell
                       value={lead.company_name || ''}
                       row={lead}
@@ -195,7 +211,7 @@ export const LeadsTable = ({ onEdit }: LeadsTableProps) => {
                       options={companyOptions}
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="hidden lg:table-cell px-4 py-2">
                     <EditableCell
                       value={lead.source || ''}
                       row={lead}
@@ -205,7 +221,7 @@ export const LeadsTable = ({ onEdit }: LeadsTableProps) => {
                       options={sourceOptions}
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="hidden xl:table-cell px-4 py-2">
                     <EditableCell
                       value={lead.last_contact_date || ''}
                       row={lead}

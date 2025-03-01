@@ -18,6 +18,9 @@ const CRM = () => {
   const [isCompanyFormOpen, setIsCompanyFormOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | undefined>(undefined);
   const [selectedCompany, setSelectedCompany] = useState<Company | undefined>(undefined);
+  // Add refresh counters to trigger table updates
+  const [leadsRefreshCounter, setLeadsRefreshCounter] = useState(0);
+  const [companiesRefreshCounter, setCompaniesRefreshCounter] = useState(0);
   
   const handleAddLead = () => {
     setSelectedLead(undefined);
@@ -50,12 +53,14 @@ const CRM = () => {
   };
   
   const refreshLeads = () => {
-    // This will trigger the LeadsTable to refresh its data
+    // Increment counter to trigger refresh
+    setLeadsRefreshCounter(prev => prev + 1);
     setIsLeadFormOpen(false);
   };
   
   const refreshCompanies = () => {
-    // This will trigger the CompaniesTable to refresh its data
+    // Increment counter to trigger refresh
+    setCompaniesRefreshCounter(prev => prev + 1);
     setIsCompanyFormOpen(false);
   };
   
@@ -80,8 +85,8 @@ const CRM = () => {
               onValueChange={setActiveTab}
               className="w-full"
             >
-              <div className="flex justify-between items-center mb-6">
-                <TabsList className="grid w-[400px] grid-cols-2">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <TabsList className="grid w-full sm:w-[400px] grid-cols-2">
                   <TabsTrigger value="leads" className="flex items-center gap-2">
                     <Users className="h-4 w-4" />
                     Leads
@@ -106,7 +111,7 @@ const CRM = () => {
               </div>
               
               <TabsContent value="leads" className="animate-fadeIn">
-                <LeadsTable onEdit={handleEditLead} />
+                <LeadsTable onEdit={handleEditLead} refresh={leadsRefreshCounter} />
                 <LeadForm 
                   open={isLeadFormOpen} 
                   onOpenChange={handleLeadFormChange} 
@@ -116,7 +121,7 @@ const CRM = () => {
               </TabsContent>
               
               <TabsContent value="companies" className="animate-fadeIn">
-                <CompaniesTable onEdit={handleEditCompany} />
+                <CompaniesTable onEdit={handleEditCompany} refresh={companiesRefreshCounter} />
                 <CompanyForm 
                   open={isCompanyFormOpen} 
                   onOpenChange={handleCompanyFormChange} 

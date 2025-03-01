@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Company } from '@/types/Company';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -17,19 +17,39 @@ interface CompanyFormProps {
 }
 
 export const CompanyForm = ({ open, onOpenChange, company, onCompanyAdded }: CompanyFormProps) => {
-  const [name, setName] = useState(company?.name || '');
-  const [description, setDescription] = useState(company?.description || '');
-  const [website, setWebsite] = useState(company?.website || '');
-  const [industry, setIndustry] = useState(company?.industry || '');
-  const [employeeCount, setEmployeeCount] = useState(company?.employee_count?.toString() || '');
-  const [annualRevenue, setAnnualRevenue] = useState(company?.annual_revenue || '');
-  const [foundedDate, setFoundedDate] = useState(company?.founded_date?.split('T')[0] || '');
-  const [address, setAddress] = useState(company?.address || '');
-  const [city, setCity] = useState(company?.city || '');
-  const [country, setCountry] = useState(company?.country || '');
-  const [phone, setPhone] = useState(company?.phone || '');
-  const [email, setEmail] = useState(company?.email || '');
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [website, setWebsite] = useState('');
+  const [industry, setIndustry] = useState('');
+  const [employeeCount, setEmployeeCount] = useState('');
+  const [annualRevenue, setAnnualRevenue] = useState('');
+  const [foundedDate, setFoundedDate] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [country, setCountry] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Add useEffect to update form when company prop changes
+  useEffect(() => {
+    if (company) {
+      setName(company.name || '');
+      setDescription(company.description || '');
+      setWebsite(company.website || '');
+      setIndustry(company.industry || '');
+      setEmployeeCount(company.employee_count ? company.employee_count.toString() : '');
+      setAnnualRevenue(company.annual_revenue || '');
+      setFoundedDate(company.founded_date ? company.founded_date.split('T')[0] : '');
+      setAddress(company.address || '');
+      setCity(company.city || '');
+      setCountry(company.country || '');
+      setPhone(company.phone || '');
+      setEmail(company.email || '');
+    } else {
+      resetForm();
+    }
+  }, [company, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +96,6 @@ export const CompanyForm = ({ open, onOpenChange, company, onCompanyAdded }: Com
 
       onCompanyAdded();
       onOpenChange(false);
-      resetForm();
     } catch (error: any) {
       toast.error(`Error: ${error.message}`);
     } finally {
