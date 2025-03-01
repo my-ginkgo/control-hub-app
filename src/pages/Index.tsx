@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -89,9 +88,25 @@ export default function Index() {
     }
   };
 
+  const handleNewClient = () => {
+    toast.info("Create new client feature will be implemented soon");
+  };
+
+  const handleNewProject = () => {
+    toast.info("Create new project feature will be implemented soon");
+  };
+
+  const handleNewTimeEntry = () => {
+    setIsDialogOpen(true);
+  };
+
   return (
     <SidebarProvider>
-      <MainLayout>
+      <MainLayout 
+        onNewClient={handleNewClient}
+        onNewProject={handleNewProject}
+        onNewTimeEntry={handleNewTimeEntry}
+      >
         <div className="container mx-auto px-4 py-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-white">Time Tracking</h1>
