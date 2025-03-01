@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { CalendarIcon, FilterIcon, X } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -11,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export interface FilterOption {
   id: string;
@@ -77,8 +78,8 @@ export const FilterPanel = ({ filterOptions, onFilterChange, className }: Filter
   
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
           <Button 
             variant="outline" 
             size="sm" 
@@ -92,15 +93,17 @@ export const FilterPanel = ({ filterOptions, onFilterChange, className }: Filter
               </Badge>
             )}
           </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[320px] p-4">
-          <div className="space-y-4">
-            <div className="font-medium">Filtra per</div>
-            <Separator />
-            
-            <div className="space-y-4">
+        </SheetTrigger>
+        <SheetContent side="right" className="w-[350px] sm:w-[450px] p-0">
+          <SheetHeader className="p-6 pb-2">
+            <SheetTitle>Filtra per</SheetTitle>
+          </SheetHeader>
+          <Separator />
+          
+          <ScrollArea className="h-[calc(100vh-150px)] px-6">
+            <div className="space-y-6 py-6">
               {filterOptions.map((option) => (
-                <div key={option.id} className="space-y-1">
+                <div key={option.id} className="space-y-2">
                   <Label htmlFor={option.id}>{option.label}</Label>
                   
                   {option.type === 'select' && (
@@ -121,8 +124,8 @@ export const FilterPanel = ({ filterOptions, onFilterChange, className }: Filter
                   )}
                   
                   {option.type === 'date' && (
-                    <Popover>
-                      <PopoverTrigger asChild>
+                    <Sheet>
+                      <SheetTrigger asChild>
                         <Button
                           variant="outline"
                           className="w-full justify-start text-left font-normal"
@@ -134,16 +137,22 @@ export const FilterPanel = ({ filterOptions, onFilterChange, className }: Filter
                             <span>Seleziona una data</span>
                           )}
                         </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={tempFilters[option.id]}
-                          onSelect={(date) => updateTempFilter(option.id, date)}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                      </SheetTrigger>
+                      <SheetContent side="right" className="p-0">
+                        <SheetHeader className="p-6 pb-2">
+                          <SheetTitle>Seleziona data</SheetTitle>
+                        </SheetHeader>
+                        <Separator />
+                        <div className="p-6">
+                          <Calendar
+                            mode="single"
+                            selected={tempFilters[option.id]}
+                            onSelect={(date) => updateTempFilter(option.id, date)}
+                            initialFocus
+                          />
+                        </div>
+                      </SheetContent>
+                    </Sheet>
                   )}
                   
                   {option.type === 'text' && (
@@ -171,14 +180,16 @@ export const FilterPanel = ({ filterOptions, onFilterChange, className }: Filter
                 </div>
               ))}
             </div>
-            
-            <div className="flex justify-between pt-2">
-              <Button variant="outline" size="sm" onClick={clearFilters}>Cancella</Button>
-              <Button size="sm" onClick={applyFilters}>Applica</Button>
+          </ScrollArea>
+          
+          <div className="border-t p-6">
+            <div className="flex justify-between gap-2">
+              <Button variant="outline" onClick={clearFilters}>Cancella</Button>
+              <Button onClick={applyFilters}>Applica</Button>
             </div>
           </div>
-        </PopoverContent>
-      </Popover>
+        </SheetContent>
+      </Sheet>
       
       {/* Display active filters as badges */}
       {Object.keys(activeFilters).map(key => {
