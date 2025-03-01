@@ -27,27 +27,29 @@ export const TagInput = ({ tags = [], onChange, placeholder = "Aggiungi tag..." 
   
   const addTag = (value: string) => {
     const newTag = value.trim().toLowerCase();
+    const currentTags = Array.isArray(tags) ? tags : [];
     
     // Skip if tag is empty or already exists
-    if (!newTag || tags.includes(newTag)) {
+    if (!newTag || currentTags.includes(newTag)) {
       setInputValue('');
       return;
     }
     
-    const updatedTags = [...tags, newTag];
+    const updatedTags = [...currentTags, newTag];
     onChange(updatedTags);
     setInputValue('');
   };
   
   const removeTag = (tagToRemove: string) => {
-    const updatedTags = tags.filter(tag => tag !== tagToRemove);
+    const currentTags = Array.isArray(tags) ? tags : [];
+    const updatedTags = currentTags.filter(tag => tag !== tagToRemove);
     onChange(updatedTags);
   };
   
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2 mb-2">
-        {tags.map(tag => (
+        {Array.isArray(tags) && tags.map(tag => (
           <Badge key={tag} variant="secondary" className="flex items-center gap-1 py-1">
             <TagIcon className="h-3 w-3 text-muted-foreground" />
             <span>{tag}</span>
