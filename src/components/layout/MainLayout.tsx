@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Moon, Plus, Sun, User, Clock, BarChart3 } from "lucide-react";
+import { Moon, Plus, Sun, User, Clock, BarChart3, Home } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { SidebarTrigger } from "../ui/sidebar";
 import { useTheme } from "../ThemeProvider";
@@ -22,18 +22,27 @@ interface MainLayoutProps {
 export function MainLayout({ children, onNewClient, onNewProject, onNewTimeEntry }: MainLayoutProps) {
   const { theme, setTheme } = useTheme();
   const location = useLocation();
-  const isTrackingPage = location.pathname === "/" || location.pathname.startsWith("/project/");
+  const isTrackingPage = location.pathname === "/tracking" || location.pathname.startsWith("/project/");
+  const isCrmPage = location.pathname === "/crm";
 
   return (
     <div className="container py-4 md:py-8 px-4 md:px-8 overflow-x-hidden">
       <div className="flex justify-between items-center mb-6 md:mb-8">
         <div className="flex items-center gap-4">
           <SidebarTrigger className="bg-popover hover:bg-muted text-popover-foreground" />
-          <img src="logo.png" alt="Logo" className="w-12 h-12" />
+          <Link to="/">
+            <img src="/logo.png" alt="Logo" className="w-12 h-12" />
+          </Link>
           
           <div className="hidden md:flex items-center gap-4 ml-4">
             <Button variant="ghost" asChild className="gap-2">
               <Link to="/">
+                <Home className="h-4 w-4" />
+                Dashboard
+              </Link>
+            </Button>
+            <Button variant="ghost" asChild className="gap-2">
+              <Link to="/tracking">
                 <Clock className="h-4 w-4" />
                 Tracking
               </Link>
@@ -74,6 +83,14 @@ export function MainLayout({ children, onNewClient, onNewProject, onNewTimeEntry
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+          
+          {isCrmPage && (
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => {}}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add
+            </Button>
+          )}
+          
           <Button
             variant="outline"
             size="icon"

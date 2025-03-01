@@ -1,3 +1,4 @@
+
 import { AuthProvider } from "@/components/AuthProvider";
 import { ProjectDashboard } from "@/components/ProjectDashboard";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -5,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import Auth from "@/pages/Auth";
 import CRM from "@/pages/CRM";
+import Dashboard from "@/pages/Dashboard";
 import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
 import ProfileSetup from "@/pages/ProfileSetup";
@@ -52,7 +54,8 @@ function App() {
         <ThemeProvider>
           <AuthProvider>
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/tracking" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/profile-setup" element={<ProfileSetup />} />

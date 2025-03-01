@@ -55,13 +55,11 @@ const CRM = () => {
   const refreshLeads = () => {
     // Increment counter to trigger refresh
     setLeadsRefreshCounter(prev => prev + 1);
-    setIsLeadFormOpen(false);
   };
   
   const refreshCompanies = () => {
     // Increment counter to trigger refresh
     setCompaniesRefreshCounter(prev => prev + 1);
-    setIsCompanyFormOpen(false);
   };
   
   return (
