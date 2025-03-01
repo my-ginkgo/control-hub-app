@@ -5,7 +5,7 @@ import { CompaniesTable } from '@/components/crm/CompaniesTable';
 import { LeadsTable } from '@/components/crm/LeadsTable';
 import { LeadForm } from '@/components/crm/LeadForm';
 import { CompanyForm } from '@/components/crm/CompanyForm';
-import { SalesNavigatorImport } from '@/components/crm/SalesNavigatorImport';
+import { DataImportExport } from '@/components/crm/DataImportExport';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,6 @@ const CRM = () => {
   const [activeTab, setActiveTab] = useState('leads');
   const [isLeadFormOpen, setIsLeadFormOpen] = useState(false);
   const [isCompanyFormOpen, setIsCompanyFormOpen] = useState(false);
-  const [isSalesNavigatorOpen, setIsSalesNavigatorOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | undefined>(undefined);
   const [selectedCompany, setSelectedCompany] = useState<Company | undefined>(undefined);
   // Add refresh counters to trigger table updates
@@ -114,7 +113,10 @@ const CRM = () => {
                   lead={selectedLead} 
                   onLeadAdded={refreshLeads} 
                 />
-                <SalesNavigatorImport onLeadsImported={refreshLeads} />
+                <DataImportExport 
+                  type="leads" 
+                  onDataImported={refreshLeads} 
+                />
               </TabsContent>
               
               <TabsContent value="companies" className="animate-fadeIn">
@@ -124,6 +126,10 @@ const CRM = () => {
                   onOpenChange={handleCompanyFormChange} 
                   company={selectedCompany} 
                   onCompanyAdded={refreshCompanies} 
+                />
+                <DataImportExport 
+                  type="companies" 
+                  onDataImported={refreshCompanies} 
                 />
               </TabsContent>
             </Tabs>
