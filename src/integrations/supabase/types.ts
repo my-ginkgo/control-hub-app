@@ -39,6 +39,125 @@ export type Database = {
         }
         Relationships: []
       }
+      companies: {
+        Row: {
+          address: string | null
+          annual_revenue: string | null
+          city: string | null
+          color: string | null
+          country: string | null
+          created_at: string
+          description: string | null
+          email: string | null
+          employee_count: number | null
+          founded_date: string | null
+          id: string
+          industry: string | null
+          is_public: boolean | null
+          logo_url: string | null
+          name: string
+          phone: string | null
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          annual_revenue?: string | null
+          city?: string | null
+          color?: string | null
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          employee_count?: number | null
+          founded_date?: string | null
+          id?: string
+          industry?: string | null
+          is_public?: boolean | null
+          logo_url?: string | null
+          name: string
+          phone?: string | null
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          annual_revenue?: string | null
+          city?: string | null
+          color?: string | null
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          employee_count?: number | null
+          founded_date?: string | null
+          id?: string
+          industry?: string | null
+          is_public?: boolean | null
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          email: string | null
+          first_name: string
+          id: string
+          job_title: string | null
+          last_contact_date: string | null
+          last_name: string
+          notes: string | null
+          phone: string | null
+          source: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          email?: string | null
+          first_name: string
+          id?: string
+          job_title?: string | null
+          last_contact_date?: string | null
+          last_name: string
+          notes?: string | null
+          phone?: string | null
+          source?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string
+          id?: string
+          job_title?: string | null
+          last_contact_date?: string | null
+          last_name?: string
+          notes?: string | null
+          phone?: string | null
+          source?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           bio: string | null

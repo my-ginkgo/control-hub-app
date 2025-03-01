@@ -1,10 +1,10 @@
-
 import { AuthProvider } from "@/components/AuthProvider";
 import { ProjectDashboard } from "@/components/ProjectDashboard";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import Auth from "@/pages/Auth";
+import CRM from "@/pages/CRM";
 import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
 import ProfileSetup from "@/pages/ProfileSetup";
@@ -59,6 +59,7 @@ function App() {
               <Route path="/user" element={<User />} />
               <Route path="/user/:id" element={<User />} />
               <Route path="/project/:id" element={<ProjectDashboardWrapper />} />
+              <Route path="/crm" element={<CRM />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster />
