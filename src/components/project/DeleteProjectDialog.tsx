@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AlertCircle } from "lucide-react";
 
 interface DeleteProjectDialogProps {
   project: Project;
@@ -26,37 +27,44 @@ export function DeleteProjectDialog({
   onConfirmDelete,
 }: DeleteProjectDialogProps) {
   const [confirmationText, setConfirmationText] = useState("");
+  const confirmationWord = "elimina"; // The word user needs to type
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#1a1b26] border-[#2a2b3d]">
+      <DialogContent className="glass border-destructive/20">
         <DialogHeader>
-          <DialogTitle className="text-white">Elimina Progetto</DialogTitle>
-          <DialogDescription className="text-gray-400">
+          <DialogTitle className="flex items-center gap-2 text-destructive">
+            <AlertCircle className="h-5 w-5" />
+            Elimina Progetto
+          </DialogTitle>
+          <DialogDescription className="text-muted-foreground pt-2">
             Questa azione non può essere annullata. Verranno eliminati anche tutti i time entries associati al progetto.
-            <br />
-            <br />
-            Digita il nome del progetto <span className="font-semibold">"{project.name}"</span> per confermare.
           </DialogDescription>
         </DialogHeader>
-        <Input
-          value={confirmationText}
-          onChange={(e) => setConfirmationText(e.target.value)}
-          placeholder="Nome del progetto"
-          className="bg-[#2a2b3d] border-[#383a5c] text-white"
-        />
-        <DialogFooter>
+        
+        <div className="bg-destructive/10 p-4 rounded-md border border-destructive/20 my-2">
+          <p className="text-sm text-foreground mb-4">
+            Per confermare l'eliminazione, digita <span className="font-bold text-destructive">{confirmationWord}</span> nel campo sottostante.
+          </p>
+          <Input
+            value={confirmationText}
+            onChange={(e) => setConfirmationText(e.target.value)}
+            placeholder={`Digita "${confirmationWord}"`}
+            className="bg-background/50 border-input"
+          />
+        </div>
+        
+        <DialogFooter className="gap-2 mt-2">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="bg-[#2a2b3d] border-[#383a5c] text-white hover:bg-[#383a5c]"
           >
             Annulla
           </Button>
           <Button
             onClick={onConfirmDelete}
-            disabled={confirmationText !== project.name}
-            className="bg-red-500 hover:bg-red-600 text-white"
+            disabled={confirmationText.toLowerCase() !== confirmationWord}
+            variant="destructive"
           >
             Elimina Progetto
           </Button>
@@ -65,4 +73,3 @@ export function DeleteProjectDialog({
     </Dialog>
   );
 }
-
