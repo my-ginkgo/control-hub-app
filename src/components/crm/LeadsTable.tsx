@@ -134,11 +134,11 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
   const applyFilters = () => {
     let result = [...leads];
     
-    if (filters.status) {
+    if (filters.status && filters.status !== "_all") {
       result = result.filter(lead => lead.status === filters.status);
     }
     
-    if (filters.source) {
+    if (filters.source && filters.source !== "_all") {
       result = result.filter(lead => lead.source === filters.source);
     }
     

@@ -112,7 +112,7 @@ export const FilterPanel = ({ filterOptions, onFilterChange, className }: Filter
                         <SelectValue placeholder="Seleziona" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tutti</SelectItem>
+                        <SelectItem value="_all">Tutti</SelectItem>
                         {option.options?.map((opt) => (
                           <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                         ))}
@@ -188,6 +188,7 @@ export const FilterPanel = ({ filterOptions, onFilterChange, className }: Filter
         if (!option) return null;
         
         let displayValue = activeFilters[key];
+        if (displayValue === "_all") displayValue = "Tutti";
         if (option.type === 'date' && displayValue instanceof Date) {
           displayValue = format(displayValue, 'dd/MM/yyyy');
         }
