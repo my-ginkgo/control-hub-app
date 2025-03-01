@@ -14,16 +14,16 @@
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
     
-    --primary: 143 73% 42%;
+    --primary: 262 70% 75%;
     --primary-foreground: 0 0% 98%;
     
-    --secondary: 240 3.7% 15.9%;
+    --secondary: 262 27% 54%;
     --secondary-foreground: 0 0% 98%;
     
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
     
-    --accent: 143 73% 42%;
+    --accent: 262 60% 50%;
     --accent-foreground: 0 0% 98%;
     
     --destructive: 0 62.8% 30.6%;
@@ -46,16 +46,16 @@
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
     
-    --primary: 143 73% 42%;
+    --primary: 262 70% 75%;
     --primary-foreground: 0 0% 98%;
     
-    --secondary: 240 3.7% 15.9%;
+    --secondary: 262 27% 54%;
     --secondary-foreground: 0 0% 98%;
     
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
     
-    --accent: 143 73% 42%;
+    --accent: 262 60% 50%;
     --accent-foreground: 0 0% 98%;
     
     --destructive: 0 62.8% 30.6%;
@@ -98,4 +98,3 @@
 .card-gradient {
   @apply bg-gradient-to-br from-card to-secondary/80 backdrop-blur-sm;
 }
-

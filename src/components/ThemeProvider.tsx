@@ -24,10 +24,10 @@ type ThemeProviderState = {
 }
 
 const defaultColors: ThemeColors = {
-  primary: "#1DB954",    // Spotify Green
-  secondary: "#282828",  // Spotify Dark Gray
-  accent: "#1DB954",     // Spotify Green
-  background: "#121212", // Spotify Black
+  primary: "#9b87f5",    // Purple
+  secondary: "#7E69AB",  // Secondary Purple
+  accent: "#6E59A5",     // Darker Purple
+  background: "#1A1F2C", // Dark Background
 }
 
 const initialState: ThemeProviderState = {
@@ -91,4 +91,3 @@ export const useTheme = () => {
 
   return context
 }
-

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Lead } from '@/types/Lead';
@@ -63,7 +62,6 @@ export const LeadForm = ({ open, onOpenChange, lead, onLeadAdded }: LeadFormProp
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
   
-  // New fields
   const [linkedinUrl, setLinkedinUrl] = useState(lead?.linkedin_url || '');
   const [twitterUrl, setTwitterUrl] = useState(lead?.twitter_url || '');
   const [interests, setInterests] = useState(lead?.interests || '');
@@ -76,7 +74,6 @@ export const LeadForm = ({ open, onOpenChange, lead, onLeadAdded }: LeadFormProp
     if (open) {
       fetchCompanies();
       
-      // Pre-populate form when editing
       if (lead) {
         setFirstName(lead.first_name || '');
         setLastName(lead.last_name || '');
@@ -89,7 +86,6 @@ export const LeadForm = ({ open, onOpenChange, lead, onLeadAdded }: LeadFormProp
         setCompanyId(lead.company_id || '');
         setLastContactDate(lead.last_contact_date?.split('T')[0] || '');
         
-        // Set new fields
         setLinkedinUrl(lead.linkedin_url || '');
         setTwitterUrl(lead.twitter_url || '');
         setInterests(lead.interests || '');
@@ -145,7 +141,6 @@ export const LeadForm = ({ open, onOpenChange, lead, onLeadAdded }: LeadFormProp
       };
 
       if (lead?.id) {
-        // Update existing lead
         const { error } = await supabase
           .from('leads')
           .update(formData)
@@ -154,7 +149,6 @@ export const LeadForm = ({ open, onOpenChange, lead, onLeadAdded }: LeadFormProp
         if (error) throw error;
         toast.success('Lead updated successfully');
       } else {
-        // Add new lead
         const { error } = await supabase
           .from('leads')
           .insert(formData);
@@ -251,7 +245,7 @@ export const LeadForm = ({ open, onOpenChange, lead, onLeadAdded }: LeadFormProp
                     <SelectValue placeholder="Select company" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Company</SelectItem>
+                    <SelectItem value="none">No Company</SelectItem>
                     {companies.map(company => (
                       <SelectItem key={company.id} value={company.id}>
                         {company.name}
@@ -350,7 +344,7 @@ export const LeadForm = ({ open, onOpenChange, lead, onLeadAdded }: LeadFormProp
                     <SelectValue placeholder="Select preference" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Preference</SelectItem>
+                    <SelectItem value="default">No Preference</SelectItem>
                     {COMMUNICATION_OPTIONS.map(option => (
                       <SelectItem key={option} value={option}>
                         {option.charAt(0).toUpperCase() + option.slice(1)}

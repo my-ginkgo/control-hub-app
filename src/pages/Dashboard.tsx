@@ -24,9 +24,9 @@ const Dashboard = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Time Tracking Module Card */}
-              <Card className="shadow-md hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+              <Card className="shadow-md hover:shadow-lg transition-shadow border-secondary/30">
+                <CardHeader className="border-b border-secondary/20">
+                  <CardTitle className="flex items-center gap-2 text-primary">
                     <Clock className="h-5 w-5 text-primary" />
                     Time Tracking
                   </CardTitle>
@@ -34,25 +34,25 @@ const Dashboard = () => {
                     Track time for your projects, analyze productivity, and manage client work.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <div className="w-2 h-2 rounded-full bg-primary"></div>
                       <span>Manage clients and projects</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <div className="w-2 h-2 rounded-full bg-primary"></div>
                       <span>Log billable and non-billable hours</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <div className="w-2 h-2 rounded-full bg-primary"></div>
                       <span>Generate time reports and analytics</span>
                     </div>
                   </div>
                 </CardContent>
                 <CardFooter>
                   <Button asChild className="w-full">
-                    <Link to="/" className="flex items-center justify-center gap-2">
+                    <Link to="/tracking" className="flex items-center justify-center gap-2">
                       Go to Time Tracking
                       <ArrowRight className="h-4 w-4" />
                     </Link>
@@ -61,9 +61,9 @@ const Dashboard = () => {
               </Card>
               
               {/* CRM Module Card */}
-              <Card className="shadow-md hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+              <Card className="shadow-md hover:shadow-lg transition-shadow border-secondary/30">
+                <CardHeader className="border-b border-secondary/20">
+                  <CardTitle className="flex items-center gap-2 text-primary">
                     <BarChart3 className="h-5 w-5 text-primary" />
                     CRM
                   </CardTitle>
@@ -71,18 +71,18 @@ const Dashboard = () => {
                     Manage your leads and client relationships all in one place.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <div className="w-2 h-2 rounded-full bg-primary"></div>
                       <span>Track leads and opportunities</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <div className="w-2 h-2 rounded-full bg-primary"></div>
                       <span>Manage company information</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <div className="w-2 h-2 rounded-full bg-primary"></div>
                       <span>Monitor lead statuses and conversion</span>
                     </div>
                   </div>

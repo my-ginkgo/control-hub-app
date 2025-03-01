@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Moon, Plus, Sun, User, Clock, BarChart3, Home } from "lucide-react";
+import { Moon, Plus, Sun, User, Clock, BarChart3, Home, Layers } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { SidebarTrigger } from "../ui/sidebar";
 import { useTheme } from "../ThemeProvider";
@@ -41,18 +41,29 @@ export function MainLayout({ children, onNewClient, onNewProject, onNewTimeEntry
                 Dashboard
               </Link>
             </Button>
-            <Button variant="ghost" asChild className="gap-2">
-              <Link to="/tracking">
-                <Clock className="h-4 w-4" />
-                Tracking
-              </Link>
-            </Button>
-            <Button variant="ghost" asChild className="gap-2">
-              <Link to="/crm">
-                <BarChart3 className="h-4 w-4" />
-                CRM
-              </Link>
-            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="gap-2">
+                  <Layers className="h-4 w-4" />
+                  Modules
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-popover border-border">
+                <DropdownMenuItem asChild className="text-popover-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer">
+                  <Link to="/tracking">
+                    <Clock className="h-4 w-4 mr-2" />
+                    Tracking
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="text-popover-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer">
+                  <Link to="/crm">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    CRM
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
         <div className="flex items-center gap-4">
