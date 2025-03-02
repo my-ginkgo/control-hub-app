@@ -185,7 +185,7 @@ export function ProjectDashboard({ project, onBack }: ProjectDashboardProps) {
             <div className="mt-4">
               <Separator className="my-4 bg-gray-800" />
               <Link
-                to={`/administration/client/${client.id}`}
+                to={`/client/${client.id}`}
                 className="flex items-center text-sm text-gray-400 hover:text-white transition-colors">
                 <Building className="mr-2 h-4 w-4" />
                 Cliente: {client.name}

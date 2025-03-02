@@ -1,154 +1,159 @@
-import { useEffect, useState } from "react";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/components/AuthProvider";
-import { TimeEntryContainer } from "@/components/time-entry/TimeEntryContainer";
-import { Project } from "@/types/Project";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { TimeTable } from "@/components/TimeTable";
-import { TimeEntryData } from "@/components/TimeEntry";
-import { format, endOfMonth, startOfMonth } from "date-fns";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { SidebarProvider } from "@/components/ui/sidebar/context";
-import { toast } from "sonner";
 
-export default function Index() {
-  const { session } = useAuth();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+import { useAuth } from "@/components/AuthProvider";
+import { DashboardContainer } from "@/components/dashboard/DashboardContainer";
+import { MainLayout } from "@/components/layout/MainLayout";
+import { ProjectSidebar } from "@/components/ProjectSidebar";
+import { NewClientDialog } from "@/components/sidebar/NewClientDialog";
+import { NewProjectDialog } from "@/components/sidebar/NewProjectDialog";
+import { TimeEntryData } from "@/components/TimeEntry";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { supabase } from "@/integrations/supabase/client";
+import { Client } from "@/types/Client";
+import { Project } from "@/types/Project";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { ProjectContainer } from "@/components/project/ProjectContainer";
+import { TimeEntryContainer } from "@/components/time-entry/TimeEntryContainer";
+
+const Index = () => {
   const [timeEntries, setTimeEntries] = useState<TimeEntryData[]>([]);
-  const [startDate, setStartDate] = useState<Date>(startOfMonth(new Date()));
-  const [endDate, setEndDate] = useState<Date>(endOfMonth(new Date()));
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
+  const [isNewProjectDialogOpen, setIsNewProjectDialogOpen] = useState(false);
+  const [isTimeEntryDialogOpen, setIsTimeEntryDialogOpen] = useState(false);
+  const { session } = useAuth();
 
   useEffect(() => {
-    if (session) {
-      fetchProjects();
+    if (session?.user?.id) {
       fetchTimeEntries();
     }
-  }, [session]);
-
-  const fetchProjects = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("projects")
-        .select("*")
-        .order("name");
-
-      if (error) throw error;
-      
-      if (data) {
-        setProjects(data);
-      }
-    } catch (error: any) {
-      console.error("Error fetching projects:", error.message);
-      toast.error("Error fetching projects");
-    }
-  };
+  }, [session?.user?.id]);
 
   const fetchTimeEntries = async () => {
     try {
       const { data, error } = await supabase
         .from("time_entries")
-        .select(`
-          id,
-          hours,
-          billable_hours,
-          notes,
-          date,
-          start_date,
-          end_date,
-          assigned_user_id,
-          user_id,
-          projects(name)
-        `)
-        .order("date", { ascending: false })
-        .limit(10);
+        .select("*, projects!time_entries_project_id_fkey(name)")
+        .eq("user_id", session?.user?.id)
+        .order("date", { ascending: false });
 
       if (error) throw error;
 
-      if (data) {
-        const formattedEntries = data.map((entry) => ({
-          id: entry.id,
-          hours: Number(entry.hours),
-          billableHours: Number(entry.billable_hours),
-          notes: entry.notes,
-          date: entry.date,
-          project: entry.projects?.name || "Unknown Project",
-          startDate: entry.start_date,
-          endDate: entry.end_date,
-          assignedUserId: entry.assigned_user_id,
-          userId: entry.user_id,
-        }));
-        setTimeEntries(formattedEntries);
-      }
+      const formattedEntries = data.map((entry) => ({
+        id: entry.id,
+        hours: entry.hours,
+        billableHours: entry.billable_hours,
+        project: entry.projects?.name || "",
+        notes: entry.notes,
+        date: entry.date,
+        assignedUserId: entry.assigned_user_id,
+        userId: entry.user_id,
+        startDate: entry.start_date,
+        endDate: entry.end_date,
+      }));
+
+      setTimeEntries(formattedEntries);
     } catch (error: any) {
-      console.error("Error fetching time entries:", error.message);
-      toast.error("Error fetching time entries");
+      toast.error("Error fetching time entries: " + error.message);
     }
   };
 
-  const handleNewClient = () => {
-    toast.info("Create new client feature will be implemented soon");
+  const handleBackToDashboard = () => {
+    setSelectedProject(null);
+    setSelectedClient(null);
   };
 
-  const handleNewProject = () => {
-    toast.info("Create new project feature will be implemented soon");
-  };
+  const handleAddProject = async (project: Omit<Project, "id">) => {
+    try {
+      const { error } = await supabase.from("projects").insert({
+        name: project.name,
+        description: project.description,
+        color: project.color,
+        is_public: project.is_public,
+        user_id: session?.user?.id,
+      });
 
-  const handleNewTimeEntry = () => {
-    setIsDialogOpen(true);
+      if (error) throw error;
+      setProjects([]);
+      fetchTimeEntries();
+      toast.success("Progetto aggiunto con successo!");
+    } catch (error: any) {
+      toast.error("Error adding project: " + error.message);
+    }
   };
 
   return (
     <SidebarProvider>
-      <MainLayout 
-        onNewClient={handleNewClient}
-        onNewProject={handleNewProject}
-        onNewTimeEntry={handleNewTimeEntry}
-      >
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-white">Time Tracking</h1>
-            <Button 
-              onClick={() => setIsDialogOpen(true)}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Add Time Entry
-            </Button>
-          </div>
-
-          <div className="space-y-6">
-            <TimeEntryContainer 
-              projects={projects}
-              fetchTimeEntries={fetchTimeEntries}
-              selectedProject={null}
-              session={session}
-              isOpen={isDialogOpen}
-              onOpenChange={setIsDialogOpen}
+      <div className="min-h-screen flex w-full bg-[#141414] text-white dark:bg-[#141414] dark:text-white">
+        <ProjectSidebar
+          projects={projects}
+          onSelectProject={setSelectedProject}
+          selectedProject={selectedProject}
+          selectedClient={selectedClient}
+          onSelectClient={setSelectedClient}
+          onProjectDeleted={() => {
+            setProjects([]);
+            fetchTimeEntries();
+          }}
+          onProjectUpdated={() => {
+            setProjects([]);
+            fetchTimeEntries();
+          }}
+          onAddProject={handleAddProject}
+        />
+        <div className="flex-1 relative">
+          <MainLayout
+            onNewClient={() => setIsNewClientDialogOpen(true)}
+            onNewProject={() => setIsNewProjectDialogOpen(true)}
+            onNewTimeEntry={() => setIsTimeEntryDialogOpen(true)}>
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold mb-2 text-red-600">Time Tracking</h1>
+              <p className="text-gray-400">
+                Manage your projects, clients and track your work hours
+              </p>
+            </div>
+            <DashboardContainer
+              selectedProject={selectedProject}
+              selectedClient={selectedClient}
               timeEntries={timeEntries}
+              onBack={handleBackToDashboard}
             />
-
-            <Card className="bg-[#1a1b26] border-[#2a2b3d] text-white">
-              <CardHeader>
-                <CardTitle>Time Entries Overview</CardTitle>
-                <div className="text-sm text-gray-400">
-                  {format(startDate, "PP")} - {format(endDate, "PP")}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <TimeTable 
-                  entries={timeEntries} 
-                  onEntryDeleted={fetchTimeEntries}
-                  start={startDate}
-                  end={endDate}
-                />
-              </CardContent>
-            </Card>
-          </div>
+            <div className="my-6 md:my-8 space-y-6 md:space-y-8">
+              <TimeEntryContainer
+                projects={projects}
+                fetchTimeEntries={fetchTimeEntries}
+                selectedProject={selectedProject}
+                session={session}
+                isOpen={isTimeEntryDialogOpen}
+                onOpenChange={setIsTimeEntryDialogOpen}
+              />
+              <NewClientDialog
+                isOpen={isNewClientDialogOpen}
+                onOpenChange={setIsNewClientDialogOpen}
+                onClientAdded={() => {
+                  setProjects([]);
+                }}
+              />
+              <NewProjectDialog
+                isOpen={isNewProjectDialogOpen}
+                onOpenChange={setIsNewProjectDialogOpen}
+                clients={[]}
+                onProjectAdded={() => {
+                  setProjects([]);
+                }}
+              />
+            </div>
+          </MainLayout>
         </div>
-      </MainLayout>
+      </div>
+      <ProjectContainer
+        session={session}
+        onProjectsUpdate={setProjects}
+      />
     </SidebarProvider>
   );
-}
+};
+
+export default Index;

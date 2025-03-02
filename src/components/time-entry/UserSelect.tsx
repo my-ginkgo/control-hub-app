@@ -11,15 +11,11 @@ import { supabase } from "@/integrations/supabase/client";
 interface UserSelectProps {
   selectedUserId: string;
   onUserChange: (id: string) => void;
-  className?: string;
-  label?: string;
 }
 
 export function UserSelect({
   selectedUserId,
   onUserChange,
-  className,
-  label = "Utente Assegnato"
 }: UserSelectProps) {
   const [open, setOpen] = useState(false);
   const [users, setUsers] = useState<Array<{ id: string; email: string }>>([]);
@@ -46,13 +42,6 @@ export function UserSelect({
     fetchUsers();
   }, []);
 
-  // Initialize selectedUserId with current user if not set
-  useEffect(() => {
-    if (!selectedUserId && session?.user?.id) {
-      onUserChange(session.user.id);
-    }
-  }, [selectedUserId, session, onUserChange]);
-
   const filteredUsers = users.filter((user) =>
     user.email.toLowerCase().includes(userSearch.toLowerCase())
   );
@@ -62,7 +51,7 @@ export function UserSelect({
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium text-gray-200">
-        {label}
+        Utente Assegnato
       </label>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
@@ -70,10 +59,10 @@ export function UserSelect({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className={cn("w-full justify-between text-left font-normal bg-[#1a1b26] border-[#383a5c] text-white hover:bg-[#2a2b3d] h-10", className)}
+            className="w-full justify-between text-left font-normal bg-[#1a1b26] border-[#383a5c] text-white hover:bg-[#2a2b3d] h-10"
           >
             {selectedUserId
-              ? users.find((u) => u.id === selectedUserId)?.email || "Me"
+              ? users.find((u) => u.id === selectedUserId)?.email
               : "Seleziona un utente..."}
           </Button>
         </PopoverTrigger>
