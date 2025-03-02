@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Company } from '@/types/Company';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,6 +6,7 @@ import { toast } from 'sonner';
 import { Building, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FilterPanel, Filters, FilterOption } from './FilterPanel';
+import { TablePagination } from './TablePagination';
 
 interface CompaniesTableProps {
   onEdit: (company: Company) => void;
@@ -18,6 +18,11 @@ export const CompaniesTable = ({ onEdit, refresh = 0 }: CompaniesTableProps) => 
   const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<Filters>({});
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [paginatedCompanies, setPaginatedCompanies] = useState<Company[]>([]);
 
   // Define filter options
   const filterOptions: FilterOption[] = [
@@ -52,6 +57,13 @@ export const CompaniesTable = ({ onEdit, refresh = 0 }: CompaniesTableProps) => 
   useEffect(() => {
     applyFilters();
   }, [companies, filters]);
+
+  useEffect(() => {
+    // Apply pagination to filtered companies
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, filteredCompanies.length);
+    setPaginatedCompanies(filteredCompanies.slice(startIndex, endIndex));
+  }, [filteredCompanies, currentPage, itemsPerPage]);
 
   const fetchCompanies = async () => {
     try {
@@ -155,6 +167,15 @@ export const CompaniesTable = ({ onEdit, refresh = 0 }: CompaniesTableProps) => 
     }
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (items: number) => {
+    setItemsPerPage(items);
+    setCurrentPage(1); // Reset to first page when items per page changes
+  };
+
   if (loading) {
     return <div className="text-center py-4">Loading companies...</div>;
   }
@@ -183,7 +204,7 @@ export const CompaniesTable = ({ onEdit, refresh = 0 }: CompaniesTableProps) => 
               </tr>
             </thead>
             <tbody>
-              {filteredCompanies.length === 0 ? (
+              {paginatedCompanies.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">
                     {companies.length === 0 
@@ -192,7 +213,7 @@ export const CompaniesTable = ({ onEdit, refresh = 0 }: CompaniesTableProps) => 
                   </td>
                 </tr>
               ) : (
-                filteredCompanies.map((company) => (
+                paginatedCompanies.map((company) => (
                   <tr key={company.id} className="border-b hover:bg-muted/50">
                     <td className="px-4 py-2">
                       <EditableCell
@@ -277,6 +298,17 @@ export const CompaniesTable = ({ onEdit, refresh = 0 }: CompaniesTableProps) => 
             </tbody>
           </table>
         </div>
+        
+        {filteredCompanies.length > 0 && (
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(filteredCompanies.length / itemsPerPage)}
+            onPageChange={handlePageChange}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={handleItemsPerPageChange}
+            totalItems={filteredCompanies.length}
+          />
+        )}
       </div>
     </div>
   );

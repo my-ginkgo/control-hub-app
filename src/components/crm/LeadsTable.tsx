@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Lead } from '@/types/Lead';
 import { Company } from '@/types/Company';
@@ -11,6 +10,7 @@ import { LeadDetails } from './LeadDetails';
 import { LeadListItem } from './LeadListItem';
 import { LeadFilterControls } from './LeadFilterControls';
 import { EmptyLeadsState } from './EmptyLeadsState';
+import { TablePagination } from './TablePagination';
 
 interface LeadsTableProps {
   onEdit: (lead: Lead) => void;
@@ -26,8 +26,11 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
   const [expandedLeads, setExpandedLeads] = useState<Record<string, boolean>>({});
   const [filters, setFilters] = useState<Filters>({});
   const [allTags, setAllTags] = useState<string[]>([]);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [paginatedLeads, setPaginatedLeads] = useState<Lead[]>([]);
 
-  // Define options for selects
   const statusOptions = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'closed-won', 'closed-lost'];
   const sourceOptions = ['website', 'referral', 'social media', 'event', 'cold call', 'email campaign', 'other'];
   const communicationOptions = ['email', 'phone', 'in-person', 'video'];
@@ -79,6 +82,12 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
     applyFilters();
   }, [leads, filters]);
 
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, filteredLeads.length);
+    setPaginatedLeads(filteredLeads.slice(startIndex, endIndex));
+  }, [filteredLeads, currentPage, itemsPerPage]);
+
   const fetchLeads = async () => {
     try {
       setLoading(true);
@@ -126,7 +135,6 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
       setLeads(transformedLeads);
       setFilteredLeads(transformedLeads);
       
-      // Extract all unique tags for the filter options
       const uniqueTags = Array.from(
         new Set(
           transformedLeads
@@ -199,7 +207,6 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
       );
     }
     
-    // Filter by tags if selected
     if (filters.tags && filters.tags.length > 0) {
       result = result.filter(lead => 
         lead.tags && filters.tags.some((tag: string) => lead.tags?.includes(tag))
@@ -207,6 +214,7 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
     }
     
     setFilteredLeads(result);
+    setCurrentPage(1);
   };
 
   const updateLeadField = async (lead: Lead, field: string, value: any) => {
@@ -271,6 +279,15 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
     }));
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (items: number) => {
+    setItemsPerPage(items);
+    setCurrentPage(1);
+  };
+
   const companyOptions = companies.map(c => c.name);
 
   if (loading) {
@@ -301,10 +318,10 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredLeads.length === 0 ? (
+              {paginatedLeads.length === 0 ? (
                 <EmptyLeadsState hasLeads={leads.length > 0} />
               ) : (
-                filteredLeads.map((lead) => (
+                paginatedLeads.map((lead) => (
                   <React.Fragment key={lead.id}>
                     <LeadListItem 
                       lead={lead}
@@ -335,6 +352,17 @@ export const LeadsTable = ({ onEdit, refresh = 0 }: LeadsTableProps) => {
             </TableBody>
           </Table>
         </div>
+        
+        {filteredLeads.length > 0 && (
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(filteredLeads.length / itemsPerPage)}
+            onPageChange={handlePageChange}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={handleItemsPerPageChange}
+            totalItems={filteredLeads.length}
+          />
+        )}
       </div>
     </div>
   );
