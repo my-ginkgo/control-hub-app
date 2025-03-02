@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -48,7 +47,6 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setImportFile(e.target.files[0]);
-      // Reset previous results
       setImportResults([]);
       setPreviewData([]);
       setIsPreviewMode(false);
@@ -74,10 +72,8 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
         throw new Error('Il file non contiene dati validi.');
       }
       
-      // Parse the header row to get column names
       const headers = parseCSVRow(rows[0]);
       
-      // Preview just a few rows for performance
       const previewRows = rows.slice(1, Math.min(6, rows.length)).map(row => {
         const values = parseCSVRow(row);
         return headers.reduce((obj, header, index) => {
@@ -113,7 +109,6 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
       }
     }
     
-    // Add the last value
     values.push(currentValue);
     
     return values;
@@ -130,7 +125,6 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
     setProgress(0);
     
     try {
-      // Get current user ID
       const { data: userData, error: userError } = await supabase.auth.getUser();
       
       if (userError) {
@@ -148,10 +142,8 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
         throw new Error('Il file non contiene dati validi.');
       }
       
-      // Parse the header row to get column names
       const headers = parseCSVRow(rows[0]);
       
-      // Check for required columns
       const requiredColumns = ['firstName', 'lastName', 'uniqueLeadId'];
       const missingColumns = requiredColumns.filter(col => !headers.includes(col));
       
@@ -160,25 +152,22 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
       }
       
       const results: ImportResult[] = [];
-      const dataRows = rows.slice(1); // Skip header row
+      const dataRows = rows.slice(1);
       
       for (let i = 0; i < dataRows.length; i++) {
         try {
           const row = dataRows[i];
-          if (!row.trim()) continue; // Skip empty rows
+          if (!row.trim()) continue;
           
           const values = parseCSVRow(row);
           
-          // Map CSV data to lead object
           const leadData: any = headers.reduce((obj, header, index) => {
             let value = values[index] || '';
             
-            // Skip empty values
             if (value === '' || value.toLowerCase() === 'nan') {
               return obj;
             }
             
-            // Map LinkedIn data fields to our Lead model
             switch (header) {
               case 'firstName':
                 obj.first_name = value;
@@ -188,7 +177,6 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
                 break;
               case 'businessEmail':
               case 'email':
-                // Use businessEmail if available, otherwise use email
                 if (!obj.email || header === 'businessEmail') {
                   obj.email = value;
                 }
@@ -206,14 +194,12 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
                 obj.twitter_url = value;
                 break;
               case 'leadTags':
-                // Convert comma-separated tags to array
                 obj.tags = value.split(',').map((tag: string) => tag.trim());
                 break;
               case 'currentCompany':
-                obj.company_name = value; // Will handle company linking later
+                obj.company_name = value;
                 break;
               case '_status':
-                // Map LinkedIn status to our lead status
                 if (value.toLowerCase() === 'accepted') {
                   obj.status = 'contacted';
                 } else if (value.toLowerCase() === 'pending') {
@@ -225,7 +211,6 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
               case 'lastStepExecution':
                 if (value) {
                   try {
-                    // Parse date if possible
                     const date = new Date(value);
                     if (!isNaN(date.getTime())) {
                       obj.last_contact_date = date.toISOString();
@@ -239,7 +224,6 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
                 obj.notes = value;
                 break;
               case 'campaignName':
-                // Add campaign name to notes
                 obj.notes = obj.notes 
                   ? `${obj.notes}\n\nCampaign: ${value}`
                   : `Campaign: ${value}`;
@@ -249,39 +233,31 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
             return obj;
           }, {} as Record<string, any>);
           
-          // Add user_id 
           leadData.user_id = userData.user.id;
           
-          // Set lead score based on interaction state
           const acceptedConnection = values[headers.indexOf('isConnectionAcceptedDetected')]?.toLowerCase() === 'yes';
           if (acceptedConnection) {
-            leadData.lead_score = 70; // Higher score for accepted connections
+            leadData.lead_score = 70;
           } else {
-            leadData.lead_score = 30; // Lower score for pending/discovered
+            leadData.lead_score = 30;
           }
           
-          // Set source
           leadData.source = 'linkedin';
-          
-          // Set communication preference
           leadData.communication_preference = 'in-person';
           
-          // Check if this lead exists (using uniqueLeadId stored in notes)
           const uniqueLeadId = values[headers.indexOf('uniqueLeadId')];
           const { data: existingLeads } = await supabase
             .from('leads')
             .select('id, notes')
             .like('notes', `%LinkedIn ID: ${uniqueLeadId}%`);
           
-          // Add LinkedIn ID to notes
           leadData.notes = leadData.notes 
-            ? `${leadData.notes}\n\nLinkedIn ID: ${uniqueLeadId}` 
+            ? `${leadData.notes}\n\nLinkedIn ID: ${uniqueLeadId}`
             : `LinkedIn ID: ${uniqueLeadId}`;
           
           let result;
           
           if (existingLeads && existingLeads.length > 0) {
-            // Update existing lead
             const { error } = await supabase
               .from('leads')
               .update(leadData)
@@ -296,7 +272,6 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
               message: 'Lead aggiornato'
             };
           } else {
-            // Insert new lead
             const { error } = await supabase
               .from('leads')
               .insert(leadData);
@@ -315,16 +290,15 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
         } catch (error: any) {
           console.error('Error processing row:', error);
           
-          // Add error result
+          const currentValues = parseCSVRow(dataRows[i]);
           results.push({
-            firstName: values?.[headers.indexOf('firstName')] || 'Unknown',
-            lastName: values?.[headers.indexOf('lastName')] || 'Unknown',
+            firstName: currentValues[headers.indexOf('firstName')] || 'Unknown',
+            lastName: currentValues[headers.indexOf('lastName')] || 'Unknown',
             status: 'error',
             message: `Errore: ${error.message}`
           });
         }
         
-        // Update progress
         setProgress(Math.floor(((i + 1) / dataRows.length) * 100));
       }
       
@@ -351,7 +325,6 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
     if (!open) {
-      // Reset state when closing
       setImportFile(null);
       setImportResults([]);
       setProgress(0);
@@ -363,7 +336,7 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
   const renderPreview = () => {
     if (!previewData.length) return null;
     
-    const keys = Object.keys(previewData[0]).slice(0, 5); // Show only first 5 columns for preview
+    const keys = Object.keys(previewData[0]).slice(0, 5);
     
     return (
       <div className="mt-4 border rounded overflow-hidden">
