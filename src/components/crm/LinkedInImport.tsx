@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -19,19 +18,22 @@ import {
   Upload,
   FileSpreadsheet, 
   Linkedin, 
-  ArrowRight 
+  ArrowRight,
+  AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ImportResult {
   firstName: string;
   lastName: string;
   status: 'success' | 'error' | 'warning';
   message: string;
+  rowNumber?: number;
 }
 
 interface LinkedInImportProps {
@@ -44,7 +46,6 @@ interface ColumnMapping {
   leadField: string;
 }
 
-// Lead fields available for mapping
 const LEAD_FIELDS = [
   { value: 'first_name', label: 'Nome' },
   { value: 'last_name', label: 'Cognome' },
@@ -64,7 +65,6 @@ const LEAD_FIELDS = [
   { value: 'interests', label: 'Interessi' },
 ];
 
-// Default mapping for LinkedIn CSV
 const DEFAULT_LINKEDIN_MAPPING: ColumnMapping[] = [
   { csvColumn: 'firstName', leadField: 'first_name' },
   { csvColumn: 'lastName', leadField: 'last_name' },
@@ -91,6 +91,9 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('preview');
   const [columnMappings, setColumnMappings] = useState<ColumnMapping[]>([]);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [processedRows, setProcessedRows] = useState(0);
+  const [totalRows, setTotalRows] = useState(0);
 
   useEffect(() => {
     if (importFile) {
@@ -208,6 +211,8 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
     setIsLoading(true);
     setImportResults([]);
     setProgress(0);
+    setImportError(null);
+    setProcessedRows(0);
     
     try {
       const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -235,11 +240,15 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
       
       const results: ImportResult[] = [];
       const dataRows = rows.slice(1);
+      setTotalRows(dataRows.length);
       
       for (let i = 0; i < dataRows.length; i++) {
         try {
           const row = dataRows[i];
-          if (!row.trim()) continue;
+          if (!row.trim()) {
+            setProcessedRows(prev => prev + 1);
+            continue;
+          }
           
           const values = parseCSVRow(row);
           
@@ -335,7 +344,8 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
               firstName: leadData.first_name || 'Unknown',
               lastName: leadData.last_name || 'Unknown',
               status: 'warning' as const,
-              message: 'Lead aggiornato'
+              message: 'Lead aggiornato',
+              rowNumber: i + 1
             };
           } else {
             const { error } = await supabase
@@ -348,7 +358,8 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
               firstName: leadData.first_name || 'Unknown',
               lastName: leadData.last_name || 'Unknown',
               status: 'success' as const,
-              message: 'Lead inserito con successo'
+              message: 'Lead inserito con successo',
+              rowNumber: i + 1
             };
           }
           
@@ -364,10 +375,12 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
             firstName: firstNameIdx !== -1 ? currentValues[firstNameIdx] || 'Unknown' : 'Unknown',
             lastName: lastNameIdx !== -1 ? currentValues[lastNameIdx] || 'Unknown' : 'Unknown',
             status: 'error',
-            message: `Errore: ${error.message}`
+            message: `Errore: ${error.message}`,
+            rowNumber: i + 1
           });
         }
         
+        setProcessedRows(prev => prev + 1);
         setProgress(Math.floor(((i + 1) / dataRows.length) * 100));
       }
       
@@ -375,15 +388,20 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
       
       const successCount = results.filter(r => r.status === 'success').length;
       const updateCount = results.filter(r => r.status === 'warning').length;
+      const errorCount = results.filter(r => r.status === 'error').length;
       
       if (successCount > 0 || updateCount > 0) {
-        toast.success(`Importazione completata: ${successCount} nuovi lead, ${updateCount} aggiornati`);
+        toast.success(`Importazione completata: ${successCount} nuovi lead, ${updateCount} aggiornati, ${errorCount} errori`);
         onLeadsImported();
+      } else if (errorCount > 0) {
+        setImportError(`L'importazione ha riscontrato ${errorCount} errori. Controlla i dettagli sotto.`);
+        toast.error(`Importazione fallita: ${errorCount} errori`);
       } else {
         toast.error('Nessun lead importato con successo');
       }
     } catch (error: any) {
       console.error('Error importing leads:', error);
+      setImportError(`Errore durante l'importazione: ${error.message}`);
       toast.error(`Errore durante l'importazione: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -401,6 +419,9 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
       setIsPreviewMode(false);
       setActiveTab('preview');
       setColumnMappings([]);
+      setImportError(null);
+      setProcessedRows(0);
+      setTotalRows(0);
     }
   };
 
@@ -516,6 +537,7 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
                 accept=".csv"
                 onChange={handleFileChange}
                 className="col-span-3 bg-[#333333] border-none text-white"
+                disabled={isLoading}
               />
               <p className="text-xs text-gray-400">
                 Il file deve essere in formato CSV e contenere le colonne necessarie come uniqueLeadId, 
@@ -527,6 +549,7 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
               <Button 
                 onClick={previewCSV}
                 className="w-full bg-[#333333] hover:bg-[#4d4d4d] text-white border-none"
+                disabled={isLoading}
               >
                 {isLoading ? (
                   <>
@@ -577,7 +600,7 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
               <Button 
                 onClick={processCSV}
                 className="w-full bg-[#E50914] hover:bg-[#b2070f] text-white border-none"
-                disabled={columnMappings.length === 0}
+                disabled={columnMappings.length === 0 || isLoading}
               >
                 {isLoading ? (
                   <>
@@ -595,16 +618,43 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
 
             {isLoading && (
               <div className="space-y-2">
+                <div className="flex justify-between text-xs text-gray-400 mb-1">
+                  <span>Processando riga {processedRows} di {totalRows}</span>
+                  <span>{progress}%</span>
+                </div>
                 <Progress value={progress} className="h-2" />
-                <p className="text-xs text-center text-gray-400">
-                  {progress}% completato
-                </p>
               </div>
             )}
 
+            {importError && (
+              <Alert variant="destructive" className="bg-red-950 border-red-800 text-white">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Errore di importazione</AlertTitle>
+                <AlertDescription>
+                  {importError}
+                </AlertDescription>
+              </Alert>
+            )}
+
             {importResults.length > 0 && (
-              <div className="mt-4 max-h-[200px] overflow-y-auto border border-[#333333] rounded-md p-2">
-                <h3 className="font-medium mb-2 text-white">Risultati dell'importazione:</h3>
+              <div className="mt-4 max-h-[300px] overflow-y-auto border border-[#333333] rounded-md p-2">
+                <div className="flex justify-between mb-2">
+                  <h3 className="font-medium text-white">Risultati dell'importazione:</h3>
+                  <div className="flex gap-2 text-xs">
+                    <span className="flex items-center">
+                      <span className="h-2 w-2 rounded-full bg-green-500 mr-1"></span> 
+                      {importResults.filter(r => r.status === 'success').length} inseriti
+                    </span>
+                    <span className="flex items-center">
+                      <span className="h-2 w-2 rounded-full bg-yellow-500 mr-1"></span> 
+                      {importResults.filter(r => r.status === 'warning').length} aggiornati
+                    </span>
+                    <span className="flex items-center">
+                      <span className="h-2 w-2 rounded-full bg-red-500 mr-1"></span> 
+                      {importResults.filter(r => r.status === 'error').length} errori
+                    </span>
+                  </div>
+                </div>
                 <ScrollArea className="h-[200px]">
                   <ul className="space-y-2">
                     {importResults.map((result, index) => (
@@ -617,14 +667,15 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
                         }`}
                       >
                         {result.status === 'success' ? (
-                          <Check className="h-4 w-4 text-green-500" />
+                          <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
                         ) : result.status === 'warning' ? (
-                          <Check className="h-4 w-4 text-yellow-500" />
+                          <Check className="h-4 w-4 text-yellow-500 flex-shrink-0" />
                         ) : (
-                          <X className="h-4 w-4 text-red-500" />
+                          <X className="h-4 w-4 text-red-500 flex-shrink-0" />
                         )}
-                        <span>{result.firstName} {result.lastName}: </span>
-                        <span className="text-gray-400">{result.message}</span>
+                        <span className="flex-shrink-0">Riga {result.rowNumber}: </span>
+                        <span className="font-medium">{result.firstName} {result.lastName}</span>
+                        <span className="text-gray-400 truncate">{result.message}</span>
                       </li>
                     ))}
                   </ul>
@@ -639,6 +690,7 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
             variant="outline" 
             onClick={() => setIsOpen(false)}
             className="w-full sm:w-auto bg-[#333333] hover:bg-[#4d4d4d] text-white border-none"
+            disabled={isLoading}
           >
             Chiudi
           </Button>
