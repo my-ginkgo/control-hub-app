@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -425,37 +424,35 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
     
     return (
       <div className="mt-4 border rounded overflow-hidden">
-        <ScrollArea className="h-[200px]">
-          <div className="overflow-auto">
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="bg-muted/50">
+        <div className="overflow-x-auto max-h-[300px]">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-muted/50 sticky top-0 z-10">
+                {headers.map(header => (
+                  <th key={header} className="p-2 text-left font-medium border-b whitespace-nowrap">
+                    {header}
+                    {columnMappings.some(m => m.csvColumn === header) && (
+                      <div className="text-xs text-green-500 font-normal">
+                        ↳ {LEAD_FIELDS.find(f => f.value === getMappingForColumn(header))?.label || ''}
+                      </div>
+                    )}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {previewData.map((row, i) => (
+                <tr key={i} className="border-t">
                   {headers.map(header => (
-                    <th key={header} className="p-2 text-left font-medium border-b whitespace-nowrap">
-                      {header}
-                      {columnMappings.some(m => m.csvColumn === header) && (
-                        <div className="text-xs text-green-500 font-normal">
-                          ↳ {LEAD_FIELDS.find(f => f.value === getMappingForColumn(header))?.label || ''}
-                        </div>
-                      )}
-                    </th>
+                    <td key={`${i}-${header}`} className="p-2 border-b whitespace-nowrap max-w-[200px] truncate">
+                      {row[header]}
+                    </td>
                   ))}
                 </tr>
-              </thead>
-              <tbody>
-                {previewData.map((row, i) => (
-                  <tr key={i} className="border-t">
-                    {headers.map(header => (
-                      <td key={`${i}-${header}`} className="p-2 border-b whitespace-nowrap max-w-[200px] truncate">
-                        {row[header]}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </ScrollArea>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   };
