@@ -91,7 +91,6 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
   const [activeTab, setActiveTab] = useState<string>('preview');
   const [columnMappings, setColumnMappings] = useState<ColumnMapping[]>([]);
 
-  // Reset configurations when file changes
   useEffect(() => {
     if (importFile) {
       setColumnMappings([]);
@@ -142,7 +141,6 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
       
       setPreviewData(previewRows);
       
-      // Auto-populate mappings based on LinkedIn defaults
       const initialMappings: ColumnMapping[] = [];
       fileHeaders.forEach(header => {
         const defaultMapping = DEFAULT_LINKEDIN_MAPPING.find(m => m.csvColumn === header);
@@ -183,18 +181,13 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
     return values;
   };
 
-  // Update a specific column mapping
   const updateColumnMapping = (csvColumn: string, leadField: string) => {
     setColumnMappings(prevMappings => {
-      // Remove any existing mapping for this CSV column
       const filteredMappings = prevMappings.filter(m => m.csvColumn !== csvColumn);
-      
-      // Add the new mapping
       return [...filteredMappings, { csvColumn, leadField }];
     });
   };
 
-  // Check if a mapping exists for a column
   const getMappingForColumn = (csvColumn: string): string => {
     const mapping = columnMappings.find(m => m.csvColumn === csvColumn);
     return mapping ? mapping.leadField : '';
@@ -235,7 +228,6 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
       
       const fileHeaders = parseCSVRow(rows[0]);
       
-      // Ensure we have uniqueLeadId or some identifier
       if (!fileHeaders.includes('uniqueLeadId') && !fileHeaders.includes('profileUrl')) {
         throw new Error('Il file deve contenere un identificatore univoco (uniqueLeadId o profileUrl)');
       }
@@ -255,7 +247,6 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
             source: 'linkedin'
           };
           
-          // Apply custom mappings based on configuration
           columnMappings.forEach(mapping => {
             const columnIndex = fileHeaders.indexOf(mapping.csvColumn);
             if (columnIndex !== -1) {
@@ -297,14 +288,11 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
             }
           });
           
-          // Handle special fields not in standard mapping
           const uniqueLeadId = values[fileHeaders.indexOf('uniqueLeadId')] || 
                               values[fileHeaders.indexOf('profileUrl')] || '';
                               
-          // Check for accepted connection
-          const connectionColumnIndex = fileHeaders.indexOf('isConnectionAcceptedDetected');
-          if (connectionColumnIndex !== -1) {
-            const acceptedConnection = values[connectionColumnIndex]?.toLowerCase() === 'yes';
+          if (values[fileHeaders.indexOf('isConnectionAcceptedDetected')]) {
+            const acceptedConnection = values[fileHeaders.indexOf('isConnectionAcceptedDetected')].toLowerCase() === 'yes';
             if (acceptedConnection) {
               leadData.lead_score = 70;
             } else {
@@ -312,12 +300,10 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
             }
           }
           
-          // Add the LinkedIn ID to notes for tracking
           leadData.notes = leadData.notes 
             ? `${leadData.notes}\n\nLinkedIn ID: ${uniqueLeadId}`
             : `LinkedIn ID: ${uniqueLeadId}`;
           
-          // Add campaign name if available
           const campaignColumnIndex = fileHeaders.indexOf('campaignName');
           if (campaignColumnIndex !== -1 && values[campaignColumnIndex]) {
             leadData.notes = leadData.notes 
@@ -325,12 +311,10 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
               : `Campaign: ${values[campaignColumnIndex]}`;
           }
           
-          // Set default communication preference if not mapped
           if (!leadData.communication_preference) {
             leadData.communication_preference = 'in-person';
           }
           
-          // Check if lead already exists
           const { data: existingLeads } = await supabase
             .from('leads')
             .select('id, notes')
