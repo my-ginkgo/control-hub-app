@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -408,7 +409,7 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
     
     return (
       <div className="mt-4 border rounded overflow-hidden">
-        <div className="overflow-x-auto max-h-[300px]">
+        <div className="overflow-x-auto max-h-[300px] h-[300px]">
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="bg-muted/50 sticky top-0 z-10">
@@ -450,7 +451,7 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
           Configura la mappatura tra le colonne del CSV e i campi dell'anagrafica lead
         </p>
         
-        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+        <div className="space-y-3 max-h-[300px] h-[300px] overflow-y-auto pr-2">
           {headers.map(header => (
             <div key={header} className="flex items-center gap-2">
               <div className="w-1/3 text-sm font-medium truncate" title={header}>
