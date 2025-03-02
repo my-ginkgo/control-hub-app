@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,11 +18,14 @@ import {
   Loader2, 
   Upload,
   FileSpreadsheet, 
-  Linkedin 
+  Linkedin, 
+  ArrowRight 
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ImportResult {
   firstName: string;
@@ -35,6 +39,47 @@ interface LinkedInImportProps {
   triggerId?: string;
 }
 
+interface ColumnMapping {
+  csvColumn: string;
+  leadField: string;
+}
+
+// Lead fields available for mapping
+const LEAD_FIELDS = [
+  { value: 'first_name', label: 'Nome' },
+  { value: 'last_name', label: 'Cognome' },
+  { value: 'email', label: 'Email' },
+  { value: 'phone', label: 'Telefono' },
+  { value: 'job_title', label: 'Ruolo' },
+  { value: 'company_name', label: 'Azienda' },
+  { value: 'linkedin_url', label: 'URL LinkedIn' },
+  { value: 'twitter_url', label: 'URL Twitter' },
+  { value: 'notes', label: 'Note' },
+  { value: 'status', label: 'Stato' },
+  { value: 'source', label: 'Fonte' },
+  { value: 'lead_score', label: 'Score' },
+  { value: 'tags', label: 'Tag' },
+  { value: 'last_contact_date', label: 'Ultima Contatto' },
+  { value: 'communication_preference', label: 'Preferenza Comunicazione' },
+  { value: 'interests', label: 'Interessi' },
+];
+
+// Default mapping for LinkedIn CSV
+const DEFAULT_LINKEDIN_MAPPING: ColumnMapping[] = [
+  { csvColumn: 'firstName', leadField: 'first_name' },
+  { csvColumn: 'lastName', leadField: 'last_name' },
+  { csvColumn: 'businessEmail', leadField: 'email' },
+  { csvColumn: 'phone', leadField: 'phone' },
+  { csvColumn: 'occupation', leadField: 'job_title' },
+  { csvColumn: 'currentCompany', leadField: 'company_name' },
+  { csvColumn: 'profileUrl', leadField: 'linkedin_url' },
+  { csvColumn: 'twitter', leadField: 'twitter_url' },
+  { csvColumn: 'leadConversation', leadField: 'notes' },
+  { csvColumn: '_status', leadField: 'status' },
+  { csvColumn: 'leadTags', leadField: 'tags' },
+  { csvColumn: 'lastStepExecution', leadField: 'last_contact_date' },
+];
+
 export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +87,19 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
   const [importFile, setImportFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
   const [previewData, setPreviewData] = useState<any[]>([]);
+  const [headers, setHeaders] = useState<string[]>([]);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('preview');
+  const [columnMappings, setColumnMappings] = useState<ColumnMapping[]>([]);
+
+  // Reset configurations when file changes
+  useEffect(() => {
+    if (importFile) {
+      setColumnMappings([]);
+      setHeaders([]);
+      setPreviewData([]);
+    }
+  }, [importFile]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -50,6 +107,7 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
       setImportResults([]);
       setPreviewData([]);
       setIsPreviewMode(false);
+      setActiveTab('preview');
     } else {
       setImportFile(null);
     }
@@ -72,17 +130,29 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
         throw new Error('Il file non contiene dati validi.');
       }
       
-      const headers = parseCSVRow(rows[0]);
+      const fileHeaders = parseCSVRow(rows[0]);
+      setHeaders(fileHeaders);
       
       const previewRows = rows.slice(1, Math.min(6, rows.length)).map(row => {
         const values = parseCSVRow(row);
-        return headers.reduce((obj, header, index) => {
+        return fileHeaders.reduce((obj, header, index) => {
           obj[header] = values[index] || '';
           return obj;
         }, {} as Record<string, string>);
       });
       
       setPreviewData(previewRows);
+      
+      // Auto-populate mappings based on LinkedIn defaults
+      const initialMappings: ColumnMapping[] = [];
+      fileHeaders.forEach(header => {
+        const defaultMapping = DEFAULT_LINKEDIN_MAPPING.find(m => m.csvColumn === header);
+        if (defaultMapping) {
+          initialMappings.push(defaultMapping);
+        }
+      });
+      
+      setColumnMappings(initialMappings);
     } catch (error: any) {
       console.error('Error previewing CSV:', error);
       toast.error(`Errore durante l'anteprima: ${error.message}`);
@@ -114,9 +184,31 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
     return values;
   };
 
+  // Update a specific column mapping
+  const updateColumnMapping = (csvColumn: string, leadField: string) => {
+    setColumnMappings(prevMappings => {
+      // Remove any existing mapping for this CSV column
+      const filteredMappings = prevMappings.filter(m => m.csvColumn !== csvColumn);
+      
+      // Add the new mapping
+      return [...filteredMappings, { csvColumn, leadField }];
+    });
+  };
+
+  // Check if a mapping exists for a column
+  const getMappingForColumn = (csvColumn: string): string => {
+    const mapping = columnMappings.find(m => m.csvColumn === csvColumn);
+    return mapping ? mapping.leadField : '';
+  };
+
   const processCSV = async () => {
     if (!importFile) {
       toast.error('Seleziona un file da importare');
+      return;
+    }
+
+    if (columnMappings.length === 0) {
+      toast.error('Configura almeno una mappatura delle colonne prima di importare');
       return;
     }
 
@@ -142,13 +234,11 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
         throw new Error('Il file non contiene dati validi.');
       }
       
-      const headers = parseCSVRow(rows[0]);
+      const fileHeaders = parseCSVRow(rows[0]);
       
-      const requiredColumns = ['firstName', 'lastName', 'uniqueLeadId'];
-      const missingColumns = requiredColumns.filter(col => !headers.includes(col));
-      
-      if (missingColumns.length > 0) {
-        throw new Error(`Colonne obbligatorie mancanti: ${missingColumns.join(', ')}`);
+      // Ensure we have uniqueLeadId or some identifier
+      if (!fileHeaders.includes('uniqueLeadId') && !fileHeaders.includes('profileUrl')) {
+        throw new Error('Il file deve contenere un identificatore univoco (uniqueLeadId o profileUrl)');
       }
       
       const results: ImportResult[] = [];
@@ -161,99 +251,91 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
           
           const values = parseCSVRow(row);
           
-          const leadData: any = headers.reduce((obj, header, index) => {
-            let value = values[index] || '';
-            
-            if (value === '' || value.toLowerCase() === 'nan') {
-              return obj;
-            }
-            
-            switch (header) {
-              case 'firstName':
-                obj.first_name = value;
-                break;
-              case 'lastName':
-                obj.last_name = value;
-                break;
-              case 'businessEmail':
-              case 'email':
-                if (!obj.email || header === 'businessEmail') {
-                  obj.email = value;
-                }
-                break;
-              case 'phone':
-                obj.phone = value;
-                break;
-              case 'occupation':
-                obj.job_title = value;
-                break;
-              case 'profileUrl':
-                obj.linkedin_url = value;
-                break;
-              case 'twitter':
-                obj.twitter_url = value;
-                break;
-              case 'leadTags':
-                obj.tags = value.split(',').map((tag: string) => tag.trim());
-                break;
-              case 'currentCompany':
-                obj.company_name = value;
-                break;
-              case '_status':
-                if (value.toLowerCase() === 'accepted') {
-                  obj.status = 'contacted';
-                } else if (value.toLowerCase() === 'pending') {
-                  obj.status = 'new';
-                } else if (value.toLowerCase().includes('qualified')) {
-                  obj.status = 'qualified';
-                }
-                break;
-              case 'lastStepExecution':
-                if (value) {
-                  try {
-                    const date = new Date(value);
-                    if (!isNaN(date.getTime())) {
-                      obj.last_contact_date = date.toISOString();
-                    }
-                  } catch (e) {
-                    // Ignore date parsing errors
+          const leadData: any = {
+            user_id: userData.user.id,
+            source: 'linkedin'
+          };
+          
+          // Apply custom mappings based on configuration
+          columnMappings.forEach(mapping => {
+            const columnIndex = fileHeaders.indexOf(mapping.csvColumn);
+            if (columnIndex !== -1) {
+              let value = values[columnIndex] || '';
+              
+              if (value === '' || value.toLowerCase() === 'nan') {
+                return;
+              }
+              
+              switch (mapping.leadField) {
+                case 'tags':
+                  leadData.tags = value.split(',').map((tag: string) => tag.trim());
+                  break;
+                case 'status':
+                  if (value.toLowerCase() === 'accepted') {
+                    leadData.status = 'contacted';
+                  } else if (value.toLowerCase() === 'pending') {
+                    leadData.status = 'new';
+                  } else if (value.toLowerCase().includes('qualified')) {
+                    leadData.status = 'qualified';
                   }
-                }
-                break;
-              case 'leadConversation':
-                obj.notes = value;
-                break;
-              case 'campaignName':
-                obj.notes = obj.notes 
-                  ? `${obj.notes}\n\nCampaign: ${value}`
-                  : `Campaign: ${value}`;
-                break;
+                  break;
+                case 'last_contact_date':
+                  if (value) {
+                    try {
+                      const date = new Date(value);
+                      if (!isNaN(date.getTime())) {
+                        leadData.last_contact_date = date.toISOString();
+                      }
+                    } catch (e) {
+                      // Ignore date parsing errors
+                    }
+                  }
+                  break;
+                default:
+                  leadData[mapping.leadField] = value;
+                  break;
+              }
             }
-            
-            return obj;
-          }, {} as Record<string, any>);
+          });
           
-          leadData.user_id = userData.user.id;
-          
-          const acceptedConnection = values[headers.indexOf('isConnectionAcceptedDetected')]?.toLowerCase() === 'yes';
-          if (acceptedConnection) {
-            leadData.lead_score = 70;
-          } else {
-            leadData.lead_score = 30;
+          // Handle special fields not in standard mapping
+          const uniqueLeadId = values[fileHeaders.indexOf('uniqueLeadId')] || 
+                              values[fileHeaders.indexOf('profileUrl')] || '';
+                              
+          // Check for accepted connection
+          const connectionColumnIndex = fileHeaders.indexOf('isConnectionAcceptedDetected');
+          if (connectionColumnIndex !== -1) {
+            const acceptedConnection = values[connectionColumnIndex]?.toLowerCase() === 'yes';
+            if (acceptedConnection) {
+              leadData.lead_score = 70;
+            } else {
+              leadData.lead_score = 30;
+            }
           }
           
-          leadData.source = 'linkedin';
-          leadData.communication_preference = 'in-person';
+          // Add the LinkedIn ID to notes for tracking
+          leadData.notes = leadData.notes 
+            ? `${leadData.notes}\n\nLinkedIn ID: ${uniqueLeadId}`
+            : `LinkedIn ID: ${uniqueLeadId}`;
           
-          const uniqueLeadId = values[headers.indexOf('uniqueLeadId')];
+          // Add campaign name if available
+          const campaignColumnIndex = fileHeaders.indexOf('campaignName');
+          if (campaignColumnIndex !== -1 && values[campaignColumnIndex]) {
+            leadData.notes = leadData.notes 
+              ? `${leadData.notes}\n\nCampaign: ${values[campaignColumnIndex]}`
+              : `Campaign: ${values[campaignColumnIndex]}`;
+          }
+          
+          // Set default communication preference if not mapped
+          if (!leadData.communication_preference) {
+            leadData.communication_preference = 'in-person';
+          }
+          
+          // Check if lead already exists
           const { data: existingLeads } = await supabase
             .from('leads')
             .select('id, notes')
             .like('notes', `%LinkedIn ID: ${uniqueLeadId}%`);
-          
-          leadData.notes = leadData.notes 
-            ? `${leadData.notes}\n\nLinkedIn ID: ${uniqueLeadId}`
-            : `LinkedIn ID: ${uniqueLeadId}`;
           
           let result;
           
@@ -266,8 +348,8 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
             if (error) throw error;
             
             result = {
-              firstName: leadData.first_name,
-              lastName: leadData.last_name,
+              firstName: leadData.first_name || 'Unknown',
+              lastName: leadData.last_name || 'Unknown',
               status: 'warning' as const,
               message: 'Lead aggiornato'
             };
@@ -279,8 +361,8 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
             if (error) throw error;
             
             result = {
-              firstName: leadData.first_name,
-              lastName: leadData.last_name,
+              firstName: leadData.first_name || 'Unknown',
+              lastName: leadData.last_name || 'Unknown',
               status: 'success' as const,
               message: 'Lead inserito con successo'
             };
@@ -291,9 +373,12 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
           console.error('Error processing row:', error);
           
           const currentValues = parseCSVRow(dataRows[i]);
+          const firstNameIdx = fileHeaders.indexOf('firstName');
+          const lastNameIdx = fileHeaders.indexOf('lastName');
+          
           results.push({
-            firstName: currentValues[headers.indexOf('firstName')] || 'Unknown',
-            lastName: currentValues[headers.indexOf('lastName')] || 'Unknown',
+            firstName: firstNameIdx !== -1 ? currentValues[firstNameIdx] || 'Unknown' : 'Unknown',
+            lastName: lastNameIdx !== -1 ? currentValues[lastNameIdx] || 'Unknown' : 'Unknown',
             status: 'error',
             message: `Errore: ${error.message}`
           });
@@ -330,38 +415,90 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
       setProgress(0);
       setPreviewData([]);
       setIsPreviewMode(false);
+      setActiveTab('preview');
+      setColumnMappings([]);
     }
   };
 
   const renderPreview = () => {
     if (!previewData.length) return null;
     
-    const keys = Object.keys(previewData[0]).slice(0, 5);
-    
     return (
       <div className="mt-4 border rounded overflow-hidden">
         <ScrollArea className="h-[200px]">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-muted/50">
-                {keys.map(key => (
-                  <th key={key} className="p-2 text-left font-medium">{key}</th>
-                ))}
-                <th className="p-2 text-left font-medium">...</th>
-              </tr>
-            </thead>
-            <tbody>
-              {previewData.map((row, i) => (
-                <tr key={i} className="border-t">
-                  {keys.map(key => (
-                    <td key={key} className="p-2 truncate max-w-[200px]">{row[key]}</td>
+          <div className="overflow-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-muted/50">
+                  {headers.map(header => (
+                    <th key={header} className="p-2 text-left font-medium border-b whitespace-nowrap">
+                      {header}
+                      {columnMappings.some(m => m.csvColumn === header) && (
+                        <div className="text-xs text-green-500 font-normal">
+                          ↳ {LEAD_FIELDS.find(f => f.value === getMappingForColumn(header))?.label || ''}
+                        </div>
+                      )}
+                    </th>
                   ))}
-                  <td className="p-2">...</td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {previewData.map((row, i) => (
+                  <tr key={i} className="border-t">
+                    {headers.map(header => (
+                      <td key={`${i}-${header}`} className="p-2 border-b whitespace-nowrap max-w-[200px] truncate">
+                        {row[header]}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </ScrollArea>
+      </div>
+    );
+  };
+
+  const renderMapping = () => {
+    if (!headers.length) return null;
+    
+    return (
+      <div className="space-y-4">
+        <p className="text-sm text-gray-400">
+          Configura la mappatura tra le colonne del CSV e i campi dell'anagrafica lead
+        </p>
+        
+        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+          {headers.map(header => (
+            <div key={header} className="flex items-center gap-2">
+              <div className="w-1/3 text-sm font-medium truncate" title={header}>
+                {header}
+              </div>
+              
+              <ArrowRight className="h-4 w-4 text-gray-400" />
+              
+              <div className="flex-1">
+                <Select
+                  value={getMappingForColumn(header)}
+                  onValueChange={(value) => updateColumnMapping(header, value)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Seleziona campo lead" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Non mappare</SelectItem>
+                    {LEAD_FIELDS.map(field => (
+                      <SelectItem key={field.value} value={field.value}>
+                        {field.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
@@ -377,7 +514,7 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
           <Linkedin className="h-5 w-5" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] bg-[#141414] border border-[#333333] text-white">
+      <DialogContent className="sm:max-w-[700px] bg-[#141414] border border-[#333333] text-white">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl text-white">
             <Linkedin className="h-5 w-5" /> 
@@ -417,18 +554,48 @@ export const LinkedInImport = ({ onLeadsImported, triggerId }: LinkedInImportPro
                 ) : (
                   <>
                     <FileSpreadsheet className="mr-2 h-4 w-4" />
-                    Anteprima File
+                    Analizza File
                   </>
                 )}
               </Button>
             )}
 
-            {renderPreview()}
+            {isPreviewMode && !importResults.length && (
+              <Tabs 
+                value={activeTab} 
+                onValueChange={setActiveTab} 
+                className="w-full"
+              >
+                <TabsList className="grid w-full grid-cols-2 bg-[#333333] text-gray-400">
+                  <TabsTrigger 
+                    value="preview" 
+                    className="data-[state=active]:bg-[#4d4d4d] data-[state=active]:text-white"
+                  >
+                    Anteprima Dati
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="mapping" 
+                    className="data-[state=active]:bg-[#4d4d4d] data-[state=active]:text-white"
+                  >
+                    Configurazione Mappatura
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="preview" className="pt-4">
+                  {renderPreview()}
+                </TabsContent>
+                
+                <TabsContent value="mapping" className="pt-4">
+                  {renderMapping()}
+                </TabsContent>
+              </Tabs>
+            )}
 
             {isPreviewMode && !importResults.length && (
               <Button 
                 onClick={processCSV}
                 className="w-full bg-[#E50914] hover:bg-[#b2070f] text-white border-none"
+                disabled={columnMappings.length === 0}
               >
                 {isLoading ? (
                   <>
