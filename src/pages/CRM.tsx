@@ -6,10 +6,11 @@ import { LeadsTable } from '@/components/crm/LeadsTable';
 import { LeadForm } from '@/components/crm/LeadForm';
 import { CompanyForm } from '@/components/crm/CompanyForm';
 import { DataImportExport } from '@/components/crm/DataImportExport';
+import { LinkedInImport } from '@/components/crm/LinkedInImport';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Building, FileSpreadsheet, Plus, Users } from 'lucide-react';
+import { Building, FileSpreadsheet, Linkedin, Plus, Users } from 'lucide-react';
 import { Lead } from '@/types/Lead';
 import { Company } from '@/types/Company';
 
@@ -103,6 +104,19 @@ const CRM = () => {
                 </TabsList>
                 
                 <div className="flex space-x-2">
+                  {activeTab === 'leads' && (
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        document.getElementById('linkedin-import-trigger')?.click();
+                      }}
+                      className="bg-[#333333] border-none hover:bg-[#4d4d4d]"
+                      title="Import from LinkedIn Sales Navigator"
+                    >
+                      <Linkedin className="h-5 w-5" />
+                    </Button>
+                  )}
+                  
                   <Button 
                     variant="outline"
                     onClick={() => {
@@ -135,6 +149,10 @@ const CRM = () => {
                   type="leads" 
                   onDataImported={refreshLeads}
                   triggerId="import-export-trigger-leads"
+                />
+                <LinkedInImport 
+                  onLeadsImported={refreshLeads}
+                  triggerId="linkedin-import-trigger"
                 />
               </TabsContent>
               
